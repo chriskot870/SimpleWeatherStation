@@ -1,0 +1,5 @@
+#
+# This contains the list of directories to not put in
+# git repository
+#
+build

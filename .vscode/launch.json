@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // See https://code.visualstudio.com/docs/cpp/launch-json-reference
+            "name": "RPI Zero Debug",
+            "cwd": "${workspaceRoot}",
+            "request": "launch",
+            "program" : "${workspaceRoot}/build/WeatherStation",
+            // Use cppdbg when using gdb
+            "type" : "cppdbg",
+            "MIMode": "gdb",
+            "miDebuggerPath" : "/usr/bin/gdb-multiarch",
+            "miDebuggerArgs" : "",
+            "miDebuggerServerAddress" : "192.168.50.200:4711",
+            //"debugServerPath" : "/usr/bin/gdbserver",
+            //"debugServerArgs" : "",
+            "targetArchitecture": "arm64",
+            "stopAtEntry": false,
+            "preLaunchTask": "StartGDBServer",
+            "postDebugTask": "StopGDBServer"
+        }
+    ]
+}
