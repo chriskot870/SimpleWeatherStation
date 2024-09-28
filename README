@@ -1,0 +1,2 @@
+This is a simple weather work station that uses the
+sht45 and lps22hb i2c devices.
