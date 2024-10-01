@@ -9,7 +9,7 @@
             "name": "RPI Zero Debug",
             "cwd": "${workspaceRoot}",
             "request": "launch",
-            "program" : "${workspaceRoot}/build/WeatherStation",
+            "program" : "${workspaceRoot}/build/src/WeatherStation",
             // Use cppdbg when using gdb
             "type" : "cppdbg",
             "MIMode": "gdb",

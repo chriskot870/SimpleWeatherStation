@@ -6,6 +6,10 @@
 #
 set(EXECUTABLE_NAME ${CMAKE_PROJECT_NAME})
 
+#
+# Add the executable to be built and the local files used
+# to build the executable
+#
 add_executable(${EXECUTABLE_NAME}
                main.cpp
 )

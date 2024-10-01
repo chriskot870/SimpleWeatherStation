@@ -12,7 +12,6 @@
 # doesn't exist. We need to redirst stderr so the error for
 # missing file doesn't get treated like the cksum value.
 #
-
 target_executable_cksum=`ssh $target_user@$target_ip "cksum $target_command 2>/dev/null" | awk '{print($1)}'`
 build_executable_cksum=`cksum $build_command 2>/dev/null | awk '{print($1)}'`
     

@@ -19,10 +19,13 @@ uint8_t I2cSht4x::deviceAddress() {
     return kSht4xI2cAddress;
 }
 
-bool I2cSht4x::getSerialNumber(Sht4xSerialNumber_t *serial_number) {
+bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
     int32_t retval;
     int i2c_bus;
     uint8_t command = kSht4xCommandReadSerialNumber;
+    uint8_t read_buffer[kSht4xSerialReturnLength] = {kSht4xCommandReadSerialNumber,0,0,0,0,0};
+    struct i2c_msg fetch_serial_com;
+    struct i2c_rdwr_ioctl_data xfer;
 
    /*
     * The serial number shouldn't change so we only have to get it once.
@@ -31,66 +34,103 @@ bool I2cSht4x::getSerialNumber(Sht4xSerialNumber_t *serial_number) {
     * So, read it now.
     */
 
-    for( auto i : serial_number_) {
-        if ( i != 0) {
-            memcpy(serial_number, serial_number_, sizeof(Sht4xSerialNumber_t));
-            return true;
-        }
+    if ( serial_number_ != 0) {
+        *serial_number = serial_number_;
+        return true;
     }
 
     /*
      * If I get here then I need to fetch the serial number
      */
     i2c_bus = open("/dev/i2c-1", O_RDWR);
-    if ( i2c_bus != 0) {
+    if ( i2c_bus < 0) {
         return false;
     }
 
     /*
-     * Select the slave address
+     * Write the serial number command to the address
      */
-    if (ioctl(i2c_bus, I2C_SLAVE, kSht4xI2cAddress)) {
+    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.flags = 0;
+    fetch_serial_com.len = kSht4xCommandLength;
+    fetch_serial_com.buf = &command;
+
+    xfer.msgs = &fetch_serial_com;
+    xfer.nmsgs = 1;
+
+    retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+    if (retval < 0) {
         close(i2c_bus);
         return false;
     }
 
-    i2c_smbus_read_i2c_block_data(i2c_bus, kSht4xCommandReset,sizeof(Sht4xSerialNumber_t),  serial_number_);
+    /*
+     * I seem to need a delay here
+     */
+    sleep(1);
+    /*
+     * Perform the read to get the serial number
+     */
+    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.flags = I2C_M_RD;
+    fetch_serial_com.len = kSht4xSerialReturnLength;
+    fetch_serial_com.buf = read_buffer;
+
+    retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+    if (retval < 0) {
+        close(i2c_bus);
+        return false;
+    }
+    sleep(1);
+
+    /*
+     * We need figure out how to check the CRC's
+     */
+    uint32_t serial_number_ = (read_buffer[0] << 24) +
+                            (read_buffer[1] << 16) +
+                            (read_buffer[3] << 8) +
+                            read_buffer[4];
 
     close(i2c_bus);
 
-    memcpy(serial_number, serial_number_, sizeof(Sht4xSerialNumber_t));
+    *serial_number = serial_number_;
 
     return true;
 }
-
-void I2cSht4x::softReset() {
+bool I2cSht4x::softReset() {
     int32_t retval;
     int i2c_bus;
+    uint8_t command = kSht4xCommandReset;
+    struct i2c_msg fetch_serial_com;
+    struct i2c_rdwr_ioctl_data xfer;
 
     /*
      * If I get here then I need to fetch the serial number
      */
     i2c_bus = open("/dev/i2c-1", O_RDWR);
-    if ( i2c_bus != 0) {
-        return;
+    if ( i2c_bus < 0) {
+        return false;
     }
 
-    /*
-     * Select the slave address
-     */
-    if (ioctl(i2c_bus, I2C_SLAVE, kSht4xI2cAddress)) {
+    
+    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.flags = 0;
+    fetch_serial_com.len = kSht4xCommandLength;
+    fetch_serial_com.buf = &command;
+
+    xfer.msgs = &fetch_serial_com;
+    xfer.nmsgs = 1;
+
+    retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+    if (retval != 1) {
         close(i2c_bus);
-        return;
+        return false;
     }
-
-    /*
-     * Send the reset command
-     */
-    retval = i2c_smbus_write_quick(i2c_bus, kSht4xCommandReset);
-
+    sleep(1);
+    
     close(i2c_bus);
 
-    return;
+    return true;
 }
 
 float I2cSht4x::getTemperature(TemperatureUnit_t unit) {
@@ -156,41 +196,53 @@ float I2cSht4x::getRelativeHumidity() {
 void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     int retval;
     int i2c_bus;
-    uint8_t command;
     uint8_t measurement[] = {0, 0, 0, 0, 0, 0};
-
-    command = sht3x_measurement_command_map[mode];
+    struct i2c_msg fetch_serial_com;
+    struct i2c_rdwr_ioctl_data xfer;
+    uint8_t command = sht3x_measurement_command_map[mode];
+    uint8_t read_buffer[] = {0,0,0,0,0,0};
 
     i2c_bus = open("/dev/i2c-1", O_RDWR);
-    if ( i2c_bus != 0) {
+    if ( i2c_bus < 0) {
         return;
     }
 
     /*
-     * Select the slave address
+     * Write the command to get a measurement
      */
-    if (ioctl(i2c_bus, I2C_SLAVE, kSht4xI2cAddress)) {
-        close(i2c_bus);
+    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.flags = 0;  /* Do a write */
+    fetch_serial_com.len = kSht4xCommandLength;
+    fetch_serial_com.buf = &command;
+
+    xfer.msgs = &fetch_serial_com;
+    xfer.nmsgs = 1;
+
+    retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+    if (retval < 0) {
         return;
     }
-    i2c_smbus_read_i2c_block_data(i2c_bus, command, sizeof(measurement), measurement);
+    sleep(1);
+    /*
+     * Perform the read to get the measurement
+     */
+    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.flags = I2C_M_RD;
+    fetch_serial_com.len = kSht4xSerialReturnLength;
+    fetch_serial_com.buf = read_buffer;
+
+    retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+    if (retval < 0) {
+        return;
+    }
+    sleep(1);
+    close(i2c_bus);
 
     /*
-     * One read returns both the temperature and the relative humidity
-     * So, we have to break out each value and store them in the private variables
+     * We need figure out how to check the CRC's
      */
-    /*
-    short *temp_ptr, temp;
-    temp_ptr = (short *)&measurement[3];
-    temp = *temp_ptr;
-    */
-    temperature_measurement_ = (measurement[kSht4xDataTemperatureMsbOffset] << 8) | measurement[kSht4xDataTemperatureLsbOffset];
-    /*
-    short *hum_ptr, hum;
-    hum_ptr = (short *)&measurement[0];
-    hum = *hum_ptr;
-     */
-    relative_humidity_measurement_ = (measurement[kSht4xDataRelativeHumidityMsbOffset] << 8) | measurement[kSht4xDataRelativeHumidityLsbOffset];
+    temperature_measurement_ = (read_buffer[0] << 8) + read_buffer[1];
+    relative_humidity_measurement_ = (read_buffer[3] << 8) + read_buffer[4];
 
     last_read_ = std::chrono::steady_clock::now();
 
@@ -213,6 +265,9 @@ bool I2cSht4x::measurementExpired() {
     */
 
    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_read_);
+
+    /* For now just return true */
+    return true;
 
     if (elapsed_time > measurement_time_) {
         return true;

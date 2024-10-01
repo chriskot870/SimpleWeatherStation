@@ -7,6 +7,8 @@
 #include <fstream>
 #include <unistd.h>
 
+#include "sht4x.h"
+
 using namespace std;
 
 constexpr char sht4x_path[] = "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2";
@@ -19,8 +21,27 @@ int main() {
     string humidity;
     float ctemp, hum, ftemp;
 
+    
+    I2cSht4x sht4x;
+    uint32_t serial_number;
+
+    sht4x.softReset();
+    if (sht4x.getSerialNumber(&serial_number) == false) {
+        printf("Getting Serial Number failed\n");
+        exit(1);
+    }
+    printf("Serial Number: 0x%x\n", serial_number);
+
+    ctemp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
+    hum = sht4x.getRelativeHumidity();
+
     cout << "Starting" << endl;
     while(true) {
+        ctemp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
+        hum = sht4x.getRelativeHumidity();
+        printf("Raw Temperature Centigrade: %5.2f\n", ctemp);
+        printf("Raw Temperature Fahrenheit: %5.2f\n", TemperatureConversion::celsiusToFahrenheit(ctemp));
+        printf("Raw Relative Humidity: %5.2f\n", hum);
     	tempfh.open(string(sht4x_temperature_path), fstream::in);
     	if (tempfh.is_open()) {
             getline(tempfh, temperature);

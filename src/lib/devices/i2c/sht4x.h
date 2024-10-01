@@ -4,12 +4,16 @@
  *
  */
 
-#ifndef LIB_DEVICES_I2C_SHT4X_I2C_H
-#define LIB_DEVICES_I2C_SHT4X_I2C_H
+#ifndef SRC_LIB_DEVICES_I2C_SHT4X_I2C_H
+#define SRC_LIB_DEVICES_I2C_SHT4X_I2C_H
 
 #include <stdio.h>
+#include <errno.h>
 #include <map>
 #include <atomic>
+#include <chrono>
+#include <expected>
+
 #include "temperature_interface.h"
 #include "relative_humidity_interface.h"
 
@@ -24,7 +28,7 @@ constexpr uint8_t kSht4xI2cAddress = 0x44;
  * Commands
  */
 constexpr uint8_t kSht4xCommandLength = 1;
-constexpr uint8_t kSht4xSerialLength = 6;
+constexpr uint8_t kSht4xSerialReturnLength = 6;
 constexpr uint8_t kSht4xResetLength = 1;
 constexpr uint8_t kSht4xReadDataLength = 6;
 constexpr uint8_t kSht4xDataTemperatureMsbOffset = 0;
@@ -82,12 +86,6 @@ const uint8_t sht3x_measurement_command_map[] = {
     kSht4xCommandActivateHtr20mwTenthSecond
 };
 
-/*
- * All commands except RESET returns 6 bytes.
- */
-
-typedef uint8_t Sht4xSerialNumber_t[kSht4xSerialLength];
-
 class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
  public:
 
@@ -95,9 +93,9 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
     void init();
 
-    bool getSerialNumber(Sht4xSerialNumber_t *serial_number);
+    bool getSerialNumber(uint32_t *serial_number);
 
-    void softReset();
+    bool softReset();
 
     float getTemperature(TemperatureUnit_t unit);
 
@@ -112,7 +110,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
    std::chrono::time_point<std::chrono::steady_clock> last_read_ = std::chrono::time_point<std::chrono::steady_clock>::min();
    std::atomic<int> temperature_measurement_;
    std::atomic<int> relative_humidity_measurement_;
-   Sht4xSerialNumber_t serial_number_ = {0, 0, 0, 0, 0, 0};
+   uint32_t serial_number_ = 0;
 
    void getMeasurement(Sht4xMeasurmentMode mode);
 
@@ -120,4 +118,4 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
 };
 
-#endif // LIB_DEVICES_I2C_SHT4X_I2C_H
+#endif // SRC_LIB_DEVICES_I2C_SHT4X_I2C_H
