@@ -33,7 +33,7 @@ int main() {
         printf("Getting Serial Number failed\n");
         exit(1);
     }
-    printf("Serial Number: 0x%x\n", serial_number);
+    printf("Serial Number: %d\n", serial_number);
 
     ctemp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
     hum = sht4x.getRelativeHumidity();

@@ -213,6 +213,9 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     uint8_t command = sht3x_measurement_command_map[mode];
     uint8_t read_buffer[] = {0,0,0,0,0,0};
 
+    /* Increment the counter that monitors how often this routine gets called*/
+    measure_count_++;  
+
     i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
     if ( i2c_bus < 0) {
         return;
@@ -276,18 +279,18 @@ bool I2cSht4x::measurementExpired() {
      * Make the zero check early so if it is true we don't need to bother calling
      * any functions to get the current time.
      */
-    /*
-    if (time_of_measurement_ms_ == 0) {
+
+    if (measure_count_ == 0) {
         return true;
     }
-    */
+   std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 
-   auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_read_);
+   auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_read_);
 
-    /* For now just return true */
-    return true;
+   auto count = time_diff.count();
+   auto mcount = measurement_time_.count();
 
-    if (elapsed_time > measurement_time_) {
+    if (time_diff > measurement_time_) {
         return true;
     }
 

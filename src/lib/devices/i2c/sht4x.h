@@ -27,6 +27,8 @@ using timeslice = std::chrono::duration<int, std::ratio<1,1000>>;
 constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
 constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
 
+constexpr int kSht4xI2cRepeatCommandIntervalMs = 1000;  /* The number of msecs that a reading is good */
+
 /*
  * Commands
  */
@@ -141,9 +143,10 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
     void setMeasurementInterval(timeslice interval);
 
  private:
+   uint64_t measure_count_= 0;
    uint8_t slave_address_;
    std::string i2cbus_name_;
-   timeslice measurement_time_{1000};  /* One second between measurements */
+   timeslice measurement_time_{kSht4xI2cRepeatCommandIntervalMs};  /* One second between measurements */
    std::chrono::time_point<std::chrono::steady_clock> last_read_ = std::chrono::time_point<std::chrono::steady_clock>::min();
    std::atomic<int> temperature_measurement_;
    std::atomic<int> relative_humidity_measurement_;
