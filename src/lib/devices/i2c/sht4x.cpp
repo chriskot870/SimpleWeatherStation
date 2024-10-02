@@ -14,16 +14,20 @@
 
 #include "sht4x.h"
 
+I2cSht4x::I2cSht4x(std::string i2cbus_name, uint8_t slave_address) :
+    i2cbus_name_(i2cbus_name),
+    slave_address_(slave_address) { }
+
 uint8_t I2cSht4x::deviceAddress() {
 
-    return kSht4xI2cAddress;
+    return slave_address_;
 }
 
 bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
     int32_t retval;
     int i2c_bus;
     uint8_t command = kSht4xCommandReadSerialNumber;
-    uint8_t read_buffer[kSht4xSerialReturnLength] = {kSht4xCommandReadSerialNumber,0,0,0,0,0};
+    uint8_t read_buffer[kSht4xSerialReturnLength] = {0,0,0,0,0,0};
     struct i2c_msg fetch_serial_com;
     struct i2c_rdwr_ioctl_data xfer;
 
@@ -42,7 +46,7 @@ bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
     /*
      * If I get here then I need to fetch the serial number
      */
-    i2c_bus = open("/dev/i2c-1", O_RDWR);
+    i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
     if ( i2c_bus < 0) {
         return false;
     }
@@ -50,7 +54,7 @@ bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
     /*
      * Write the serial number command to the address
      */
-    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.addr = slave_address_;
     fetch_serial_com.flags = 0;
     fetch_serial_com.len = kSht4xCommandLength;
     fetch_serial_com.buf = &command;
@@ -65,13 +69,13 @@ bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
     }
 
     /*
-     * I seem to need a delay here
+     * I seem to need a delay here so use the high reliability time
      */
-    sleep(1);
+    usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
     /*
      * Perform the read to get the serial number
      */
-    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.addr = slave_address_;
     fetch_serial_com.flags = I2C_M_RD;
     fetch_serial_com.len = kSht4xSerialReturnLength;
     fetch_serial_com.buf = read_buffer;
@@ -81,7 +85,11 @@ bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
         close(i2c_bus);
         return false;
     }
-    sleep(1);
+    /*
+     * I am not sure I need this extra or not.
+     * This could be just tpu value but for now give me plenty of delay
+     */
+    usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
     /*
      * We need figure out how to check the CRC's
@@ -107,13 +115,13 @@ bool I2cSht4x::softReset() {
     /*
      * If I get here then I need to fetch the serial number
      */
-    i2c_bus = open("/dev/i2c-1", O_RDWR);
+    i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
     if ( i2c_bus < 0) {
         return false;
     }
 
     
-    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.addr = slave_address_;
     fetch_serial_com.flags = 0;
     fetch_serial_com.len = kSht4xCommandLength;
     fetch_serial_com.buf = &command;
@@ -126,8 +134,11 @@ bool I2cSht4x::softReset() {
         close(i2c_bus);
         return false;
     }
-    sleep(1);
-    
+    /*
+     * Give it time to do the reset
+     */
+    usleep(shtx_max_timings[SHT4X_TIMING_SOFT_RESET]);
+
     close(i2c_bus);
 
     return true;
@@ -202,7 +213,7 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     uint8_t command = sht3x_measurement_command_map[mode];
     uint8_t read_buffer[] = {0,0,0,0,0,0};
 
-    i2c_bus = open("/dev/i2c-1", O_RDWR);
+    i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
     if ( i2c_bus < 0) {
         return;
     }
@@ -210,7 +221,7 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     /*
      * Write the command to get a measurement
      */
-    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.addr = slave_address_;
     fetch_serial_com.flags = 0;  /* Do a write */
     fetch_serial_com.len = kSht4xCommandLength;
     fetch_serial_com.buf = &command;
@@ -222,11 +233,14 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     if (retval < 0) {
         return;
     }
-    sleep(1);
+    /*
+     * Give it time to make the measurement
+     */
+    usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
     /*
      * Perform the read to get the measurement
      */
-    fetch_serial_com.addr = kSht4xI2cAddress;
+    fetch_serial_com.addr = slave_address_;
     fetch_serial_com.flags = I2C_M_RD;
     fetch_serial_com.len = kSht4xSerialReturnLength;
     fetch_serial_com.buf = read_buffer;
@@ -235,7 +249,11 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     if (retval < 0) {
         return;
     }
-    sleep(1);
+    /*
+     * I am not sure I need this extra or not.
+     * This could be just tpu value but for now give me plenty of delay
+     */
+    usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
     close(i2c_bus);
 
     /*

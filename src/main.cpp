@@ -21,8 +21,11 @@ int main() {
     string humidity;
     float ctemp, hum, ftemp;
 
-    
-    I2cSht4x sht4x;
+    /*
+     * The sht4x device is connected to I2c bus 1 at the primary address
+     */
+    I2cSht4x sht4x("/dev/i2c-1", kSht4xI2cPrimaryAddress);
+
     uint32_t serial_number;
 
     sht4x.softReset();

@@ -9,10 +9,12 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <unistd.h>
 #include <map>
 #include <atomic>
 #include <chrono>
 #include <expected>
+#include <string>
 
 #include "temperature_interface.h"
 #include "relative_humidity_interface.h"
@@ -22,7 +24,8 @@ using timeslice = std::chrono::duration<int, std::ratio<1,1000>>;
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
  */
-constexpr uint8_t kSht4xI2cAddress = 0x44;
+constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
+constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
 
 /*
  * Commands
@@ -86,8 +89,40 @@ const uint8_t sht3x_measurement_command_map[] = {
     kSht4xCommandActivateHtr20mwTenthSecond
 };
 
+/*
+ * These are delay times from when a command is given to when it completes.
+ * See section 3.1 of the Datasheet.
+ */
+typedef enum {
+    SHT4X_TIMING_SOFT_RESET,
+    SHT4X_TIMING_MEASUREMENT_LOW_REPEATABILITY,
+    SHT4X_TIMING_MEASUREMENT_MED_REPEATABILITY,
+    SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY,
+    SHT4X_TIMING_HEATER_DURATION_LONG,
+    SHT4X_TIMING_HEATER_DURATION_SHORT,
+} Sht4xMaxTimings;
+
+/*
+ * These are in microseonds
+ */
+const int shtx_max_timings[] = {
+    1000,  /* tpu 1 millisecond */
+    /*
+     * For the next 3 the table says including tpu. I take that
+     * to mean I should add the value above, tpu, to these values
+     * in the table. I may have that wrong though.
+     */
+    1600 + 1000,  /* 1.6 millisecond  + tpu = 2.6 milliseconds*/
+    4500 + 1000,  /* 4.5 milliseconds + tpu = 5.5 milliseconds */
+    8300 + 1000,  /* 8.3 milliseconds + tpu = 9.3 milliseconds */
+    1100000,  /* 1.1 seconds */
+    110000  /* 0.11 seconds */
+};
+
 class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
  public:
+
+    I2cSht4x(std::string i2cbus_name, uint8_t slave_address);
 
     uint8_t deviceAddress();
 
@@ -106,6 +141,8 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
     void setMeasurementInterval(timeslice interval);
 
  private:
+   uint8_t slave_address_;
+   std::string i2cbus_name_;
    timeslice measurement_time_{1000};  /* One second between measurements */
    std::chrono::time_point<std::chrono::steady_clock> last_read_ = std::chrono::time_point<std::chrono::steady_clock>::min();
    std::atomic<int> temperature_measurement_;
