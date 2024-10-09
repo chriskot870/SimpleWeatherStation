@@ -5,9 +5,9 @@
  */
 
 typedef enum {
-  PRESSURE_UNIT_hPa,  // hundrerd Pascals
-  PRESSURE_UNIT_Pa,   // Pascals
-  PRESSURE_UNIT_PSI,  // Pounds Per Square Inch
+  PRESSURE_UNIT_hPa,            // hundrerd Pascals
+  PRESSURE_UNIT_Pa,             // Pascals
+  PRESSURE_UNIT_PSI,            // Pounds Per Square Inch
   PRESSURE_UNIT_INCHES_MERCURY  // Inches of Mercury
 } PressureUnit_t;
 
@@ -17,90 +17,88 @@ constexpr float PressurePascalsPerInchesMercury = 3386.39;
 
 class PressureConversion {
  public:
-    static float PaTohPa(float pa) {
-        float hPa;
+  static float PaTohPa(float pa) {
+    float hPa;
 
-        hPa = pa/PressurePascalsPerhPa;
+    hPa = pa / PressurePascalsPerhPa;
 
-        return hPa;
-    }
+    return hPa;
+  }
 
-    static float PaToPsi(float pa) {
-        float psi;
+  static float PaToPsi(float pa) {
+    float psi;
 
-        psi = pa/PressurePascalsPerPsi;
+    psi = pa / PressurePascalsPerPsi;
 
-        return psi;
-    }
+    return psi;
+  }
 
-   static float hPaToPa(float hpa) {
-        float pa;
+  static float hPaToPa(float hpa) {
+    float pa;
 
-        pa = hpa * PressurePascalsPerhPa;
+    pa = hpa * PressurePascalsPerhPa;
 
-        return pa;
-    }
+    return pa;
+  }
 
-    static float hPaToPsi(float hpa) {
-        float psi;
+  static float hPaToPsi(float hpa) {
+    float psi;
 
-        psi = PaToPsi(hPaToPa(hpa));
+    psi = PaToPsi(hPaToPa(hpa));
 
-        return psi;
-    }
+    return psi;
+  }
 
-    static float PsiToPa(float psi) {
-        float pa;
+  static float PsiToPa(float psi) {
+    float pa;
 
-        pa = psi  * PressurePascalsPerPsi;
+    pa = psi * PressurePascalsPerPsi;
 
-        return pa;
-    }
+    return pa;
+  }
 
-    static float PsiTohPa(float psi) {
-        float hpa;
+  static float PsiTohPa(float psi) {
+    float hpa;
 
-        hpa = PaTohPa(PsiToPa(psi));
+    hpa = PaTohPa(PsiToPa(psi));
 
-        return hpa;
-    }
+    return hpa;
+  }
 
-    static float PaTohInchesMercury(float pa) {
-        float inches;
+  static float PaTohInchesMercury(float pa) {
+    float inches;
 
-        inches = pa/PressurePascalsPerInchesMercury;
+    inches = pa / PressurePascalsPerInchesMercury;
 
-        return inches;
-    }
+    return inches;
+  }
 
-    static float hPaTohInchesMercury(float hpa) {
-        float inches;
+  static float hPaTohInchesMercury(float hpa) {
+    float inches;
 
-        inches = PaTohInchesMercury(hPaToPa(hpa));
+    inches = PaTohInchesMercury(hPaToPa(hpa));
 
-        return inches;
-    }
+    return inches;
+  }
 
-    static float InchesMercuryTohPa(float inches) {
-        float hpa;
+  static float InchesMercuryTohPa(float inches) {
+    float hpa;
 
-        inches = PaTohPa(inches*PressurePascalsPerInchesMercury) ;
+    inches = PaTohPa(inches * PressurePascalsPerInchesMercury);
 
-        return inches;
-    }
+    return inches;
+  }
 };
 
 class BarometricPressureInterface {
  public:
-
   /*
    * The Barometric Pressure
    */
 
   virtual float getBarometricPressure(PressureUnit_t unit) = 0;
 
-  virtual ~BarometricPressureInterface() { }
-
+  virtual ~BarometricPressureInterface() {}
 };
 
-#endif // LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H
+#endif  // LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H

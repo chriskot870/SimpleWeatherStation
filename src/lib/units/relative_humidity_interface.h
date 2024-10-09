@@ -6,15 +6,13 @@
 
 class RelativeHumidityInterface {
  public:
-
   /*
    * The Relative Humidity in percent
    */
 
   virtual float getRelativeHumidity() = 0;
 
-  virtual ~RelativeHumidityInterface() { }
-
+  virtual ~RelativeHumidityInterface() {}
 };
 
-#endif // LIB_UNITS_RELATIVE_HUMIDITY_INTERFACE_H
+#endif  // LIB_UNITS_RELATIVE_HUMIDITY_INTERFACE_H

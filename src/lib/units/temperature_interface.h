@@ -15,11 +15,10 @@ typedef enum {
  */
 class TemperatureConversion {
  public:
-
   static float celsiusToFahrenheit(float celsius) {
     float fahrenheit;
 
-    fahrenheit = ((celsius*9)/5) + 32;
+    fahrenheit = ((celsius * 9) / 5) + 32;
 
     return fahrenheit;
   }
@@ -32,10 +31,10 @@ class TemperatureConversion {
     return kelvin;
   }
 
- static float fahrenheitToCelsius(float fahrenheit) {
+  static float fahrenheitToCelsius(float fahrenheit) {
     float celsius;
 
-    celsius = ((fahrenheit - 32)*5)/9;
+    celsius = ((fahrenheit - 32) * 5) / 9;
 
     return celsius;
   }
@@ -63,19 +62,17 @@ class TemperatureConversion {
 
     return fahrenheit;
   }
-
 };
 
 class TemperatureInterface {
  public:
-
   /*
    * The Temperature
    */
 
   virtual float getTemperature(TemperatureUnit_t temperature_unit) = 0;
 
-  virtual ~TemperatureInterface() { }
+  virtual ~TemperatureInterface() {}
 };
 
-#endif // LIB_UNITS_TEMPERATURE_H
+#endif  // LIB_UNITS_TEMPERATURE_H
