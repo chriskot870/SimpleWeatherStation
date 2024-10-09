@@ -21,14 +21,17 @@ int main() {
     string temperature;
     string humidity;
     float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
+    string time_string;
+    
+    
 
     Lps22 lps22("/dev/i2c-1", kLps22hbI2cAddress);
 
     lps22.init();
 
-    ctemp = lps22.getTemperature(TEMPERATURE_UNIT_CELSIUS);
-
-    pressure = lps22.getBarometricPressure(PRESSURE_UNIT_INCHES_MERCURY);
+    uint8_t whoami;
+    whoami = lps22.whoami();
+    printf("LPS22HB who am I Value: 0x%x\n", whoami);
 
     /*
      * The sht4x device is connected to I2c bus 1 at the primary address
@@ -39,16 +42,17 @@ int main() {
 
     sht4x.softReset();
     if (sht4x.getSerialNumber(&serial_number) == false) {
-        printf("Getting Serial Number failed\n");
+        printf("Getting SHT44 Serial Number failed\n");
         exit(1);
     }
     printf("SHT44 Serial Number: %d\n", serial_number);
 
-    ctemp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
-    hum = sht4x.getRelativeHumidity();
-
     cout << "Starting" << endl;
     while(true) {
+        auto now_time = std::chrono::system_clock::now();
+        auto cur_time = std::chrono::system_clock::to_time_t(now_time);
+        std::cout << "Date: " << std::ctime(&cur_time);
+
         sht44temp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
         hum = sht4x.getRelativeHumidity();
         printf("SHT44 Raw Temperature Centigrade: %5.2f\n", sht44temp);
@@ -61,27 +65,6 @@ int main() {
         printf("LPS22 Raw Temperature Fahrenheit: %5.2f\n", TemperatureConversion::celsiusToFahrenheit(lps22temp));
         printf("LPS22 Raw Barometric Pressure: %5.2f\n", pressure);
 
-
-    	tempfh.open(string(sht4x_temperature_path), fstream::in);
-    	if (tempfh.is_open()) {
-            getline(tempfh, temperature);
-            ctemp = atof(&temperature[0])/1000;
-            ftemp = ((9*ctemp)/5)+32;
-            printf("%5.2fF %5.2fC\n", ftemp, ctemp);
-            tempfh.close();
-        } else {
-            cout << "sht4x temperature unavailable\n";
-        }
-
-        humidityfh.open(string(sht4x_humidity_path), fstream::in);
-        if (humidityfh.is_open()) {
-            getline(humidityfh, humidity);
-            hum = atof(&humidity[0])/1000;
-            printf("%5.2f%%\n", hum);
-            humidityfh.close();
-        } else {
-            cout << "sht4x humidity unavailable\n";
-        }
         cout << endl;
         sleep(10);
     }

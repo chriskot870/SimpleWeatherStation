@@ -27,6 +27,13 @@ uint8_t Lps22::deviceAddress() {
 
     return kLps22hbI2cAddress;
 }
+uint8_t Lps22::whoami() {
+    uint8_t who_am_i;
+
+    who_am_i = getRegister(kLps22hbWhoAmI);
+
+    return who_am_i;
+}
 
 bool Lps22::init() {
     int retval;
@@ -38,7 +45,7 @@ bool Lps22::init() {
     /*
      * Make sure this is the correct device at the expected I2C address
      */
-    who_am_i = getRegister(kLps22hbWhoAmI);
+    who_am_i = whoami();
     if (who_am_i != kLps22hbWhoAmIValue) {
         printf("Who am is wrong %x\n", who_am_i);
         return false;
@@ -61,36 +68,13 @@ bool Lps22::init() {
     } while ((control_2 & kLps22hbCtrlReg2SwResetMask) == kLps22hbCtrlReg2SwResetMask);
 
     /*
-     * Enable Block Data Update so we cana transfer multiple registers in one request.
+     * Set to the default value
      */
-    control_1 = getRegister(kLps22hbCtrlReg1);
-    control_1 |= kLps22hbCtrlReg1BduMask;
+    control_1 = kLps22hbCtrlReg1Default;
     setRegister(kLps22hbCtrlReg1, control_1);
 
-    /*
-     * Set the data rate to Power down
-     */
-    control_1 = getRegister(kLps22hbCtrlReg1);
-    // clear out the ODR bits
-    control_1 &= ~(kLps22hbCtrlReg1OdrMask << kLps22hbCtrlReg1OdrShift);
-    // Set Power down mode
-    control_1 |= LPS22HB_CTRL_REG_1_ODR_POWER_DOWN << kLps22hbCtrlReg1OdrShift;
-    setRegister(kLps22hbCtrlReg1, control_1);
-
-    /*
-     * The data sheet says that IF_ADD_INC should be zero when not using the FIFO's
-     */
-    control_2 = getRegister(kLps22hbCtrlReg2);
-    control_2 &= ~kLps22hbCtrlReg2IfAddIncMask;
+    control_2 = kLps22hbCtrlReg2Default;
     setRegister(kLps22hbCtrlReg2, control_2);
-
-    control_1 = 0xff;
-    control_2 = 0xff;
-    /*
-     * Just a debug thing to make sure the registers got changed as expected
-     */
-    control_1 = getRegister(kLps22hbCtrlReg1);
-    control_2 = getRegister(kLps22hbCtrlReg2);
 
     return true;
 }
@@ -127,9 +111,11 @@ void Lps22::getMeasurement() {
         data_available = getRegister(kLps22hbStatus);
         if ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
             kLps22hbStatusTemperatureDataAvailableMask) {
-            templ = getRegister(kLps22hbTempOutL);
-            temph = getRegister(kLps22hbTempOutH);
-            temperature_measurement_ = (temph << 8) | temph;
+            getRegisters(kLps22hbTempOutL, buffer, 2);
+            temperature_measurement_ = ((buffer[1] & 0x7F) << 8) | buffer[0];
+            if ((buffer[1] & 0x80) == 0x80) {
+                temperature_measurement_ *= -1;
+            }
             break;
         }
         usleep(10000);
@@ -139,10 +125,11 @@ void Lps22::getMeasurement() {
         data_available = getRegister(kLps22hbStatus);
         if ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
             kLps22hbStatusPressureDataAvailableMask) {
-            pressxl = getRegister(kLps22hbPressureOutXl);
-            pressl = getRegister(kLps22hbPressureOutL);
-            pressh = getRegister(kLps22hbPressureOutH);
-            pressure_measurement_ = ((pressh & 0x80) << 24) | ((pressh & 0x7f) << 16) | pressl << 8 | pressxl;
+            getRegisters(kLps22hbPressureOutXl, buffer, 3);
+            pressure_measurement_ = ((buffer[2] & 0x7f) << 16) | buffer[1] << 8 | buffer[0];
+            if ((buffer[2] & 0x80) == 0x80) {
+                pressure_measurement_ *= -1;
+            }
             break;
         }
         usleep(10000);

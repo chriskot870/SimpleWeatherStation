@@ -66,6 +66,7 @@ constexpr uint8_t kLps22hbResConfMaskLcEn = 0x1;
 /*
  * Control Register 1 Info
  */
+constexpr uint8_t kLps22hbCtrlReg1Default = 0x0;  // THe default is all values 0
 // Single bit flags
 constexpr uint8_t kLps22hbCtrlReg1SimMask = 0x01;
 constexpr uint8_t kLps22hbCtrlReg1BduMask = 0x02;
@@ -89,6 +90,7 @@ typedef enum {
 /*
  * Control Register 2 Info
  */
+constexpr uint8_t kLps22hbCtrlReg2Default = 0x10;
 // Single bit flags
 constexpr uint8_t kLps22hbCtrlReg2OneShotMask = 0x01;
 constexpr uint8_t kLps22hbCtrlReg2SwResetMask = 0x04;
@@ -99,8 +101,9 @@ constexpr uint8_t kLps22hbCtrlReg2FifoEnMask = 0x40;
 constexpr uint8_t kLps22hbCtrlReg2BootMask = 0x80;
 
 /*
- * Control Register 3 Info
+ * Control Register 3 
  */
+constexpr uint8_t kLps22hbCtrlReg3Default = 0x00;
 // Single bit flags
 constexpr uint8_t kLps22hbCtrlReg3DrdyMask = 0x04;
 constexpr uint8_t kLps22hbCtrlReg3FOvrMask = 0x08;
@@ -157,6 +160,8 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
     uint8_t deviceAddress();
 
     bool init();
+
+    uint8_t whoami();
 
     void getMeasurement();
 
