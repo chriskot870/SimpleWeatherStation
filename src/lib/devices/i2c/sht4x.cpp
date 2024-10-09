@@ -105,6 +105,7 @@ bool I2cSht4x::getSerialNumber(uint32_t *serial_number) {
 
     return true;
 }
+
 bool I2cSht4x::softReset() {
     int32_t retval;
     int i2c_bus;
@@ -166,14 +167,21 @@ float I2cSht4x::getTemperature(TemperatureUnit_t unit) {
     return temperature;
 }
 
-timeslice I2cSht4x::getMeasurementInterval() {
+std::chrono::milliseconds I2cSht4x::getMeasurementInterval() {
 
-    return measurement_time_;
+    return measurement_interval_;
 }
 
-void I2cSht4x::setMeasurementInterval(timeslice interval) {
+void I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
 
-    measurement_time_ = interval;
+    /*
+     * If the request is for less than the minimum interval allowed make it the minimum
+     */
+    if ( interval < kMinimumMeasurementInterval ) {
+        measurement_interval_ = kMinimumMeasurementInterval;
+    } else {
+        measurement_interval_ = interval;
+    }
 
     return;
 }
@@ -252,12 +260,13 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     if (retval < 0) {
         return;
     }
+    close(i2c_bus);
+    
     /*
      * I am not sure I need this extra or not.
      * This could be just tpu value but for now give me plenty of delay
      */
     usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
-    close(i2c_bus);
 
     /*
      * We need figure out how to check the CRC's
@@ -274,10 +283,6 @@ bool I2cSht4x::measurementExpired() {
 
     /*
      * check if the current measurement has expired
-     * If time of measurement is zero then no measurement has been
-     * taken so count it as expired.
-     * Make the zero check early so if it is true we don't need to bother calling
-     * any functions to get the current time.
      */
 
     if (measure_count_ == 0) {
@@ -287,10 +292,7 @@ bool I2cSht4x::measurementExpired() {
 
    auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_read_);
 
-   auto count = time_diff.count();
-   auto mcount = measurement_time_.count();
-
-    if (time_diff > measurement_time_) {
+    if (time_diff > measurement_interval_) {
         return true;
     }
 

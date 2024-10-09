@@ -7,18 +7,30 @@
 . cmake/gdbserver.config
 
 #
-# We need to copy the executable over to the target so that
-# gdbserver can access it. The cksum will be empty if the file
-# doesn't exist. We need to redirst stderr so the error for
-# missing file doesn't get treated like the cksum value.
+# Make sure the executable got built
 #
-target_executable_cksum=`ssh $target_user@$target_ip "cksum $target_command 2>/dev/null" | awk '{print($1)}'`
 build_executable_cksum=`cksum $build_command 2>/dev/null | awk '{print($1)}'`
     
 if [ -z  $build_executable_cksum ]
 then
     echo No build executable to debug
     exit 1
+fi
+
+#
+# We need to copy the executable over to the target so that
+# gdbserver can access it. We check if the files exists on the
+# target. If it does then we get the checksum. Otherwise, we
+# set the checksum to zero so it won't match the newly built
+# executable. That will force a copy.
+#
+ssh $target_user@$target_ip test -f $target_command
+if [ $? -eq 0 ]
+then
+   echo Getting target cksum
+   target_executable_cksum=`ssh $target_user@$target_ip "cksum $target_command 2>/dev/null" | awk '{print($1)}'`
+else
+  target_executable_cksum="0"
 fi
 
 #

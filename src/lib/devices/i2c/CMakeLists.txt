@@ -5,7 +5,7 @@
 
 add_library(i2cdevices STATIC
   sht4x.cpp
-  # i2c_lps22hb.cpp
+  lps22.cpp
 )
 
 target_include_directories(i2cdevices PUBLIC

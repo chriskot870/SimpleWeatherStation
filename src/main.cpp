@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "sht4x.h"
+#include "lps22.h"
 
 using namespace std;
 
@@ -19,7 +20,15 @@ int main() {
     ifstream tempfh, humidityfh;
     string temperature;
     string humidity;
-    float ctemp, hum, ftemp;
+    float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
+
+    Lps22 lps22("/dev/i2c-1", kLps22hbI2cAddress);
+
+    lps22.init();
+
+    ctemp = lps22.getTemperature(TEMPERATURE_UNIT_CELSIUS);
+
+    pressure = lps22.getBarometricPressure(PRESSURE_UNIT_INCHES_MERCURY);
 
     /*
      * The sht4x device is connected to I2c bus 1 at the primary address
@@ -33,18 +42,26 @@ int main() {
         printf("Getting Serial Number failed\n");
         exit(1);
     }
-    printf("Serial Number: %d\n", serial_number);
+    printf("SHT44 Serial Number: %d\n", serial_number);
 
     ctemp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
     hum = sht4x.getRelativeHumidity();
 
     cout << "Starting" << endl;
     while(true) {
-        ctemp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
+        sht44temp = sht4x.getTemperature(TEMPERATURE_UNIT_CELSIUS);
         hum = sht4x.getRelativeHumidity();
-        printf("Raw Temperature Centigrade: %5.2f\n", ctemp);
-        printf("Raw Temperature Fahrenheit: %5.2f\n", TemperatureConversion::celsiusToFahrenheit(ctemp));
-        printf("Raw Relative Humidity: %5.2f\n", hum);
+        printf("SHT44 Raw Temperature Centigrade: %5.2f\n", sht44temp);
+        printf("SHT44 Raw Temperature Fahrenheit: %5.2f\n", TemperatureConversion::celsiusToFahrenheit(sht44temp));
+        printf("SHT44 Raw Relative Humidity: %5.2f\n", hum);
+
+        lps22temp = lps22.getTemperature(TEMPERATURE_UNIT_CELSIUS);
+        pressure = lps22.getBarometricPressure(PRESSURE_UNIT_INCHES_MERCURY);
+        printf("LPS22 Raw Temperature Centigrade: %5.2f\n", lps22temp);
+        printf("LPS22 Raw Temperature Fahrenheit: %5.2f\n", TemperatureConversion::celsiusToFahrenheit(lps22temp));
+        printf("LPS22 Raw Barometric Pressure: %5.2f\n", pressure);
+
+
     	tempfh.open(string(sht4x_temperature_path), fstream::in);
     	if (tempfh.is_open()) {
             getline(tempfh, temperature);

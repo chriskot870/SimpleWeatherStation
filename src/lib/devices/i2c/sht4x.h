@@ -10,16 +10,12 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
-#include <map>
 #include <atomic>
 #include <chrono>
-#include <expected>
 #include <string>
 
 #include "temperature_interface.h"
 #include "relative_humidity_interface.h"
-
-using timeslice = std::chrono::duration<int, std::ratio<1,1000>>;
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
@@ -27,8 +23,9 @@ using timeslice = std::chrono::duration<int, std::ratio<1,1000>>;
 constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
 constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
 
-constexpr int kSht4xI2cRepeatCommandIntervalMs = 1000;  /* The number of msecs that a reading is good */
-
+constexpr std::chrono::milliseconds kDefaultMeasurementInterval(2000);  /* The number of msecs that a reading is good */
+constexpr std::chrono::milliseconds kMinimumMeasurementInterval(1000); /* The minimum value for measurement_interval_ */
+constexpr std::chrono::milliseconds kSteadyClockZero(0);
 /*
  * Commands
  */
@@ -138,20 +135,42 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
     float getRelativeHumidity();
 
-    timeslice getMeasurementInterval();
+    std::chrono::milliseconds getMeasurementInterval();
 
-    void setMeasurementInterval(timeslice interval);
+    void setMeasurementInterval(std::chrono::milliseconds interval);
 
  private:
+    /*
+     * Private Data
+     */
+
+   // Number of measurements made
    uint64_t measure_count_= 0;
+
+   // The slave address of the device. The sht45 can be either 0x44 or 0x45.
    uint8_t slave_address_;
+
+   // Which I2c bus /dev name is the device on
    std::string i2cbus_name_;
-   timeslice measurement_time_{kSht4xI2cRepeatCommandIntervalMs};  /* One second between measurements */
-   std::chrono::time_point<std::chrono::steady_clock> last_read_ = std::chrono::time_point<std::chrono::steady_clock>::min();
+
+   // minimum interval between making a measurement.
+   std::chrono::milliseconds measurement_interval_ = kDefaultMeasurementInterval;  /* Interval between measurements */
+
+   // The last time point a measurement was made. Initialize to zero.
+   std::chrono::time_point<std::chrono::steady_clock> last_read_{};
+
+   // Temperature measurement
    std::atomic<int> temperature_measurement_;
+
+   // Humidity measurement
    std::atomic<int> relative_humidity_measurement_;
+   
+   // Serial Number
    uint32_t serial_number_ = 0;
 
+    /*
+     * Private Functions
+     */
    void getMeasurement(Sht4xMeasurmentMode mode);
 
    bool measurementExpired();
