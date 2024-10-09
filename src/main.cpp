@@ -1,25 +1,23 @@
 /*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+/*
  * The main program to show the data.
  * Right now it's pretty simple
  */
 #include <unistd.h>
-#include <fstream>
 #include <iostream>
 #include <string>
 
-#include "lps22.h"
-#include "sht4x.h"
+#include "include/lps22.h"
+#include "include/sht4x.h"
 
-using namespace std;
-
-constexpr char sht4x_path[] = "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2";
-constexpr char sht4x_temperature_path[] =
-    "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2/temp1_input";
-constexpr char sht4x_humidity_path[] =
-    "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2/humidity1_input";
+using std::cout;
+using std::endl;
+using std::string;
 
 int main() {
-  ifstream tempfh, humidityfh;
   string temperature;
   string humidity;
   float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;

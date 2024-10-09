@@ -1,4 +1,8 @@
 /*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+/*
  * This contains the driver for the SHT4x series. Specifically the SHT45
  */
 
@@ -12,13 +16,12 @@
 #include <chrono>
 #include <cstring>
 
-#include "sht4x.h"
+#include "include/sht4x.h"
 
 I2cSht4x::I2cSht4x(std::string i2cbus_name, uint8_t slave_address)
     : i2cbus_name_(i2cbus_name), slave_address_(slave_address) {}
 
 uint8_t I2cSht4x::deviceAddress() {
-
   return slave_address_;
 }
 
@@ -93,8 +96,8 @@ bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
   /*
      * We need figure out how to check the CRC's
      */
-  uint32_t serial_number_ = (read_buffer[0] << 24) + (read_buffer[1] << 16) +
-                            (read_buffer[3] << 8) + read_buffer[4];
+  serial_number_ = (read_buffer[0] << 24) + (read_buffer[1] << 16) +
+                   (read_buffer[3] << 8) + read_buffer[4];
 
   close(i2c_bus);
 
@@ -143,26 +146,25 @@ bool I2cSht4x::softReset() {
 
 float I2cSht4x::getTemperature(TemperatureUnit_t unit) {
   float temperature;
-
   if (measurementExpired() == true) {
     getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
   }
 
   switch (unit) {
     case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature =
-          (kSht4xTemperatureFahrenheitSlope * (float)temperature_measurement_) -
-          kSht4xTemperatureFahrenheitOffset;
+      temperature = (kSht4xTemperatureFahrenheitSlope *
+                     static_cast<float>(temperature_measurement_)) -
+                    kSht4xTemperatureFahrenheitOffset;
       break;
     case TEMPERATURE_UNIT_CELSIUS:
-      temperature =
-          (kSht4xTemperatureCelsiusSlope * (float)temperature_measurement_) -
-          kSht4xTemperatureCelsiusOffset;
+      temperature = (kSht4xTemperatureCelsiusSlope *
+                     static_cast<float>(temperature_measurement_)) -
+                    kSht4xTemperatureCelsiusOffset;
       break;
     case TEMPERATURE_UNIT_KELVIN:
-      temperature =
-          (kSht4xTemperatureKelvinSlope * (float)temperature_measurement_) -
-          kSht4xTemperatureKelvinOffset;
+      temperature = (kSht4xTemperatureKelvinSlope *
+                     static_cast<float>(temperature_measurement_)) -
+                    kSht4xTemperatureKelvinOffset;
       break;
   }
 
@@ -170,15 +172,13 @@ float I2cSht4x::getTemperature(TemperatureUnit_t unit) {
 }
 
 std::chrono::milliseconds I2cSht4x::getMeasurementInterval() {
-
   return measurement_interval_;
 }
 
 void I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
-
   /*
-     * If the request is for less than the minimum interval allowed make it the minimum
-     */
+   * If the request is for less than the minimum interval allowed make it the minimum
+   */
   if (interval < kMinimumMeasurementInterval) {
     measurement_interval_ = kMinimumMeasurementInterval;
   } else {
@@ -195,9 +195,9 @@ float I2cSht4x::getRelativeHumidity() {
     getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
   }
 
-  relative_humidity =
-      (kSht4xRelativeHumiditySlope * (float)relative_humidity_measurement_) -
-      kSht4xRelativeHumidityOffset;
+  relative_humidity = (kSht4xRelativeHumiditySlope *
+                       static_cast<float>(relative_humidity_measurement_)) -
+                      kSht4xRelativeHumidityOffset;
 
   /*
      * SHT4x document says:
@@ -219,7 +219,6 @@ float I2cSht4x::getRelativeHumidity() {
 void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   int retval;
   int i2c_bus;
-  uint8_t measurement[] = {0, 0, 0, 0, 0, 0};
   struct i2c_msg fetch_serial_com;
   struct i2c_rdwr_ioctl_data xfer;
   uint8_t command = sht3x_measurement_command_map[mode];
@@ -284,10 +283,9 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
 }
 
 bool I2cSht4x::measurementExpired() {
-
   /*
-     * check if the current measurement has expired
-     */
+   * check if the current measurement has expired
+   */
 
   if (measure_count_ == 0) {
     return true;

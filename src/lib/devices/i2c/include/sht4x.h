@@ -1,11 +1,15 @@
 /*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+/*
  * This contains the SHT45 information. See data sheet
  * https://cdn-shop.adafruit.com/product-files/5665/5665_Datasheet_SHT4x.pdf
  *
  */
 
-#ifndef SRC_LIB_DEVICES_I2C_SHT4X_I2C_H
-#define SRC_LIB_DEVICES_I2C_SHT4X_I2C_H
+#ifndef SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
+#define SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
 
 #include <errno.h>
 #include <stdio.h>
@@ -54,11 +58,14 @@ constexpr uint8_t kSht4xCommandActivateHtr110mwTenthSecond = 0x24;
 constexpr uint8_t kSht4xCommandActivateHtr20mwOneSecond = 0x1E;
 constexpr uint8_t kSht4xCommandActivateHtr20mwTenthSecond = 0x15;
 
-constexpr float kSht4xTemperatureCelsiusSlope = ((float)175 / (float)65535);
+constexpr float kSht4xTemperatureCelsiusSlope =
+    (static_cast<float>(175) / static_cast<float>(65535));
 constexpr int kSht4xTemperatureCelsiusOffset = 45;
-constexpr float kSht4xTemperatureFahrenheitSlope = ((float)315 / (float)65535);
+constexpr float kSht4xTemperatureFahrenheitSlope =
+    (static_cast<float>(315) / static_cast<float>(65535));
 constexpr int kSht4xTemperatureFahrenheitOffset = 49;
-constexpr float kSht4xRelativeHumiditySlope = ((float)125 / (float)65535);
+constexpr float kSht4xRelativeHumiditySlope =
+    (static_cast<float>(125) / static_cast<float>(65535));
 constexpr int kSht4xRelativeHumidityOffset = 6;
 constexpr float kSht4xTemperatureKelvinSlope = kSht4xTemperatureCelsiusSlope;
 constexpr float kSht4xTemperatureKelvinOffset =
@@ -178,4 +185,4 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   bool measurementExpired();
 };
 
-#endif  // SRC_LIB_DEVICES_I2C_SHT4X_I2C_H
+#endif  // SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_

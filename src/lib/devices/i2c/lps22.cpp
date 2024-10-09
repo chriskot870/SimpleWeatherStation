@@ -1,4 +1,8 @@
 /*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+/*
  * This contains the driver for the LPS22 HB chip.
  */
 
@@ -15,15 +19,15 @@
 #include <cstring>
 #include <string>
 
-#include "lps22.h"
+#include "include/lps22.h"
 
 Lps22::Lps22(std::string i2cbus_name, uint8_t slave_address)
     : i2cbus_name_(i2cbus_name), slave_address_(slave_address) {}
 
 uint8_t Lps22::deviceAddress() {
-
   return kLps22hbI2cAddress;
 }
+
 uint8_t Lps22::whoami() {
   uint8_t who_am_i;
 
@@ -33,15 +37,11 @@ uint8_t Lps22::whoami() {
 }
 
 bool Lps22::init() {
-  int retval;
-  uint8_t command;
-  uint8_t res_conf;
-  uint8_t who_am_i, status, control_1, control_2;
-  float temperature;
+  uint8_t who_am_i, control_1, control_2;
 
   /*
-     * Make sure this is the correct device at the expected I2C address
-     */
+   * Make sure this is the correct device at the expected I2C address
+   */
   who_am_i = whoami();
   if (who_am_i != kLps22hbWhoAmIValue) {
     printf("Who am is wrong %x\n", who_am_i);
@@ -78,24 +78,19 @@ bool Lps22::init() {
 }
 
 std::chrono::milliseconds Lps22::getMeasurementInterval() {
-
   return measurement_interval_;
 }
 
 void Lps22::setMeasurementInterval(std::chrono::milliseconds interval) {
-
   measurement_interval_ = interval;
 
   return;
 }
 
 void Lps22::getMeasurement() {
-  int retval, status_count;
-  uint8_t ctrl_register_2, status, data_available, pressure_available_count,
-      temp_available_count, one_shot_count;
-  uint8_t templ, temph, pressxl, pressl, pressh;
+  uint8_t ctrl_register_2, data_available, pressure_available_count,
+      temp_available_count;
   uint8_t buffer[] = {0, 0, 0, 0, 0};
-  int alt_pressure, alt_temp;
 
   measurement_count_++;
   /*
@@ -143,8 +138,6 @@ void Lps22::getMeasurement() {
 }
 
 float Lps22::getTemperature(TemperatureUnit_t unit) {
-  int retval;
-  uint8_t command = kLps22hbTempOutL;
   uint8_t buffer[2] = {0, 0};
   float temperature;
 
@@ -153,9 +146,10 @@ float Lps22::getTemperature(TemperatureUnit_t unit) {
   }
 
   /*
-     * Peform the conversion from the data sheet
-     */
-  temperature = (float)temperature_measurement_ / kLps22hbTemperatureFactor;
+   * Peform the conversion from the data sheet
+   */
+  temperature =
+      static_cast<float>(temperature_measurement_) / kLps22hbTemperatureFactor;
 
   /*
      * Convert to requested units
@@ -176,8 +170,6 @@ float Lps22::getTemperature(TemperatureUnit_t unit) {
 }
 
 float Lps22::getBarometricPressure(PressureUnit_t unit) {
-  int retval;
-  uint8_t command = kLps22hbPressureOutXl;
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
 
@@ -185,7 +177,8 @@ float Lps22::getBarometricPressure(PressureUnit_t unit) {
     getMeasurement();
   }
 
-  pressure = (float)pressure_measurement_ / kLps22hbPressureHpaFactor;
+  pressure =
+      static_cast<float>(pressure_measurement_) / kLps22hbPressureHpaFactor;
   /*
      * Return the value in the requested units
      */
@@ -210,7 +203,6 @@ float Lps22::getBarometricPressure(PressureUnit_t unit) {
  * Private methods
  */
 uint8_t Lps22::getRegister(uint8_t reg) {
-  int retval;
   uint8_t data = 0;
 
   getRegisters(reg, &data, 1);
@@ -219,16 +211,12 @@ uint8_t Lps22::getRegister(uint8_t reg) {
 }
 
 bool Lps22::setRegister(uint8_t reg, uint8_t data) {
-  int retval;
-
   return setRegisters(reg, &data, 1);
 }
 
 bool Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
-  int retval, n;
-  uint8_t next_reg = reg;
+  int retval;
   int i2c_bus;
-  uint8_t xfr_data[kLps22hbMaxRegistersTransferred + 1];
 
   /*
      * The lps22hb needs to write the register value to be read and then
@@ -320,10 +308,9 @@ bool Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
 }
 
 bool Lps22::measurementExpired() {
-
   /*
-     * check if the current measurement has expired
-     */
+   * check if the current measurement has expired
+   */
 
   if (measurement_count_ == 0) {
     return true;

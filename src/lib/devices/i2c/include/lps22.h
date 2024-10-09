@@ -1,17 +1,21 @@
 /*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+/*
  * This contains the SHT45 information. See data sheet
  * https://cdn-shop.adafruit.com/product-files/5665/5665_Datasheet_SHT4x.pdf
  *
  */
 
-#ifndef SRC_LIB_DEVICES_I2C_LPS22_H
-#define SRC_LIB_DEVICES_I2C_LPS22_H
+#ifndef SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
+#define SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
 
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
 #include <stdio.h>
-#include <atomic>
 #include <chrono>
+#include <string>
 
 #include "pressure_interface.h"
 #include "temperature_interface.h"
@@ -196,12 +200,12 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   /*
     * The temperature is a 16 bit signed value
     */
-  int16_t temperature_measurement_;
+  int16_t temperature_measurement_ = 0;
 
   /*
     * The barometric pressure is a signed 24 bit value so we treat it as a 32 bit signed value
     */
-  int32_t pressure_measurement_;
+  int32_t pressure_measurement_ = 0;
 
   /*
      * This is only going to be used for taking ambient temperature and
@@ -250,4 +254,4 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   bool measurementExpired();
 };
 
-#endif  // SRC_LIB_DEVICES_I2C_LPS22_H
+#endif  // SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
