@@ -181,8 +181,8 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
  private:
   /*
-    * Private Variables
-    */
+   * Private Variables
+   */
 
   // i2c bus device name
   std::string i2cbus_name_;
@@ -198,45 +198,27 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   std::chrono::time_point<std::chrono::steady_clock> last_read_{};
 
   /*
-    * The temperature is a 16 bit signed value
-    */
+   * The temperature is a 16 bit signed value
+   */
   int16_t temperature_measurement_ = 0;
 
   /*
-    * The barometric pressure is a signed 24 bit value so we treat it as a 32 bit signed value
-    */
+   * The barometric pressure is a signed 24 bit value so we treat it as a 32 bit signed value
+   */
   int32_t pressure_measurement_ = 0;
 
   /*
-     * This is only going to be used for taking ambient temperature and
-     * barometric temperature which doesn't change within a second. So,
-     * we don't need to enable the high speed modes that take measurements
-     * automatically every second or less.
-     * So, we want to run in power down mode then use one shot to start a
-     * measurment of both pressure and temperature. We have to check the status
-     * bits to wait for the temperature and pressure to take their reading.
-     * Then we can read both the temperature and pressure in one read.
-     * We need the following bits set to achieve this.
-     *
-     * Control Register 1
-     * kLps22hbCtrlReg1SimMask Off
-     * kLps22hbCtrlReg1BduMask Off
-     * kLps22hbCtrlReg1LpfpCfgMask Off
-     * kLps22hbCtrlReg1EnLpfpMask Off;
-     * LPS22HB_CTRL_REG_1_ODR_POWER_DOWN
-     */
+   * This is only going to be used for taking ambient temperature and
+   * barometric temperature which doesn't change within a second. So,
+   * we don't need to enable the high speed modes that take measurements
+   * automatically every second or less.
+   * So, we want to run in power down mode then use one shot to start a
+   * measurment of both pressure and temperature. We have to check the status
+   * bits to wait for the temperature and pressure to take their reading.
+   * Then we can read both the temperature and pressure in one read.
+   */
   const uint8_t default_ctrl_reg_1_ = 0;
 
-  /*
-     * Control Register 2
-     * kLps22hbCtrlReg2OneShotMask - Off  // Will be set to On to initiate a read
-     * kLps22hbCtrlReg2SwResetMask - Off
-     * kLps22hbCtrlReg2I2cDisMask  - Off
-     * kLps22hbCtrlReg2IfAddIncMask - On  // So we can do multiple register reads
-     * kLps22hbCtrlReg2StopOnFthMask - Off
-     * kLps22hbCtrlReg2FifoEnMask - Off
-     * kLps22hbCtrlReg2BootMask - Off
-     */
   const uint8_t default_ctrl_reg_2_ =
       kLps22hbCtrlReg2IfAddIncMask;  // So we can do multiple register reads
 

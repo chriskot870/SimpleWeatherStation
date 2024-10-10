@@ -219,9 +219,9 @@ bool Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   int i2c_bus;
 
   /*
-     * The lps22hb needs to write the register value to be read and then
-     * perform the read. So, we need 2 fecth_serial_com for a read.
-     */
+   * The lps22hb needs to write the register value to be read and then
+   * perform the read. So, we need 2 fecth_serial_com for a read.
+   */
   struct i2c_msg fetch_serial_com[2];
   struct i2c_rdwr_ioctl_data xfer;
 
@@ -231,16 +231,16 @@ bool Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   }
 
   /*
-     * Write the register of interest
-     */
+   * Write the register of interest
+   */
   fetch_serial_com[0].addr = slave_address_;
   fetch_serial_com[0].flags = 0; /* Do a write to define the first register */
   fetch_serial_com[0].len = 1;
   fetch_serial_com[0].buf = &reg;
 
   /*
-     * Now read that register and count following it.
-     */
+   * Now read that register and count following it.
+   */
   fetch_serial_com[1].addr = slave_address_;
   fetch_serial_com[1].flags = I2C_M_RD; /* Do a read */
   fetch_serial_com[1].len = count;
@@ -267,8 +267,8 @@ bool Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   uint8_t xfr_data[kLps22hbMaxRegistersTransferred + 1];
 
   /*
-     * Check that the count fist within the xfr_data buffer
-     */
+   * Check that the count fist within the xfr_data buffer
+   */
   if (count > kLps22hbMaxRegistersTransferred) {
     return false;
   }
@@ -279,14 +279,14 @@ bool Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   }
 
   /*
-     * Build the transfer buffer with the register as the first byte
-     */
+   * Build the transfer buffer with the register as the first byte
+   */
   xfr_data[0] = reg;
   memcpy(&xfr_data[1], data, count);
 
   /*
-     * Write the command to get a measurement
-     */
+   * Write the command to get a measurement
+   */
   fetch_serial_com[0].addr = slave_address_;
   fetch_serial_com[0].flags = 0; /* Do a write */
   fetch_serial_com[0].len =
@@ -311,7 +311,6 @@ bool Lps22::measurementExpired() {
   /*
    * check if the current measurement has expired
    */
-
   if (measurement_count_ == 0) {
     return true;
   }

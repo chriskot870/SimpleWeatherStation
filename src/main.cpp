@@ -32,8 +32,8 @@ int main() {
   printf("LPS22HB who am I Value: 0x%x\n", whoami);
 
   /*
-     * The sht4x device is connected to I2c bus 1 at the primary address
-     */
+   * The sht4x device is connected to I2c bus 1 at the primary address
+   */
   I2cSht4x sht4x("/dev/i2c-1", kSht4xI2cPrimaryAddress);
 
   uint32_t serial_number;

@@ -178,8 +178,8 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   uint32_t serial_number_ = 0;
 
   /*
-     * Private Functions
-     */
+   * Private Functions
+   */
   void getMeasurement(Sht4xMeasurmentMode mode);
 
   bool measurementExpired();
