@@ -16,9 +16,13 @@
 #include <stdio.h>
 #include <chrono>
 #include <string>
+#include <expected>
 
 #include "pressure_interface.h"
 #include "temperature_interface.h"
+
+using std::expected;
+using std::unexpected;
 
 constexpr std::chrono::milliseconds kLps22DefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
@@ -165,19 +169,19 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   uint8_t deviceAddress();
 
-  bool init();
+  int init();
 
-  uint8_t whoami();
+  expected<uint8_t, int> whoami();
 
-  void getMeasurement();
+  int getMeasurement();
 
-  float getTemperature(TemperatureUnit_t unit);
+  expected <float, int> getTemperature(TemperatureUnit_t unit);
 
-  float getBarometricPressure(PressureUnit_t unit);
+  expected <float, int> getBarometricPressure(PressureUnit_t unit);
 
   std::chrono::milliseconds getMeasurementInterval();
 
-  void setMeasurementInterval(std::chrono::milliseconds interval);
+  int setMeasurementInterval(std::chrono::milliseconds interval);
 
  private:
   /*
@@ -225,13 +229,13 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   /*
     * Private Functions
     */
-  uint8_t getRegister(uint8_t reg);
+  expected <uint8_t, int> getRegister(uint8_t reg);
 
-  bool setRegister(uint8_t reg, uint8_t value);
+  int setRegister(uint8_t reg, uint8_t value);
 
-  bool getRegisters(uint8_t reg, uint8_t* data, uint8_t count);
+  int getRegisters(uint8_t reg, uint8_t* data, uint8_t count);
 
-  bool setRegisters(uint8_t reg, uint8_t* data, uint8_t count);
+  int setRegisters(uint8_t reg, uint8_t* data, uint8_t count);
 
   bool measurementExpired();
 };

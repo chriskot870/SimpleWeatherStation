@@ -25,7 +25,7 @@ uint8_t I2cSht4x::deviceAddress() {
   return slave_address_;
 }
 
-bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
+expected <uint32_t, int> I2cSht4x::getSerialNumber() {
   int32_t retval;
   int i2c_bus;
   uint8_t command = kSht4xCommandReadSerialNumber;
@@ -41,8 +41,7 @@ bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
    */
 
   if (serial_number_ != 0) {
-    *serial_number = serial_number_;
-    return true;
+    return serial_number_;
   }
 
   /*
@@ -50,7 +49,7 @@ bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
    */
   i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
-    return false;
+    return unexpected(1);;
   }
 
   /*
@@ -65,9 +64,9 @@ bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
   xfer.nmsgs = 1;
 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
-  if (retval < 0) {
+  if (retval != 1) {
     close(i2c_bus);
-    return false;
+    return unexpected(2);
   }
 
   /*
@@ -82,11 +81,11 @@ bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
   fetch_serial_com.flags = I2C_M_RD;
   fetch_serial_com.len = kSht4xSerialReturnLength;
   fetch_serial_com.buf = read_buffer;
-
+ 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
-  if (retval < 0) {
-    close(i2c_bus);
-    return false;
+  close(i2c_bus);
+  if (retval != 1) {
+    return unexpected(3);
   }
 
   /*
@@ -101,14 +100,10 @@ bool I2cSht4x::getSerialNumber(uint32_t* serial_number) {
   serial_number_ = (read_buffer[0] << 24) + (read_buffer[1] << 16) +
                    (read_buffer[3] << 8) + read_buffer[4];
 
-  close(i2c_bus);
-
-  *serial_number = serial_number_;
-
-  return true;
+  return serial_number_;
 }
 
-bool I2cSht4x::softReset() {
+int I2cSht4x::softReset() {
   int32_t retval;
   int i2c_bus;
   uint8_t command = kSht4xCommandReset;
@@ -120,7 +115,7 @@ bool I2cSht4x::softReset() {
    */
   i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
-    return false;
+    return 1;
   }
 
   fetch_serial_com.addr = slave_address_;
@@ -132,9 +127,9 @@ bool I2cSht4x::softReset() {
   xfer.nmsgs = 1;
 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+  close(i2c_bus);
   if (retval != 1) {
-    close(i2c_bus);
-    return false;
+    return 2;
   }
 
   /*
@@ -142,15 +137,17 @@ bool I2cSht4x::softReset() {
    */
   usleep(shtx_max_timings[SHT4X_TIMING_SOFT_RESET]);
 
-  close(i2c_bus);
-
-  return true;
+  return 0;
 }
 
-float I2cSht4x::getTemperature(TemperatureUnit_t unit) {
+expected <float, int> I2cSht4x::getTemperature(TemperatureUnit_t unit) {
+  int error;
   float temperature;
   if (measurementExpired() == true) {
-    getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+    error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+    if (error != 0) {
+      return unexpected(error);
+    }
   }
 
   switch (unit) {
@@ -178,9 +175,10 @@ std::chrono::milliseconds I2cSht4x::getMeasurementInterval() {
   return measurement_interval_;
 }
 
-void I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
+int I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
   /*
    * If the request is for less than the minimum interval allowed make it the minimum
+   * May want to return an error instead
    */
   if (interval < kMinimumMeasurementInterval) {
     measurement_interval_ = kMinimumMeasurementInterval;
@@ -188,14 +186,18 @@ void I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
     measurement_interval_ = interval;
   }
 
-  return;
+  return 0 ;
 }
 
-float I2cSht4x::getRelativeHumidity() {
+expected <float, int> I2cSht4x::getRelativeHumidity() {
   float relative_humidity;
+  int error;
 
   if (measurementExpired() == true) {
-    getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+    error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+    if (error != 0) {
+      return unexpected(error);
+    }
   }
 
   relative_humidity = (kSht4xRelativeHumiditySlope *
@@ -219,7 +221,7 @@ float I2cSht4x::getRelativeHumidity() {
 /*
  * Private Methods
  */
-void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
+int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   int retval;
   int i2c_bus;
   struct i2c_msg fetch_serial_com;
@@ -234,7 +236,7 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
 
   i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
-    return;
+    return 1;
   }
 
   /*
@@ -249,8 +251,10 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   xfer.nmsgs = 1;
 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
-  if (retval < 0) {
-    return;
+
+  if (retval != 1) {
+    close(i2c_bus);
+    return 2;
   }
 
   /*
@@ -267,10 +271,11 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   fetch_serial_com.buf = read_buffer;
 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
-  if (retval < 0) {
-    return;
-  }
   close(i2c_bus);
+  if (retval != 1) {
+    return 3;
+  }
+
 
   /*
    * I am not sure I need this extra or not.
@@ -286,7 +291,7 @@ void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
 
   last_read_ = std::chrono::steady_clock::now();
 
-  return;
+  return 0;
 }
 
 bool I2cSht4x::measurementExpired() {

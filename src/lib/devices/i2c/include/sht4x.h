@@ -17,9 +17,13 @@
 #include <atomic>
 #include <chrono>
 #include <string>
+#include <expected>
 
 #include "relative_humidity_interface.h"
 #include "temperature_interface.h"
+
+using std::expected;
+using std::unexpected;
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
@@ -133,19 +137,19 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
   uint8_t deviceAddress();
 
-  void init();
+  int init();
 
-  bool getSerialNumber(uint32_t* serial_number);
+  expected <uint32_t, int> getSerialNumber();
 
-  bool softReset();
+  int softReset();
 
-  float getTemperature(TemperatureUnit_t unit);
+  expected <float, int> getTemperature(TemperatureUnit_t unit);
 
-  float getRelativeHumidity();
+  expected <float, int> getRelativeHumidity();
 
   std::chrono::milliseconds getMeasurementInterval();
 
-  void setMeasurementInterval(std::chrono::milliseconds interval);
+  int setMeasurementInterval(std::chrono::milliseconds interval);
 
  private:
   /*
@@ -180,7 +184,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   /*
    * Private Functions
    */
-  void getMeasurement(Sht4xMeasurmentMode mode);
+  int getMeasurement(Sht4xMeasurmentMode mode);
 
   bool measurementExpired();
 };

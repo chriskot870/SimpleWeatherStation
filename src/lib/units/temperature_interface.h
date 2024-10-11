@@ -1,8 +1,8 @@
 /*
  * This contains the abstract class for temperature
  */
-#ifndef LIB_UNITS_TEMPERATURE_H
-#define LIB_UNITS_TEMPERATURE_H
+#ifndef LIB_UNITS_TEMPERATURE_H_
+#define LIB_UNITS_TEMPERATURE_H_
 
 typedef enum {
   TEMPERATURE_UNIT_FAHRENHEIT,
@@ -70,9 +70,9 @@ class TemperatureInterface {
    * The Temperature
    */
 
-  virtual float getTemperature(TemperatureUnit_t temperature_unit) = 0;
+  virtual std::expected<float, int> getTemperature(TemperatureUnit_t temperature_unit) = 0;
 
   virtual ~TemperatureInterface() {}
 };
 
-#endif  // LIB_UNITS_TEMPERATURE_H
+#endif  // LIB_UNITS_TEMPERATURE_H_

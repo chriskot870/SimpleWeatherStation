@@ -28,32 +28,43 @@ uint8_t Lps22::deviceAddress() {
   return kLps22hbI2cAddress;
 }
 
-uint8_t Lps22::whoami() {
-  uint8_t who_am_i;
+expected<uint8_t, int> Lps22::whoami() {
+  expected<uint8_t, int> who_am_i;
 
   who_am_i = getRegister(kLps22hbWhoAmI);
 
   return who_am_i;
 }
 
-bool Lps22::init() {
-  uint8_t who_am_i, control_1, control_2;
+int Lps22::init() {
+  expected<uint8_t, int> retval;
+  uint8_t control_1, control_2;
+  int error;
 
   /*
    * Make sure this is the correct device at the expected I2C address
    */
-  who_am_i = whoami();
-  if (who_am_i != kLps22hbWhoAmIValue) {
-    printf("Who am is wrong %x\n", who_am_i);
-    return false;
+  retval = whoami();
+  if (retval.has_value() != true) {
+    return retval.error();
+  }
+  if (retval.value() != kLps22hbWhoAmIValue) {
+    return 1;
   }
 
   /*
-     * Now send a software reset
-     */
-  control_2 = getRegister(kLps22hbCtrlReg2);
+   * Now send a software reset
+   */
+  retval = getRegister(kLps22hbCtrlReg2);
+  if (retval.has_value() != true) {
+    return retval.error();
+  }
+  control_2 = retval.value();
   control_2 |= kLps22hbCtrlReg2SwResetMask;
-  setRegister(kLps22hbCtrlReg2, control_2);
+  error = setRegister(kLps22hbCtrlReg2, control_2);
+  if ( error != 0) {
+    return error;
+  }
 
   /*
      * Wait for Reset to clear
@@ -61,7 +72,11 @@ bool Lps22::init() {
   int cnt = 0;
   do {
     cnt++;
-    control_2 = getRegister(kLps22hbCtrlReg2);
+    retval =  getRegister(kLps22hbCtrlReg2);
+    if (retval.has_value() != true) {
+      return retval.error();
+    }
+    control_2 = retval.value();
   } while ((control_2 & kLps22hbCtrlReg2SwResetMask) ==
            kLps22hbCtrlReg2SwResetMask);
 
@@ -69,44 +84,68 @@ bool Lps22::init() {
      * Set to the default value
      */
   control_1 = kLps22hbCtrlReg1Default;
-  setRegister(kLps22hbCtrlReg1, control_1);
+  retval = setRegister(kLps22hbCtrlReg1, control_1);
+  if (retval.has_value() != true) {
+    return retval.error();
+  }
 
   control_2 = kLps22hbCtrlReg2Default;
-  setRegister(kLps22hbCtrlReg2, control_2);
+  retval = setRegister(kLps22hbCtrlReg2, control_2);
+  if (retval.has_value() != true) {
+    return retval.error();
+  }
 
-  return true;
+  return 0;
 }
 
 std::chrono::milliseconds Lps22::getMeasurementInterval() {
   return measurement_interval_;
 }
 
-void Lps22::setMeasurementInterval(std::chrono::milliseconds interval) {
+int Lps22::setMeasurementInterval(std::chrono::milliseconds interval) {
+  /*
+   * Should check for some boundary conditions here
+   */
   measurement_interval_ = interval;
 
-  return;
+  return 0;
 }
 
-void Lps22::getMeasurement() {
+int Lps22::getMeasurement() {
+  expected <uint8_t, int> retval;
   uint8_t ctrl_register_2, data_available, pressure_available_count,
       temp_available_count;
   uint8_t buffer[] = {0, 0, 0, 0, 0};
+  int error;
 
   measurement_count_++;
   /*
      * Start a measurement by sending a one shot command
      */
-  ctrl_register_2 = getRegister(kLps22hbCtrlReg2);
+  retval = getRegister(kLps22hbCtrlReg2);
+  if (retval.has_value() != true) {
+    return retval.error();
+  }
+  ctrl_register_2 = retval.value();;
   ctrl_register_2 |= kLps22hbCtrlReg2OneShotMask;
-  setRegister(kLps22hbCtrlReg2, ctrl_register_2);
+  error = setRegister(kLps22hbCtrlReg2, ctrl_register_2);
+  if (error != 0) {
+    return error;
+  }
 
   for (temp_available_count = 0; temp_available_count < 10;
        temp_available_count++) {
-    data_available = 0;
-    data_available = getRegister(kLps22hbStatus);
+    retval = getRegister(kLps22hbStatus);
+    if (retval.has_value() == false) {
+      return retval.error();
+    }
+    data_available = retval.value();
     if ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
         kLps22hbStatusTemperatureDataAvailableMask) {
-      getRegisters(kLps22hbTempOutL, buffer, 2);
+      error = getRegisters(kLps22hbTempOutL, buffer, 2);
+      if (error != 0) {
+        return error;
+      }
       temperature_measurement_ = ((buffer[1] & 0x7F) << 8) | buffer[0];
       if ((buffer[1] & 0x80) == 0x80) {
         temperature_measurement_ *= -1;
@@ -117,11 +156,17 @@ void Lps22::getMeasurement() {
   }
   for (pressure_available_count = 0; pressure_available_count < 10;
        pressure_available_count++) {
-    data_available = 0;
-    data_available = getRegister(kLps22hbStatus);
+    retval = getRegister(kLps22hbStatus);
+    if (retval.has_value() != true) {
+      return retval.error();
+    }
+    data_available = retval.value();
     if ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
         kLps22hbStatusPressureDataAvailableMask) {
-      getRegisters(kLps22hbPressureOutXl, buffer, 3);
+      error = getRegisters(kLps22hbPressureOutXl, buffer, 3);
+      if (error != 0) {
+        return error;
+      }
       pressure_measurement_ =
           ((buffer[2] & 0x7f) << 16) | buffer[1] << 8 | buffer[0];
       if ((buffer[2] & 0x80) == 0x80) {
@@ -134,15 +179,19 @@ void Lps22::getMeasurement() {
 
   last_read_ = std::chrono::steady_clock::now();
 
-  return;
+  return 0;
 }
 
-float Lps22::getTemperature(TemperatureUnit_t unit) {
+expected <float, int> Lps22::getTemperature(TemperatureUnit_t unit) {
   uint8_t buffer[2] = {0, 0};
   float temperature;
+  int error;
 
   if (measurementExpired()) {
-    getMeasurement();
+    error = getMeasurement();
+    if (error != 0) {
+      return unexpected(error);
+    }
   }
 
   /*
@@ -169,12 +218,16 @@ float Lps22::getTemperature(TemperatureUnit_t unit) {
   return temperature;
 }
 
-float Lps22::getBarometricPressure(PressureUnit_t unit) {
+expected <float, int>  Lps22::getBarometricPressure(PressureUnit_t unit) {
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
+  int error;
 
   if (measurementExpired() == true) {
-    getMeasurement();
+    error = getMeasurement();
+    if (error != 0) {
+      return error;
+    }
   }
 
   pressure =
@@ -202,19 +255,25 @@ float Lps22::getBarometricPressure(PressureUnit_t unit) {
 /*
  * Private methods
  */
-uint8_t Lps22::getRegister(uint8_t reg) {
+expected <uint8_t, int> Lps22::getRegister(uint8_t reg) {
+  int retval;
   uint8_t data = 0;
 
-  getRegisters(reg, &data, 1);
+  retval = getRegisters(reg, &data, 1);
+
+  if (retval != 0) {
+    return unexpected(retval);
+  }
 
   return data;
 }
 
-bool Lps22::setRegister(uint8_t reg, uint8_t data) {
+int Lps22::setRegister(uint8_t reg, uint8_t data) {
+
   return setRegisters(reg, &data, 1);
 }
 
-bool Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
+int Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   int retval;
   int i2c_bus;
 
@@ -227,7 +286,7 @@ bool Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
 
   i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
-    return false;
+    return 1;
   }
 
   /*
@@ -253,13 +312,13 @@ bool Lps22::getRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   close(i2c_bus);
 
   if (retval != 2) {
-    return false;
+    return 2;
   }
 
-  return true;
+  return 0;
 }
 
-bool Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
+int Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   int retval;
   int i2c_bus;
   struct i2c_msg fetch_serial_com[1];
@@ -267,15 +326,15 @@ bool Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   uint8_t xfr_data[kLps22hbMaxRegistersTransferred + 1];
 
   /*
-   * Check that the count fist within the xfr_data buffer
+   * Check that the count fits within the xfr_data buffer
    */
   if (count > kLps22hbMaxRegistersTransferred) {
-    return false;
+    return 1;
   }
 
   i2c_bus = open(i2cbus_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
-    return false;
+    return 2;
   }
 
   /*
@@ -301,10 +360,10 @@ bool Lps22::setRegisters(uint8_t reg, uint8_t* data, uint8_t count) {
   close(i2c_bus);
 
   if (retval != 1) {
-    return false;
+    return 3;
   }
 
-  return true;
+  return 0;
 }
 
 bool Lps22::measurementExpired() {

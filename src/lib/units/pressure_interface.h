@@ -1,5 +1,7 @@
-#ifndef LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H
-#define LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H
+#ifndef LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H_
+#define LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H_
+
+# include <expected>
 /*
  * This contains the BarometricPressureInterface
  */
@@ -96,9 +98,9 @@ class BarometricPressureInterface {
    * The Barometric Pressure
    */
 
-  virtual float getBarometricPressure(PressureUnit_t unit) = 0;
+  virtual std::expected <float, int>  getBarometricPressure(PressureUnit_t unit) = 0;
 
   virtual ~BarometricPressureInterface() {}
 };
 
-#endif  // LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H
+#endif  // LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H_
