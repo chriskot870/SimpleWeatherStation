@@ -146,7 +146,6 @@ int I2cBus::transferDataFromRegisters(uint8_t slave_address, uint8_t reg,
 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
   close(i2c_bus);
-
   if (retval != 2) {
     return errno;
   }
@@ -177,8 +176,8 @@ int I2cBus::writeCommand(uint8_t slave_address, uint8_t* command,
   xfer.nmsgs = 1;
 
   retval = ioctl(i2c_bus, I2C_RDWR, &xfer);
+  close(i2c_bus);
   if (retval != 1) {
-    close(i2c_bus);
     return errno;
   }
 
