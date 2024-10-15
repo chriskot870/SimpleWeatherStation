@@ -16,13 +16,19 @@
 #include <unistd.h>
 #include <atomic>
 #include <chrono>
-#include <string>
 #include <expected>
+#include <string>
 
 #include "relative_humidity_interface.h"
 #include "temperature_interface.h"
 
+/*
+ * This is an i2c bus device so add the i2cbus.h
+ */
+#include "include/i2cbus.h"
+
 using std::expected;
+using std::string;
 using std::unexpected;
 
 /*
@@ -39,6 +45,7 @@ constexpr std::chrono::milliseconds kSteadyClockZero(0);
 /*
  * Commands
  */
+constexpr uint8_t kSht4xResponseLength = 6;  // All commands have same response length
 constexpr uint8_t kSht4xCommandLength = 1;
 constexpr uint8_t kSht4xSerialReturnLength = 6;
 constexpr uint8_t kSht4xResetLength = 1;
@@ -133,23 +140,27 @@ const int shtx_max_timings[] = {
 
 class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
  public:
-  I2cSht4x(std::string i2cbus_name, uint8_t slave_address);
+  I2cSht4x(I2cBus i2cbus_, uint8_t slave_address);
 
   uint8_t deviceAddress();
 
   int init();
 
-  expected <uint32_t, int> getSerialNumber();
+  expected<uint32_t, int> getSerialNumber();
 
   int softReset();
 
-  expected <float, int> getTemperature(TemperatureUnit_t unit);
+  expected<float, int> getTemperature(TemperatureUnit_t unit);
 
-  expected <float, int> getRelativeHumidity();
+  expected<float, int> getRelativeHumidity();
 
   std::chrono::milliseconds getMeasurementInterval();
 
   int setMeasurementInterval(std::chrono::milliseconds interval);
+
+  int error_code();
+
+  string error_message();
 
  private:
   /*
@@ -162,8 +173,8 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   // The slave address of the device. The sht45 can be either 0x44 or 0x45.
   uint8_t slave_address_;
 
-  // Which I2c bus /dev name is the device on
-  std::string i2cbus_name_;
+  // Which I2c bus is the device on
+  I2cBus i2cbus_;
 
   // minimum interval between making a measurement.
   std::chrono::milliseconds measurement_interval_ =
@@ -173,14 +184,17 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   std::chrono::time_point<std::chrono::steady_clock> last_read_{};
 
   // Temperature measurement
-  std::atomic<int> temperature_measurement_;
+  uint16_t temperature_measurement_;
 
   // Humidity measurement
-  std::atomic<int> relative_humidity_measurement_;
+  uint16_t relative_humidity_measurement_;
 
   // Serial Number
   uint32_t serial_number_ = 0;
 
+  int error_code_ = 0;
+
+  string error_message_ = {};
   /*
    * Private Functions
    */

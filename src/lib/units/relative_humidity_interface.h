@@ -12,7 +12,7 @@ class RelativeHumidityInterface {
    * The Relative Humidity in percent
    */
 
-  virtual expected <float, int> getRelativeHumidity() = 0;
+  virtual expected<float, int> getRelativeHumidity() = 0;
 
   virtual ~RelativeHumidityInterface() {}
 };

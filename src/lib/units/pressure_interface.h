@@ -1,30 +1,30 @@
 #ifndef LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H_
 #define LIB_UNITS_BAROMETRIC_PRESSURE_INTERFACE_H_
 
-# include <expected>
+#include <expected>
 /*
  * This contains the BarometricPressureInterface
  */
 
 typedef enum {
-  PRESSURE_UNIT_hPa,            // hundrerd Pascals
+  PRESSURE_UNIT_Mb,            // millibars which is an hPa, 100 pascals
   PRESSURE_UNIT_Pa,             // Pascals
   PRESSURE_UNIT_PSI,            // Pounds Per Square Inch
   PRESSURE_UNIT_INCHES_MERCURY  // Inches of Mercury
 } PressureUnit_t;
 
 constexpr float PressurePascalsPerPsi = 6894.76;
-constexpr int PressurePascalsPerhPa = 100;
+constexpr int PressurePascalsPerMb = 100;
 constexpr float PressurePascalsPerInchesMercury = 3386.39;
 
 class PressureConversion {
  public:
-  static float PaTohPa(float pa) {
-    float hPa;
+  static float PaToMb(float pa) {
+    float mb;
 
-    hPa = pa / PressurePascalsPerhPa;
+    mb = pa / PressurePascalsPerMb;
 
-    return hPa;
+    return mb;
   }
 
   static float PaToPsi(float pa) {
@@ -35,18 +35,18 @@ class PressureConversion {
     return psi;
   }
 
-  static float hPaToPa(float hpa) {
+  static float MbToPa(float mb) {
     float pa;
 
-    pa = hpa * PressurePascalsPerhPa;
+    pa = mb * PressurePascalsPerMb;
 
     return pa;
   }
 
-  static float hPaToPsi(float hpa) {
+  static float MbToPsi(float mb) {
     float psi;
 
-    psi = PaToPsi(hPaToPa(hpa));
+    psi = PaToPsi(MbToPa(mb));
 
     return psi;
   }
@@ -59,12 +59,12 @@ class PressureConversion {
     return pa;
   }
 
-  static float PsiTohPa(float psi) {
-    float hpa;
+  static float PsiToMb(float psi) {
+    float mb;
 
-    hpa = PaTohPa(PsiToPa(psi));
+    mb = PaToMb(PsiToPa(psi));
 
-    return hpa;
+    return mb;
   }
 
   static float PaTohInchesMercury(float pa) {
@@ -75,20 +75,20 @@ class PressureConversion {
     return inches;
   }
 
-  static float hPaTohInchesMercury(float hpa) {
+  static float MbTohInchesMercury(float mb) {
     float inches;
 
-    inches = PaTohInchesMercury(hPaToPa(hpa));
+    inches = PaTohInchesMercury(MbToPa(mb));
 
     return inches;
   }
 
-  static float InchesMercuryTohPa(float inches) {
-    float hpa;
+  static float InchesMercuryToMb(float inches) {
+    float mb;
 
-    inches = PaTohPa(inches * PressurePascalsPerInchesMercury);
+    mb = PaToMb(inches * PressurePascalsPerInchesMercury);
 
-    return inches;
+    return mb;
   }
 };
 
@@ -98,7 +98,8 @@ class BarometricPressureInterface {
    * The Barometric Pressure
    */
 
-  virtual std::expected <float, int>  getBarometricPressure(PressureUnit_t unit) = 0;
+  virtual std::expected<float, int> getBarometricPressure(
+      PressureUnit_t unit) = 0;
 
   virtual ~BarometricPressureInterface() {}
 };

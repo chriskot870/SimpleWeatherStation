@@ -15,14 +15,23 @@
 #include <linux/i2c-dev.h>
 #include <stdio.h>
 #include <chrono>
-#include <string>
 #include <expected>
+#include <string>
 
+#include "i2cbus.h"
 #include "pressure_interface.h"
 #include "temperature_interface.h"
 
+/*
+ * This is an i2c bus device so add the i2cbus.h
+ */
+#include "include/i2cbus.h"
+
 using std::expected;
+using std::string;
 using std::unexpected;
+
+constexpr uint8_t kLps22ResetWaitCount = 10;
 
 constexpr std::chrono::milliseconds kLps22DefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
@@ -165,7 +174,7 @@ typedef enum {
 
 class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
  public:
-  Lps22(std::string i2cbus_name, uint8_t slave_address);
+  Lps22(I2cBus i2cbus_, uint8_t slave_address);
 
   uint8_t deviceAddress();
 
@@ -175,9 +184,9 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   int getMeasurement();
 
-  expected <float, int> getTemperature(TemperatureUnit_t unit);
+  expected<float, int> getTemperature(TemperatureUnit_t unit);
 
-  expected <float, int> getBarometricPressure(PressureUnit_t unit);
+  expected<float, int> getBarometricPressure(PressureUnit_t unit);
 
   std::chrono::milliseconds getMeasurementInterval();
 
@@ -189,7 +198,7 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
    */
 
   // i2c bus device name
-  std::string i2cbus_name_;
+  I2cBus i2cbus_;
   uint8_t slave_address_;
 
   uint64_t measurement_count_ = 0;
@@ -211,6 +220,10 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
    */
   int32_t pressure_measurement_ = 0;
 
+  int error_code_ = 0;
+
+  string error_message_ = {};
+
   /*
    * This is only going to be used for taking ambient temperature and
    * barometric temperature which doesn't change within a second. So,
@@ -229,13 +242,9 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   /*
     * Private Functions
     */
-  expected <uint8_t, int> getRegister(uint8_t reg);
+  expected<uint8_t, int> getRegister(uint8_t reg);
 
   int setRegister(uint8_t reg, uint8_t value);
-
-  int getRegisters(uint8_t reg, uint8_t* data, uint8_t count);
-
-  int setRegisters(uint8_t reg, uint8_t* data, uint8_t count);
 
   bool measurementExpired();
 };

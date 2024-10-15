@@ -70,7 +70,8 @@ class TemperatureInterface {
    * The Temperature
    */
 
-  virtual std::expected<float, int> getTemperature(TemperatureUnit_t temperature_unit) = 0;
+  virtual std::expected<float, int> getTemperature(
+      TemperatureUnit_t temperature_unit) = 0;
 
   virtual ~TemperatureInterface() {}
 };
