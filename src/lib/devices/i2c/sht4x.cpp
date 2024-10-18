@@ -95,9 +95,10 @@ int I2cSht4x::softReset() {
   return 0;
 }
 
-expected<float, int> I2cSht4x::getTemperature(TemperatureUnit_t unit) {
+expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(TemperatureUnit_t unit) {
   int error;
   float temperature;
+  
   if (measurementExpired() == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
     if (error != 0) {
@@ -107,23 +108,24 @@ expected<float, int> I2cSht4x::getTemperature(TemperatureUnit_t unit) {
 
   switch (unit) {
     case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature = (kSht4xTemperatureFahrenheitSlope *
-                     static_cast<float>(temperature_measurement_)) -
+      temperature = ((315 * static_cast<float>(temperature_measurement_))/65535) -
                     kSht4xTemperatureFahrenheitOffset;
       break;
     case TEMPERATURE_UNIT_CELSIUS:
-      temperature = (kSht4xTemperatureCelsiusSlope *
-                     static_cast<float>(temperature_measurement_)) -
+      temperature = ((175 * static_cast<float>(temperature_measurement_))/65535) -
                     kSht4xTemperatureCelsiusOffset;
       break;
     case TEMPERATURE_UNIT_KELVIN:
-      temperature = (kSht4xTemperatureKelvinSlope *
-                     static_cast<float>(temperature_measurement_)) -
+      temperature = ((175* static_cast<float>(temperature_measurement_))/65535) -
                     kSht4xTemperatureKelvinOffset;
       break;
   }
 
-  return temperature;
+  temperature_measurement_clock_time_ = std::chrono::system_clock::now();
+  
+  TemperatureMeasurement measurement(TemperatureDatum(temperature, unit), temperature_measurement_clock_time_);
+
+  return measurement;
 }
 
 std::chrono::milliseconds I2cSht4x::getMeasurementInterval() {
@@ -144,7 +146,7 @@ int I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
   return 0;
 }
 
-expected<float, int> I2cSht4x::getRelativeHumidity() {
+expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurement() {
   float relative_humidity;
   int error;
 
@@ -155,8 +157,7 @@ expected<float, int> I2cSht4x::getRelativeHumidity() {
     }
   }
 
-  relative_humidity = (kSht4xRelativeHumiditySlope *
-                       static_cast<float>(relative_humidity_measurement_)) -
+  relative_humidity = ((125 * static_cast<float>(relative_humidity_measurement_))/65535) -
                       kSht4xRelativeHumidityOffset;
 
   /*
@@ -164,13 +165,17 @@ expected<float, int> I2cSht4x::getRelativeHumidity() {
    * cropping of the RH signal to the range of 0 %RH … 100 %RH is advised.
    */
   if (relative_humidity < 0.0) {
-    return 0.0;
+    relative_humidity = 0.0;
   }
   if (relative_humidity > 100.0) {
-    return 100.0;
+    relative_humidity = 100.0;
   }
 
-  return relative_humidity;
+  relativehumidity_measurement_clock_time_ = std::chrono::system_clock::now();
+  
+  RelativeHumidityMeasurement measurement(relative_humidity , relativehumidity_measurement_clock_time_);
+
+  return measurement;
 }
 
 /*

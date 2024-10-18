@@ -28,4 +28,5 @@ add_subdirectory(lib)
 #
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     i2cdevices
-    units)
+    units
+    unit_interfaces)

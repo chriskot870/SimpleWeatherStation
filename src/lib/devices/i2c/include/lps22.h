@@ -18,9 +18,14 @@
 #include <expected>
 #include <string>
 
-#include "i2cbus.h"
+/*
+ * This device provides temperature and pressure data so include the interfaces.
+ * The device makes temperature and pressure measurements so add those includes.
+ */
 #include "pressure_interface.h"
 #include "temperature_interface.h"
+#include "temperature_measurement.h"
+#include "pressure_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
@@ -30,10 +35,14 @@
 using std::expected;
 using std::string;
 using std::unexpected;
+using std::chrono::time_point;
+using std::chrono::steady_clock;
+using std::chrono::system_clock;
+using std::chrono::milliseconds;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
-constexpr std::chrono::milliseconds kLps22DefaultMeasurementInterval(
+constexpr milliseconds kLps22DefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
 /*
  * Fixed address. could be 0x55 you have to check the model from the data sheet
@@ -176,21 +185,17 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
  public:
   Lps22(I2cBus i2cbus_, uint8_t slave_address);
 
-  uint8_t deviceAddress();
-
   int init();
 
   expected<uint8_t, int> whoami();
 
-  int getMeasurement();
+  expected<TemperatureMeasurement, int> getTemperatureMeasurement(TemperatureUnit_t unit);
 
-  expected<float, int> getTemperature(TemperatureUnit_t unit);
+  expected<PressureMeasurement, int> getPressureMeasurement(PressureUnit_t unit);
 
-  expected<float, int> getBarometricPressure(PressureUnit_t unit);
+  milliseconds getMeasurementInterval();
 
-  std::chrono::milliseconds getMeasurementInterval();
-
-  int setMeasurementInterval(std::chrono::milliseconds interval);
+  int setMeasurementInterval(milliseconds interval);
 
  private:
   /*
@@ -204,21 +209,51 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   uint64_t measurement_count_ = 0;
 
   // minimum interval between making a measurement.
-  std::chrono::milliseconds measurement_interval_ =
+  milliseconds measurement_interval_ =
       kLps22DefaultMeasurementInterval;  // Interval between measurements
 
   // The last time point a measurement was made. Initialize to zero.
-  std::chrono::time_point<std::chrono::steady_clock> last_read_{};
+  time_point<steady_clock> last_read_{};
 
   /*
    * The temperature is a 16 bit signed value
    */
-  int16_t temperature_measurement_ = 0;
-
+  int16_t temperature_measurement_ = 0; // This is the raw measurement
+  /*
+   * This is the time a successful measurement was made for temperature.
+   * It is the clock time and is used to create the time variable for
+   * the TemperatureMeasurement.
+   */
+  time_point<system_clock> temperature_measurement_time_;
+  /*
+   * This is the last time a successful temperature measurement was made.
+   * It is used to determine if a reading has expired. We want a
+   * monotonically increasing clock that is unaffected by any system
+   * clock change. So, we use steady_clock.
+   */
+  time_point<steady_clock> temperature_last_read_;
+  bool temperature_error_;
+  bool temperature_valid_ = false;
+ 
   /*
    * The barometric pressure is a signed 24 bit value so we treat it as a 32 bit signed value
    */
-  int32_t pressure_measurement_ = 0;
+  int32_t pressure_measurement_ = 0;  // This is the raw measurement
+  /*
+   * This is the time a successful measurement was made for pressure.
+   * It is the clock time and is used to create the time variable for
+   * the PressureMeasurement.
+   */
+  time_point<system_clock>  pressure_measurement_time_;
+  /*
+   * This is the last time a successful pressure measurement was made.
+   * It is used to determine if a reading has expired. We want a
+   * monotonically increasing clock that is unaffected by any system
+   * clock change. So, we use steady_clock.
+   */
+  time_point<steady_clock> pressure_last_read_;
+  bool pressure_error_;
+  bool pressure_valid_ = false;
 
   int error_code_ = 0;
 
@@ -242,11 +277,10 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   /*
     * Private Functions
     */
-  expected<uint8_t, int> getRegister(uint8_t reg);
 
-  int setRegister(uint8_t reg, uint8_t value);
+  int getMeasurement();
 
-  bool measurementExpired();
+  bool measurementExpired(time_point<steady_clock> steady_time);
 };
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_

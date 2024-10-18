@@ -18,4 +18,5 @@ target_include_directories(i2cdevices PUBLIC
 
 target_link_libraries(i2cdevices PUBLIC
     units
+    unit_interfaces
 )

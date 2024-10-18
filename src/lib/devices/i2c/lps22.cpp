@@ -21,13 +21,15 @@
 
 #include "include/lps22.h"
 
+/*
+ * Constructor
+ */
 Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
     : i2cbus_(i2cbus), slave_address_(slave_address) {}
 
-uint8_t Lps22::deviceAddress() {
-  return kLps22hbI2cAddress;
-}
-
+/*
+ * Return the whoami value on the device
+ */
 expected<uint8_t, int> Lps22::whoami() {
   int retval;
   uint8_t who_am_i;
@@ -50,6 +52,7 @@ int Lps22::init() {
 
   /*
    * Make sure this is the correct device at the expected I2C address
+   * It is assumed we can always get the whoami value.
    */
   x_return = whoami();
   if (x_return.has_value() == false) {
@@ -60,9 +63,9 @@ int Lps22::init() {
   }
   if (x_return.value() != kLps22hbWhoAmIValue) {
     /*
-     * If the value is not a match record it as a communication error
+     * If the value is not a match record it as a Bad Message
      */
-    return ECOMM;
+    return EBADMSG;
   }
 
   /*
@@ -87,8 +90,8 @@ int Lps22::init() {
   }
 
   /*
-     * Wait for Reset to clear
-     */
+   * Wait for Reset to clear
+   */
   int cnt = 0;
   do {
     cnt++;
@@ -105,8 +108,8 @@ int Lps22::init() {
            cnt < kLps22ResetWaitCount);
 
   /*
-     * Set to the default value
-     */
+   * Set to the default value
+   */
   control_1 = kLps22hbCtrlReg1Default;
   retval = i2cbus_.transferDataToRegisters(slave_address_, kLps22hbCtrlReg1,
                                            &control_1, sizeof(control_1));
@@ -131,11 +134,15 @@ int Lps22::init() {
 }
 
 std::chrono::milliseconds Lps22::getMeasurementInterval() {
+  /*
+   * Return the minimum interval allowed
+   */
   return measurement_interval_;
 }
 
 int Lps22::setMeasurementInterval(std::chrono::milliseconds interval) {
   /*
+   * TODO:
    * Should check for some boundary conditions here
    */
   measurement_interval_ = interval;
@@ -147,21 +154,31 @@ int Lps22::getMeasurement() {
   int retval;
   uint8_t ctrl_register_2, data_available, pressure_available_count,
       temp_available_count;
-  uint8_t temp_buffer[] = {0, 0};
-  uint8_t pres_buffer[] = {0, 0};
+  uint8_t temp_buffer[] = {0, 0};  // Temperature is 2 bytes
+  uint8_t pres_buffer[] = {0, 0, 0};  // Pressure is 3 bytes
+  bool temp_updated = false, pres_updated = false, temp_overrun = false, pres_overrun = false;
   int error;
 
+  temperature_error_ = 0;
+  pressure_error_ = 0;
+  temperature_valid_ = false;
+  pressure_valid_ = false;
   measurement_count_++;
+
   /*
-     * Start a measurement by sending a one shot command
-     */
+   * Start a measurement by sending a one shot command
+   * We need to read in control register 2 and set the one shot bit.
+   * Then write it back.
+   */
   retval = i2cbus_.transferDataFromRegisters(slave_address_, kLps22hbCtrlReg2,
                                              &ctrl_register_2,
                                              sizeof(ctrl_register_2));
   if (retval != 0) {
     /*
-     * Return whatever error was found at the lower area
+     * If we got an error it applies to both the temperature and pressure
      */
+    temperature_error_ = retval;
+    pressure_error_ = retval;
     return retval;
   }
   ctrl_register_2 |= kLps22hbCtrlReg2OneShotMask;
@@ -169,56 +186,62 @@ int Lps22::getMeasurement() {
                                           &ctrl_register_2,
                                           sizeof(ctrl_register_2));
   if (error != 0) {
-    /*
-     * Return whatever error was found at the lower area
+        /*
+     * If we got an error it applies to both the temperature and pressure
      */
+    temperature_error_ = retval;
+    pressure_error_ = retval;
     return error;
   }
 
+  /*
+   * Now loop on the status register waiting for data to be available
+   */
   for (temp_available_count = 0; temp_available_count < 10;
        temp_available_count++) {
+
+    /*
+     * Get the status register
+     */
     retval = i2cbus_.transferDataFromRegisters(slave_address_, kLps22hbStatus,
                                              &data_available,
                                              sizeof(data_available));
     if (retval != 0) {
       /*
-       * Return whatever error was found at the lower area
+       * Since this loops we may have gotten a valid value for temperature or pressure
+       * on a previous pass. So, we only count an error for a value that is not marked
+       * as valid.
        */
+      if (temperature_valid_ == false) {
+        temperature_error_ = retval;
+      }
+      if (pressure_valid_ == false) {
+        pressure_error_ = retval;
+      }
       return retval;
     }
-    if ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
-        kLps22hbStatusTemperatureDataAvailableMask) {
-      error = i2cbus_.transferDataFromRegisters(
-          slave_address_, kLps22hbTempOutL, temp_buffer, sizeof(temp_buffer));
-      if (error != 0) {
-        /*
-         * Return whatever error was found at the lower area
-         */
-        return error;
-      }
-      temperature_measurement_ =
-          ((temp_buffer[1] & 0x7F) << 8) | temp_buffer[0];
-      if ((temp_buffer[1] & 0x80) == 0x80) {
-        temperature_measurement_ *= -1;
-      }
+
+    /*
+     * Check for overruns
+     */
+    if ((data_available & kLps22hbStatusTemperatureDataOverRunMask) == kLps22hbStatusTemperatureDataOverRunMask) {
+      temp_overrun = true;
+      temperature_error_ = ECOMM;
+    }
+    if ((data_available & kLps22hbStatusPressureDataOverRunMask) == kLps22hbStatusPressureDataOverRunMask) {
+      pres_overrun = true;
+      pressure_error_ = ECOMM;
+    }
+    if ((temp_overrun == true) && (pres_overrun == true)) {
+      return ECOMM;
       break;
     }
-    usleep(10000);
-  }
-  for (pressure_available_count = 0; pressure_available_count < 100;
-       pressure_available_count++) {
 
-    retval = i2cbus_.transferDataFromRegisters(slave_address_, kLps22hbStatus,
-                                               &data_available,
-                                               sizeof(data_available));
-    if (retval != 0) {
-      /*
-       * Return whatever error was found at the lower area
-       */
-      return retval;
-    }
-    if ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
-        kLps22hbStatusPressureDataAvailableMask) {
+    /*
+     * If there is pressure data ready then get the pressure data
+     */
+    if ((pres_overrun == false) && (pres_updated == false ) && ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
+        kLps22hbStatusPressureDataAvailableMask)) {
       error = i2cbus_.transferDataFromRegisters(
           slave_address_, kLps22hbPressureOutXl, pres_buffer,
           sizeof(pres_buffer));
@@ -226,15 +249,52 @@ int Lps22::getMeasurement() {
         /*
          * Return whatever error was found at the lower area
          */
+        pressure_error_ = error;
         return error;
       }
+
       pressure_measurement_ = ((pres_buffer[2] & 0x7f) << 16) |
                               pres_buffer[1] << 8 | pres_buffer[0];
       if ((pres_buffer[2] & 0x80) == 0x80) {
         pressure_measurement_ *= -1;
       }
+      pres_updated = true;
+      pressure_error_ = 0;
+      pressure_valid_ = true;
+      pressure_measurement_time_ = std::chrono::system_clock::now();
+    }
+
+    /*
+     * If there is temperature available ready get the temperature data
+     */
+    if ((temp_overrun == false) && (temp_updated == false) && ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
+        kLps22hbStatusTemperatureDataAvailableMask)) {
+      error = i2cbus_.transferDataFromRegisters(
+          slave_address_, kLps22hbTempOutL, temp_buffer, sizeof(temp_buffer));
+      if (error != 0) {
+        /*
+         * Return whatever error was found at the lower area
+         */
+        temperature_error_ = error;
+        return error;
+      }
+      temperature_measurement_ =
+          ((temp_buffer[1] & 0x7F) << 8) | temp_buffer[0];
+      if ((temp_buffer[1] & 0x80) == 0x80) {
+        temperature_measurement_ *= -1;
+      }
+      temp_updated = true;
+      temperature_valid_ = true;
+      temperature_error_ = 0;
+      temperature_measurement_time_ = std::chrono::system_clock::now();
+    }
+
+    if ((temp_updated == true) && (pres_updated == true)) {
       break;
     }
+    /*
+     * TODO: Need to get the correct value and make it a constant
+     */
     usleep(10000);
   }
 
@@ -243,19 +303,17 @@ int Lps22::getMeasurement() {
   return 0;
 }
 
-expected<float, int> Lps22::getTemperature(TemperatureUnit_t unit) {
+expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(TemperatureUnit_t unit) {
   uint8_t buffer[2] = {0, 0};
   float temperature;
   int error;
 
-  if (measurementExpired()) {
+  if (measurementExpired(temperature_last_read_)) {
     error = getMeasurement();
-    if (error != 0) {
-      /*
-       * Return whatever error was found at the lower area
-       */
-      return unexpected(error);
-    }
+  }
+
+  if (temperature_valid_ == false) {
+    return unexpected(temperature_error_);
   }
 
   /*
@@ -269,32 +327,32 @@ expected<float, int> Lps22::getTemperature(TemperatureUnit_t unit) {
    */
   switch (unit) {
     case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature = TemperatureConversion::celsiusToFahrenheit(temperature);
+      temperature = TemperatureDatum::celsiusToFahrenheit(temperature);
       break;
     case TEMPERATURE_UNIT_CELSIUS:
       /* It is already in celsius so just return it*/
       break;
     case TEMPERATURE_UNIT_KELVIN:
-      temperature = TemperatureConversion::celsiusToKelvin(temperature);
+      temperature = TemperatureDatum::celsiusToKelvin(temperature);
       break;
   }
 
-  return temperature;
+  TemperatureDatum data(temperature, unit);
+  
+  TemperatureMeasurement measurement(data, temperature_measurement_time_);
+
+  return measurement;
 }
 
-expected<float, int> Lps22::getBarometricPressure(PressureUnit_t unit) {
+expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t unit) {
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
   int error;
 
-  if (measurementExpired() == true) {
+  if (measurementExpired(pressure_last_read_) == true) {
     error = getMeasurement();
-    if (error != 0) {
-      /*
-       * Return whatever error was found at the lower area
-       */
-      error_code_ = error;
-      return unexpected(error_code_);
+    if (pressure_valid_ == false) {
+      return unexpected(pressure_error_);
     }
   }
 
@@ -307,48 +365,28 @@ expected<float, int> Lps22::getBarometricPressure(PressureUnit_t unit) {
     case PRESSURE_UNIT_Mb:
       break;
     case PRESSURE_UNIT_Pa:
-      pressure = PressureConversion::MbToPa(pressure);
+      pressure = PressureDatum::MbToPa(pressure);
       break;
     case PRESSURE_UNIT_PSI:
-      pressure = PressureConversion::MbToPsi(pressure);
+      pressure = PressureDatum::MbToPsi(pressure);
       break;
     case PRESSURE_UNIT_INCHES_MERCURY:
-      pressure = PressureConversion::MbTohInchesMercury(pressure);
+      pressure = PressureDatum::MbToInchesMercury(pressure);
       break;
   }
 
-  return pressure;
+  PressureDatum pdata(pressure, unit);
+
+  PressureMeasurement measurement(pdata, pressure_measurement_time_);
+
+  return measurement;
 }
 
 /*
  * Private methods
  */
-expected<uint8_t, int> Lps22::getRegister(uint8_t reg) {
-  int retval;
-  uint8_t data = 0;
 
-  retval = i2cbus_.transferDataFromRegisters(slave_address_, reg, &data,
-                                             sizeof(data));
-  if (retval != 0) {
-    /*
-     * Return whatever error was found at the lower area
-     */
-    return unexpected(retval);
-  }
-
-  return data;
-}
-
-int Lps22::setRegister(uint8_t reg, uint8_t data) {
-  int retval;
-
-  retval =
-      i2cbus_.transferDataToRegisters(slave_address_, reg, &data, sizeof(data));
-
-  return retval;
-}
-
-bool Lps22::measurementExpired() {
+bool Lps22::measurementExpired(time_point<std::chrono::steady_clock> steady_time) {
   /*
    * check if the current measurement has expired
    */
@@ -359,7 +397,7 @@ bool Lps22::measurementExpired() {
       std::chrono::steady_clock::now();
 
   auto time_diff =
-      std::chrono::duration_cast<std::chrono::milliseconds>(now - last_read_);
+      std::chrono::duration_cast<std::chrono::milliseconds>(now - steady_time);
 
   if (time_diff > measurement_interval_) {
     return true;
