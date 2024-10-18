@@ -10,17 +10,19 @@
 using std::chrono::time_point;
 using std::chrono::system_clock;
 
+#include "relative_humidity_datum.h"
+
 class RelativeHumidityMeasurement {
  public:
   /*
    * The constructor routine
    */
-  RelativeHumidityMeasurement (float data, time_point<system_clock> clock_time);
+  RelativeHumidityMeasurement (RelativeHumidityDatum data, time_point<system_clock> clock_time);
 
   /*
    * Return the data of the measurement
    */
-  float getData();
+  RelativeHumidityDatum getData();
 
   /*
    * Return the time of the measurement
@@ -31,7 +33,7 @@ class RelativeHumidityMeasurement {
   /*
    * The actual temperature measurement
    */
-  float data_;
+  RelativeHumidityDatum data_;
 
   /*
    * The time the measurement was made

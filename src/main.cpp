@@ -81,7 +81,7 @@ int main() {
     printf("SHT44 Raw Temperature Centigrade: %5.2f\n", x_sht4x_temp.value().getData().getValue());
     printf("SHT44 Raw Temperature Fahrenheit: %5.2f\n",
            TemperatureDatum::celsiusToFahrenheit(x_sht4x_temp.value().getData().getValue()));
-    printf("SHT44 Raw Relative Humidity: %5.2f\n", x_sht4x_humidity.value().getData());
+    printf("SHT44 Raw Relative Humidity: %5.2f\n", x_sht4x_humidity.value().getData().getValue());
 
     auto x_lps22_temp = lps22.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
     if (x_lps22_temp.has_value() == false) {

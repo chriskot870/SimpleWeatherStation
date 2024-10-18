@@ -77,16 +77,20 @@ constexpr uint8_t kSht4xCommandActivateHtr110mwTenthSecond = 0x24;
 constexpr uint8_t kSht4xCommandActivateHtr20mwOneSecond = 0x1E;
 constexpr uint8_t kSht4xCommandActivateHtr20mwTenthSecond = 0x15;
 
-constexpr float kSht4xTemperatureCelsiusSlope =
-    (static_cast<float>(175) / static_cast<float>(65535));
+constexpr int kSht4xTemperatureCelsiusMultiplier = 175;
+constexpr int kSht4xTemperatureCelsisusDivisor = 65535;
 constexpr int kSht4xTemperatureCelsiusOffset = 45;
-constexpr float kSht4xTemperatureFahrenheitSlope =
-    (static_cast<float>(315) / static_cast<float>(65535));
+
+constexpr int kSht4xTemperatureFarenheitMultiplier = 315;
+constexpr int kSht4xTemperatureFarenheitDivisor = 65535;
 constexpr int kSht4xTemperatureFahrenheitOffset = 49;
-constexpr float kSht4xRelativeHumiditySlope =
-    (static_cast<float>(125) / static_cast<float>(65535));
+
+constexpr int kSht4xRelativeHumidityMultiplier = 125;
+constexpr int kSht4xRelativeHumidityDivisor = 65535;
 constexpr int kSht4xRelativeHumidityOffset = 6;
-constexpr float kSht4xTemperatureKelvinSlope = kSht4xTemperatureCelsiusSlope;
+
+constexpr int kSht4xTemperatureKelvinMultiplier = kSht4xTemperatureCelsiusMultiplier;
+constexpr int kSht4xTemperatureKelvinDivisor = kSht4xTemperatureCelsisusDivisor;
 constexpr float kSht4xTemperatureKelvinOffset =
     kSht4xTemperatureCelsiusOffset + 273.15;
 
@@ -94,7 +98,7 @@ typedef enum {
   SHT4X_MEASUREMENT_PRECISION_HIGH,
   SHT4X_MEASUREMENT_PRECISION_MEDIUM,
   SHT4X_MEASUREMENT_PRECISION_LOW,
-  SHT4X_HEATER_ACTIVATION_200mW_ONE_SECOND,
+  SHT4X_HEATER_ACTkSIVATION_200mW_ONE_SECOND,
   SHT4X_HEATER_ACTIVATION_200mW_TENTH_SECOND,
   SHT4X_HEATER_ACTIVATION_110mW_ONE_SECOND,
   SHT4X_HEATER_ACTIVATION_110mW_TENTH_SECOND,

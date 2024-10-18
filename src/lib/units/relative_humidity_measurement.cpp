@@ -7,12 +7,12 @@
 /*
  * Constructor function
  */
-RelativeHumidityMeasurement::RelativeHumidityMeasurement(float data, time_point<system_clock> clock_time) : data_(data), clock_time_(clock_time) {}
+RelativeHumidityMeasurement::RelativeHumidityMeasurement(RelativeHumidityDatum data, time_point<system_clock> clock_time) : data_(data), clock_time_(clock_time) {}
 
 /*
  * Return the data value
  */
-float RelativeHumidityMeasurement::getData() {
+RelativeHumidityDatum RelativeHumidityMeasurement::getData() {
 
   return data_;
 }

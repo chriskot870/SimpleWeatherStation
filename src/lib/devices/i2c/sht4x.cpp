@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <cmath>
 
 #include "include/i2cbus.h"
 #include "include/sht4x.h"
@@ -98,7 +99,7 @@ int I2cSht4x::softReset() {
 expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(TemperatureUnit_t unit) {
   int error;
   float temperature;
-  
+
   if (measurementExpired() == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
     if (error != 0) {
@@ -108,18 +109,26 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(Temper
 
   switch (unit) {
     case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature = ((315 * static_cast<float>(temperature_measurement_))/65535) -
+      temperature = ((kSht4xTemperatureFarenheitMultiplier * static_cast<float>(temperature_measurement_))/kSht4xTemperatureFarenheitDivisor) -
                     kSht4xTemperatureFahrenheitOffset;
       break;
     case TEMPERATURE_UNIT_CELSIUS:
-      temperature = ((175 * static_cast<float>(temperature_measurement_))/65535) -
+      temperature = ((kSht4xTemperatureCelsiusMultiplier * static_cast<float>(temperature_measurement_))/kSht4xTemperatureCelsisusDivisor) -
                     kSht4xTemperatureCelsiusOffset;
       break;
     case TEMPERATURE_UNIT_KELVIN:
-      temperature = ((175* static_cast<float>(temperature_measurement_))/65535) -
+      temperature = ((kSht4xTemperatureKelvinMultiplier * static_cast<float>(temperature_measurement_))/kSht4xTemperatureKelvinDivisor) -
                     kSht4xTemperatureKelvinOffset;
       break;
   }
+
+  /*
+   * DEBUG: How to get degrees milli-celsius. We may want to store the base
+   * temperature in and then the others are derived from it.
+   *
+  int milli_c = round((((kSht4xTemperatureCelsiusMultiplier * static_cast<float>(temperature_measurement_))/kSht4xTemperatureCelsisusDivisor) -
+                    kSht4xTemperatureCelsiusOffset) * 1000);
+   */
 
   temperature_measurement_clock_time_ = std::chrono::system_clock::now();
   
@@ -157,7 +166,7 @@ expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurem
     }
   }
 
-  relative_humidity = ((125 * static_cast<float>(relative_humidity_measurement_))/65535) -
+  relative_humidity = ((kSht4xRelativeHumidityMultiplier * static_cast<float>(relative_humidity_measurement_))/kSht4xRelativeHumidityDivisor) -
                       kSht4xRelativeHumidityOffset;
 
   /*
@@ -172,8 +181,10 @@ expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurem
   }
 
   relativehumidity_measurement_clock_time_ = std::chrono::system_clock::now();
+
+  RelativeHumidityDatum rhdata(relative_humidity, RELATIVE_HUMIDITY_UNIT_PERCENT);
   
-  RelativeHumidityMeasurement measurement(relative_humidity , relativehumidity_measurement_clock_time_);
+  RelativeHumidityMeasurement measurement(rhdata , relativehumidity_measurement_clock_time_);
 
   return measurement;
 }

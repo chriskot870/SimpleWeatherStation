@@ -11,6 +11,7 @@ add_library(unit_interfaces INTERFACE
 add_library(units STATIC
     temperature_datum.cpp
     pressure_datum.cpp
+    relative_humidity_datum.cpp
     temperature_measurement.cpp
     pressure_measurement.cpp
     relative_humidity_measurement.cpp
