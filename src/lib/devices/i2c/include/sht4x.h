@@ -38,6 +38,9 @@ using std::expected;
 using std::string;
 using std::unexpected;
 using std::chrono::time_point;
+using std::chrono::system_clock;
+using std::chrono::steady_clock;
+using std::chrono::milliseconds;
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
@@ -168,7 +171,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
   std::chrono::milliseconds getMeasurementInterval();
 
-  int setMeasurementInterval(std::chrono::milliseconds interval);
+  int setMeasurementInterval(milliseconds interval);
 
   int error_code();
 
@@ -193,20 +196,20 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
       kDefaultMeasurementInterval; /* Interval between measurements */
 
   // The last time point a measurement was made. Initialize to zero.
-  time_point<std::chrono::steady_clock> last_read_{};
+  time_point<steady_clock> last_read_{};
 
   // Temperature measurement
   uint16_t temperature_measurement_;
 
-  time_point<std::chrono::system_clock>  temperature_measurement_time_;
+  time_point<system_clock>  temperature_measurement_time_;
 
-  time_point<std::chrono::system_clock> temperature_measurement_clock_time_;
+  time_point<system_clock> temperature_measurement_clock_time_;
 
   // Humidity measurement
   uint16_t relative_humidity_measurement_;
-  time_point<std::chrono::system_clock>  relative_humidity_measurement_time_;
+  time_point<system_clock>  relative_humidity_measurement_time_;
 
-  time_point<std::chrono::system_clock> relativehumidity_measurement_clock_time_;
+  time_point<system_clock> relativehumidity_measurement_clock_time_;
 
   // Serial Number
   uint32_t serial_number_ = 0;

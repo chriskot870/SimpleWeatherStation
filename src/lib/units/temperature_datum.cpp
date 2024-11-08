@@ -4,7 +4,20 @@
 
 #include "temperature_datum.h"
 
-TemperatureDatum::TemperatureDatum (float value,  TemperatureUnit_t unit) : value_(value), unit_(unit) {}
+TemperatureDatum::TemperatureDatum (float value,  TemperatureUnit_t unit) : value_(value), unit_(unit) {
+
+  switch (unit) {
+    case   TEMPERATURE_UNIT_FAHRENHEIT :
+      base_value_ = round(fahrenheitToCelsius(value_) * 1000);
+      break;
+    case TEMPERATURE_UNIT_CELSIUS :
+      base_value_ = round(value_ * 1000);
+      break;
+    case TEMPERATURE_UNIT_KELVIN :
+      base_value_ = round(celsiusToKelvin(value_) * 1000);
+      break;
+  }
+}
 
   /*
    * Static conversion functions

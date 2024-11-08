@@ -17,6 +17,7 @@
 #include <chrono>
 #include <expected>
 #include <string>
+#include <stdatomic.h>
 
 /*
  * This device provides temperature and pressure data so include the interfaces.
@@ -183,6 +184,7 @@ typedef enum {
 
 class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
  public:
+
   Lps22(I2cBus i2cbus_, uint8_t slave_address);
 
   int init();
@@ -202,11 +204,13 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
    * Private Variables
    */
 
+  static atomic_uint64_t device_read_total_;
+
   // i2c bus device name
   I2cBus i2cbus_;
   uint8_t slave_address_;
 
-  uint64_t measurement_count_ = 0;
+  atomic_uint64_t measurement_count_ = 0;
 
   // minimum interval between making a measurement.
   milliseconds measurement_interval_ =

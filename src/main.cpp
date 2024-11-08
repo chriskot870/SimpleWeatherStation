@@ -87,7 +87,10 @@ int main() {
     if (x_lps22_temp.has_value() == false) {
       printf("Failed to get Temperature from LPS22HB Device: %d\n",
              x_lps22_temp.error());
-      exit(1);
+    } else {
+      printf("LPS22 Raw Temperature Centigrade: %5.2f\n", x_lps22_temp.value().getData().getValue());
+      printf("LPS22 Raw Temperature Fahrenheit: %5.2f\n",
+           TemperatureDatum::celsiusToFahrenheit(x_lps22_temp.value().getData().getValue()));
     }
     auto x_lps22_pressure =
         lps22.getPressureMeasurement(PRESSURE_UNIT_Mb);
@@ -96,9 +99,6 @@ int main() {
              x_lps22_pressure.error());
       exit(1);
     }
-    printf("LPS22 Raw Temperature Centigrade: %5.2f\n", x_lps22_temp.value().getData().getValue());
-    printf("LPS22 Raw Temperature Fahrenheit: %5.2f\n",
-           TemperatureDatum::celsiusToFahrenheit(x_lps22_temp.value().getData().getValue()));
 
     PressureMeasurement pmeasurement(x_lps22_pressure.value());
     PressureDatum pdata(x_lps22_pressure.value().getData());

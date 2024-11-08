@@ -5,6 +5,7 @@
 #ifndef LIB_UNITS_TEMPERATURE_DATUM_H_
 #define LIB_UNITS_TEMPERATURE_DATUM_H_
 
+#include <cmath>
 #include <string>
 
 typedef enum {
@@ -57,6 +58,12 @@ class TemperatureDatum {
   float value_;
 
   TemperatureUnit_t unit_;
+
+  /*
+   * This is milli-celsius and will be used for comparisons
+   */
+  int base_value_;
+  
 };
 
 #endif  // LIB_UNITS_TEMPERATURE_DATUM_H_

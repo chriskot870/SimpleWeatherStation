@@ -28,6 +28,11 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
     : i2cbus_(i2cbus), slave_address_(slave_address) {}
 
 /*
+ * Initialize static variables
+ */
+atomic_uint64_t Lps22::device_read_total_ = 0;
+
+/*
  * Return the whoami value on the device
  */
 expected<uint8_t, int> Lps22::whoami() {
@@ -164,6 +169,8 @@ int Lps22::getMeasurement() {
   temperature_valid_ = false;
   pressure_valid_ = false;
   measurement_count_++;
+  device_read_total_++;
+
 
   /*
    * Start a measurement by sending a one shot command
@@ -193,6 +200,11 @@ int Lps22::getMeasurement() {
     pressure_error_ = retval;
     return error;
   }
+
+  /*
+   * Add a sleep to allow the command to execute on the device
+   */
+  usleep(10000);
 
   /*
    * Now loop on the status register waiting for data to be available
@@ -309,7 +321,15 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   int error;
 
   if (measurementExpired(temperature_last_read_)) {
+    /*
+     * The device seems to always return a temperature of 0 Centigrade
+     * on the first read after a power cycle.
+     * So, if this is the first read after a power cycle get another measurment
+     */
     error = getMeasurement();
+    if (device_read_total_.load() == 1) {
+      error = getMeasurement();
+    }
   }
 
   if (temperature_valid_ == false) {

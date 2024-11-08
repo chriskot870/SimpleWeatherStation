@@ -122,26 +122,18 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(Temper
       break;
   }
 
-  /*
-   * DEBUG: How to get degrees milli-celsius. We may want to store the base
-   * temperature in and then the others are derived from it.
-   *
-  int milli_c = round((((kSht4xTemperatureCelsiusMultiplier * static_cast<float>(temperature_measurement_))/kSht4xTemperatureCelsisusDivisor) -
-                    kSht4xTemperatureCelsiusOffset) * 1000);
-   */
-
-  temperature_measurement_clock_time_ = std::chrono::system_clock::now();
+  temperature_measurement_clock_time_ = system_clock::now();
   
   TemperatureMeasurement measurement(TemperatureDatum(temperature, unit), temperature_measurement_clock_time_);
 
   return measurement;
 }
 
-std::chrono::milliseconds I2cSht4x::getMeasurementInterval() {
+milliseconds I2cSht4x::getMeasurementInterval() {
   return measurement_interval_;
 }
 
-int I2cSht4x::setMeasurementInterval(std::chrono::milliseconds interval) {
+int I2cSht4x::setMeasurementInterval(milliseconds interval) {
   /*
    * If the request is for less than the minimum interval allowed make it the minimum
    * May want to return an error instead
@@ -180,7 +172,7 @@ expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurem
     relative_humidity = 100.0;
   }
 
-  relativehumidity_measurement_clock_time_ = std::chrono::system_clock::now();
+  relativehumidity_measurement_clock_time_ = system_clock::now();
 
   RelativeHumidityDatum rhdata(relative_humidity, RELATIVE_HUMIDITY_UNIT_PERCENT);
   
@@ -237,7 +229,7 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   temperature_measurement_ = (read_buffer[0] << 8) + read_buffer[1];
   relative_humidity_measurement_ = (read_buffer[3] << 8) + read_buffer[4];
 
-  last_read_ = std::chrono::steady_clock::now();
+  last_read_ = steady_clock::now();
 
   return 0;
 }
@@ -249,11 +241,11 @@ bool I2cSht4x::measurementExpired() {
   if (measure_count_ == 0) {
     return true;
   }
-  std::chrono::time_point<std::chrono::steady_clock> now =
-      std::chrono::steady_clock::now();
+  time_point<steady_clock> now =
+    steady_clock::now();
 
   auto time_diff =
-      std::chrono::duration_cast<std::chrono::milliseconds>(now - last_read_);
+      std::chrono::duration_cast<milliseconds>(now - last_read_);
 
   if (time_diff > measurement_interval_) {
     return true;
