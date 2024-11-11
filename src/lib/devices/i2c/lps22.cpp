@@ -32,12 +32,18 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
  */
 atomic_uint64_t Lps22::device_read_total_ = 0;
 
+std::recursive_mutex Lps22::device_lock_;
+
 /*
  * Return the whoami value on the device
  */
 expected<uint8_t, int> Lps22::whoami() {
   int retval;
   uint8_t who_am_i;
+  std::lock_guard<std::recursive_mutex> guard(device_lock_);  /* get the device lock
+                                                     * device lock will be unlcoked when
+                                                     * guard's destruct routine gets called
+                                                     */
 
   retval = i2cbus_.transferDataFromRegisters(slave_address_, kLps22hbWhoAmI,
                                              &who_am_i, sizeof(who_am_i));
@@ -49,30 +55,15 @@ expected<uint8_t, int> Lps22::whoami() {
   return who_am_i;
 }
 
-int Lps22::init() {
+int Lps22::reset() {
   int retval;
   expected<uint8_t, int> x_return;
   uint8_t control_1, control_2;
   int error;
-
-  /*
-   * Make sure this is the correct device at the expected I2C address
-   * It is assumed we can always get the whoami value.
-   */
-  x_return = whoami();
-  if (x_return.has_value() == false) {
-    /*
-     * Return whatever error was found at the lower area
-     */
-    return x_return.error();
-  }
-  if (x_return.value() != kLps22hbWhoAmIValue) {
-    /*
-     * If the value is not a match record it as a Bad Message
-     */
-    return EBADMSG;
-  }
-
+  std::lock_guard<std::recursive_mutex> guard(device_lock_);  /* get the device lock
+                                                     * device lock will be unlcoked when
+                                                     * guard's destruct routine gets called
+                                                     */
   /*
    * Now send a software reset
    */
@@ -145,6 +136,33 @@ std::chrono::milliseconds Lps22::getMeasurementInterval() {
   return measurement_interval_;
 }
 
+int Lps22::init() {
+  expected<uint8_t, int> x_return;
+  int retval = 0;
+
+  /*
+   * Make sure this is the correct device at the expected I2C address
+   * It is assumed we can always get the whoami value.
+   */
+  x_return = whoami();
+  if (x_return.has_value() == false) {
+    /*
+     * Return whatever error was found at the lower area
+     */
+    return x_return.error();
+  }
+  if (x_return.value() != kLps22hbWhoAmIValue) {
+    /*
+     * If the value is not a match record it as a Bad Message
+     */
+    return EBADMSG;
+  }
+  retval = reset();
+
+  return retval;
+}
+
+
 int Lps22::setMeasurementInterval(std::chrono::milliseconds interval) {
   /*
    * TODO:
@@ -168,10 +186,13 @@ int Lps22::getMeasurement() {
   pressure_error_ = 0;
   temperature_valid_ = false;
   pressure_valid_ = false;
-  measurement_count_++;
+  instance_measurement_count_++;
   device_read_total_++;
 
-
+  std::lock_guard<std::recursive_mutex> guard(device_lock_);  /* get the device lock
+                                                     * device lock will be unlcoked when
+                                                     * guard's destruct routine gets called
+                                                     */
   /*
    * Start a measurement by sending a one shot command
    * We need to read in control register 2 and set the one shot bit.
@@ -235,24 +256,23 @@ int Lps22::getMeasurement() {
 
     /*
      * Check for overruns
+     * An overrun means that a new value has overwritten a previous one.
+     * Since we are doing one-shots I don't see this as a problem. We
+     * only want this new value we don't care if an older value has been
+     * overwritten.
+     * We record it, but don't really use it.
      */
     if ((data_available & kLps22hbStatusTemperatureDataOverRunMask) == kLps22hbStatusTemperatureDataOverRunMask) {
       temp_overrun = true;
-      temperature_error_ = ECOMM;
     }
     if ((data_available & kLps22hbStatusPressureDataOverRunMask) == kLps22hbStatusPressureDataOverRunMask) {
       pres_overrun = true;
-      pressure_error_ = ECOMM;
-    }
-    if ((temp_overrun == true) && (pres_overrun == true)) {
-      return ECOMM;
-      break;
     }
 
     /*
      * If there is pressure data ready then get the pressure data
      */
-    if ((pres_overrun == false) && (pres_updated == false ) && ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
+    if ((pres_updated == false ) && ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
         kLps22hbStatusPressureDataAvailableMask)) {
       error = i2cbus_.transferDataFromRegisters(
           slave_address_, kLps22hbPressureOutXl, pres_buffer,
@@ -279,7 +299,7 @@ int Lps22::getMeasurement() {
     /*
      * If there is temperature available ready get the temperature data
      */
-    if ((temp_overrun == false) && (temp_updated == false) && ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
+    if ((temp_updated == false) && ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
         kLps22hbStatusTemperatureDataAvailableMask)) {
       error = i2cbus_.transferDataFromRegisters(
           slave_address_, kLps22hbTempOutL, temp_buffer, sizeof(temp_buffer));
@@ -410,7 +430,7 @@ bool Lps22::measurementExpired(time_point<std::chrono::steady_clock> steady_time
   /*
    * check if the current measurement has expired
    */
-  if (measurement_count_ == 0) {
+  if (instance_measurement_count_ == 0) {
     return true;
   }
   std::chrono::time_point<std::chrono::steady_clock> now =

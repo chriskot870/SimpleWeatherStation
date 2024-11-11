@@ -18,6 +18,7 @@
 #include <expected>
 #include <string>
 #include <stdatomic.h>
+#include <mutex>
 
 /*
  * This device provides temperature and pressure data so include the interfaces.
@@ -187,6 +188,8 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   Lps22(I2cBus i2cbus_, uint8_t slave_address);
 
+  int reset();
+
   int init();
 
   expected<uint8_t, int> whoami();
@@ -204,13 +207,25 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
    * Private Variables
    */
 
-  static atomic_uint64_t device_read_total_;
+  /*
+   * There can be multiple instances of this class.
+   * These variables will be used by all instances.
+   */
+  static atomic_uint64_t device_read_total_;  /*
+                                               * This is the total measurment requests across all
+                                               * instances. It was primarily to solve a problem
+                                               * with the device. It will alwaya return a temperature
+                                               * value of 0 celsius after a power up.
+                                               * It is also a potentially interesting statistic about
+                                               * how many total measurement requests have been made of
+                                               * the device per power up.
+                                               */
+  static std::recursive_mutex device_lock_;  /* Lock the device before making any requests */
 
-  // i2c bus device name
   I2cBus i2cbus_;
   uint8_t slave_address_;
 
-  atomic_uint64_t measurement_count_ = 0;
+  atomic_uint64_t instance_measurement_count_ = 0;
 
   // minimum interval between making a measurement.
   milliseconds measurement_interval_ =
