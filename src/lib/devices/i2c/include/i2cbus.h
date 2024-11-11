@@ -55,6 +55,11 @@ class I2cBus {
   int transferDataToRegisters(uint8_t slave_address, uint8_t sub_adress,
                               uint8_t* buffer, uint8_t count);
 
+  /**
+   * This routine returns the device name
+   */
+  string busName();
+
  private:
   string bus_device_name_;
 

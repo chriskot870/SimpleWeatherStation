@@ -42,6 +42,11 @@ I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
   return;
 };
 
+string I2cBus::busName() {
+
+  return bus_device_name_;
+}
+
 int I2cBus::transferDataToRegisters(uint8_t slave_address, uint8_t reg,
                                     uint8_t* buffer, uint8_t count) {
   int retval;

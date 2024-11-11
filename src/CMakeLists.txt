@@ -30,3 +30,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     i2cdevices
     units
     unit_interfaces)
+
+#
+# define where to install the target
+install(TARGETS WeatherStation)
