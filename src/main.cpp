@@ -30,7 +30,7 @@ int main() {
 
   I2cBus i2c_bus = I2cBus(string("/dev/i2c-1"));
 
-  Lps22 lps22(i2c_bus, kLps22hbI2cAddress);
+  Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
   error = lps22.init();
   if (error != 0) {

@@ -47,10 +47,12 @@ constexpr uint8_t kLps22ResetWaitCount = 10;
 constexpr milliseconds kLps22DefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
 /*
- * Fixed address. could be 0x55 you have to check the model from the data sheet
+ * There are two possible slave addresses
  */
-constexpr uint8_t kLps22hbI2cAddress =
-    0x5D;  // or 0x5C, See data sheet section 7.2.1.
+constexpr uint8_t kLps22hbI2cPrimaryAddress =
+    0x5D;  // See data sheet section 7.2.1.
+constexpr uint8_t kLps22hbI2cSecondaryAddress =
+    0x5C;  // See data sheet section 7.2.1.
 
 /*
  * The constant value always retrurned by the Who Am I register
