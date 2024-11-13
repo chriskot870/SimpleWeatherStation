@@ -21,18 +21,82 @@
 
 #include "include/lps22.h"
 
+mutex devices_lock;
+static map<Lps22DeviceLocation, Lps22DeviceData*> devices;
 /*
  * Constructor
  */
 Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
-    : i2cbus_(i2cbus), slave_address_(slave_address) {}
+    : i2cbus_(i2cbus), slave_address_(slave_address) {
+  
+   /*
+   * Check that the i2c bus name is a valid name
+   */
+  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),i2c_devicename_prefix) != 0) {
+    return;
+  }
+  /*
+   * Check that slave addresses are valid
+   */
+  auto item = find(slave_address_options.begin(), slave_address_options.end(), slave_address_);
+  if (item == slave_address_options.end()) {
+    return;
+  }
 
-/*
- * Initialize static variables
- */
-atomic_uint64_t Lps22::device_read_total_ = 0;
+  /*
+   * If the names are valid, Create the device
+   */
+  device_.bus_name_ = i2cbus.busName();
+  device_.slave_address_ = slave_address;
 
-std::recursive_mutex Lps22::device_lock_;
+  /*
+   * If the device is already on the list then some other instance has
+   * validated it and we don't need to add it to the list
+   */
+  std::lock_guard<std::mutex> guard_devices(devices_lock);
+  if (devices.contains(device_) == true) {
+    /*
+     * Some previous instance has added the device to the devices list
+     */
+    device_data_ = devices[device_];
+    return;
+  }
+
+  /*
+   * Create a DeviceData and use it to see if whoami works
+   * If whoami does not work then 
+   */
+  device_data_ = new Lps22DeviceData();
+
+  expected<uint8_t, int> x_return;
+  x_return = whoami();
+  if (x_return.has_value() == false) {
+    /*
+     * I can't get the whoami so reset device_data_ to nullptr
+     * to indicate the device doesn't seem to be at the bus and slave
+     * address provided.
+     * This causes all other routines to call an ENODEV error
+     */
+    delete device_data_;
+    device_data_ = nullptr;
+    return;
+  }
+
+  /*
+   * If I get here I got a value. Make sure it matches the 
+   */
+  if (x_return.value() != kLps22hbWhoAmIValue) {
+    /*
+     * free up the memory and set the device_data_ to nullptr
+     */
+    delete device_data_;
+    device_data_ = nullptr;
+    return;
+  }
+  devices[device_] = device_data_;
+
+  return;
+}
 
 /*
  * Return the whoami value on the device
@@ -40,7 +104,12 @@ std::recursive_mutex Lps22::device_lock_;
 expected<uint8_t, int> Lps22::whoami() {
   int retval;
   uint8_t who_am_i;
-  std::lock_guard<std::recursive_mutex> guard(device_lock_);  /* get the device lock
+
+  if (device_data_ == nullptr) {
+    return unexpected(retval);
+  }
+
+  std::lock_guard<std::recursive_mutex> guard(device_data_->lock_);  /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -60,7 +129,11 @@ int Lps22::reset() {
   expected<uint8_t, int> x_return;
   uint8_t control_1, control_2;
   int error;
-  std::lock_guard<std::recursive_mutex> guard(device_lock_);  /* get the device lock
+
+  if (device_data_ == nullptr) {
+    return ENODEV;
+  }
+  std::lock_guard<std::recursive_mutex> guard(device_data_->lock_);  /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -140,23 +213,35 @@ int Lps22::init() {
   expected<uint8_t, int> x_return;
   int retval = 0;
 
+  if (device_data_ == nullptr) {
+    return ENODEV;
+  }
   /*
    * Make sure this is the correct device at the expected I2C address
    * It is assumed we can always get the whoami value.
    */
   x_return = whoami();
+  /*
+   * If I can't do a whoami we probably have the wrong device so
+   * clear device_data_
+   */
   if (x_return.has_value() == false) {
     /*
-     * Return whatever error was found at the lower area
+     * Return whatever error was found at the lower area reort it.
+     * We assume the deice isn't at the bus,slave location so
+     * free the device_ptr_
      */
+    delete device_data_;
     return x_return.error();
   }
   if (x_return.value() != kLps22hbWhoAmIValue) {
     /*
      * If the value is not a match record it as a Bad Message
      */
+     delete device_data_;
     return EBADMSG;
   }
+
   retval = reset();
 
   return retval;
@@ -187,9 +272,12 @@ int Lps22::getMeasurement() {
   temperature_valid_ = false;
   pressure_valid_ = false;
   instance_measurement_count_++;
-  device_read_total_++;
+  device_data_->read_total_++;
 
-  std::lock_guard<std::recursive_mutex> guard(device_lock_);  /* get the device lock
+  if (device_data_ == nullptr) {
+    return ENODEV;
+  }
+  std::lock_guard<std::recursive_mutex> guard(device_data_->lock_);  /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -340,6 +428,9 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   float temperature;
   int error;
 
+  if (device_data_ == nullptr) {
+    return unexpected(ENODEV);
+  }
   if (measurementExpired(temperature_last_read_)) {
     /*
      * The device seems to always return a temperature of 0 Centigrade
@@ -347,7 +438,7 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
      * So, if this is the first read after a power cycle get another measurment
      */
     error = getMeasurement();
-    if (device_read_total_.load() == 1) {
+    if (device_data_->read_total_ == 1) {
       error = getMeasurement();
     }
   }
@@ -389,6 +480,9 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
   float pressure;
   int error;
 
+  if (device_data_ == nullptr) {
+    return unexpected(ENODEV);
+  }
   if (measurementExpired(pressure_last_read_) == true) {
     error = getMeasurement();
     if (pressure_valid_ == false) {

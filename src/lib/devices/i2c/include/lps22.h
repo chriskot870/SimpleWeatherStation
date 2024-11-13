@@ -18,7 +18,10 @@
 #include <expected>
 #include <string>
 #include <stdatomic.h>
+#include <algorithm>
 #include <mutex>
+#include <vector>
+#include <map>
 
 /*
  * This device provides temperature and pressure data so include the interfaces.
@@ -41,6 +44,9 @@ using std::chrono::time_point;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::milliseconds;
+using std::map;
+using std::vector;
+using std::mutex;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
@@ -53,6 +59,8 @@ constexpr uint8_t kLps22hbI2cPrimaryAddress =
     0x5D;  // See data sheet section 7.2.1.
 constexpr uint8_t kLps22hbI2cSecondaryAddress =
     0x5C;  // See data sheet section 7.2.1.
+
+const vector<uint8_t> slave_address_options = { kLps22hbI2cPrimaryAddress, kLps22hbI2cSecondaryAddress };
 
 /*
  * The constant value always retrurned by the Who Am I register
@@ -185,6 +193,52 @@ typedef enum {
   LPS22HB_CTRL_FIFO_CTRL_BYPASS_TO_FIFO_MODE
 } Lps22hbFifoCtrl_t;
 
+class Lps22DeviceLocation {
+ public:
+  string bus_name_;
+  uint8_t slave_address_;
+
+  /*
+   * We need the == comparison to support the contain function for this class
+   * to be used as a key in a map.
+   */
+  bool operator==(const Lps22DeviceLocation& data) const {
+    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+      return true;
+    }
+    return false;
+  }
+
+  /*
+   * If you have == you should also have !=
+   */
+  bool operator!=(const Lps22DeviceLocation& data) const {
+    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+      return false;
+    }
+    return true;
+  }
+
+  /*
+   * We need the < operator in order to use this class as a key for a map
+   * We set the order that the busname is checked then slave on that bus
+   */
+  bool operator<(const Lps22DeviceLocation& data) const {
+    if (bus_name_.compare(data.bus_name_) < 0) return true;
+    if (bus_name_.compare(data.bus_name_) > 0) return false;
+    if (slave_address_ < data.slave_address_) return true;
+    return false;
+  }
+};
+
+class Lps22DeviceData {
+ public:
+
+  std::recursive_mutex lock_ = {};
+  uint64_t read_total_ = 0;
+  atomic_bool initialized = false;
+};
+
 class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
  public:
 
@@ -224,12 +278,13 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
                                                */
   static std::recursive_mutex device_lock_;  /* Lock the device before making any requests */
 
-  I2cBus i2cbus_;
-  uint8_t slave_address_;
+  Lps22DeviceLocation device_;  // Where the device is located on the system, bus and slave
+  Lps22DeviceData* device_data_ = nullptr;  // The device level data for the device this instance uses
+  I2cBus i2cbus_;  // The i2c bus used to transfer data
+  uint8_t slave_address_;  // slave address for device on the bus
 
   atomic_uint64_t instance_measurement_count_ = 0;
 
-  // minimum interval between making a measurement.
   milliseconds measurement_interval_ =
       kLps22DefaultMeasurementInterval;  // Interval between measurements
 

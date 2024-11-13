@@ -20,6 +20,12 @@ using std::string;
 
 enum I2cBusStatus { OK, NODEV, UNKNOWN_FUNCTIONS, UNDEFINED };
 
+/*
+ * I2C device name prefix.
+ * all I2C device names begin with this value
+ */
+constexpr string i2c_devicename_prefix = "/dev/i2c-";
+
 class I2cBus {
 
  public:
