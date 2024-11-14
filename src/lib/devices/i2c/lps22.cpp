@@ -5,20 +5,6 @@
 /*
  * This contains the driver for the LPS22 HB chip.
  */
-
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <algorithm>
-#include <atomic>
-#include <chrono>
-#include <cstdint>
-#include <cstring>
-#include <string>
-
 #include "include/lps22.h"
 
 mutex lps22_devices_lock;

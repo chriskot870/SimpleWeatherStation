@@ -11,18 +11,25 @@
 #ifndef SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
 #define SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
 
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
-#include <stdio.h>
 #include <chrono>
 #include <expected>
 #include <string>
+#include <cstring>
 #include <stdatomic.h>
 #include <algorithm>
 #include <mutex>
 #include <vector>
 #include <map>
 #include <memory>
+#include <atomic>
+#include <cstdint>
 
 /*
  * This device provides temperature and pressure data so include the interfaces.

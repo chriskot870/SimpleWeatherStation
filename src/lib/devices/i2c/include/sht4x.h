@@ -11,9 +11,13 @@
 #ifndef SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
 #define SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
 
+#include <i2c/smbus.h>
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <errno.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <atomic>
 #include <chrono>
 #include <expected>
@@ -21,6 +25,11 @@
 #include <map>
 #include <mutex>
 #include <vector>
+#include <algorithm>
+#include <cstring>
+#include <cmath>
+
+#include "include/i2cbus.h"
 
 /*
  * This device has temperature and relative humidity sensors so add the interfaces

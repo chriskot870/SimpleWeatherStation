@@ -5,19 +5,6 @@
 /*
  * This contains the driver for the SHT4x series. Specifically the SHT45
  */
-
-#include <fcntl.h>
-#include <i2c/smbus.h>
-#include <linux/i2c-dev.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <algorithm>
-#include <chrono>
-#include <cstring>
-#include <cmath>
-
-#include "include/i2cbus.h"
 #include "include/sht4x.h"
 
 mutex sht4x_devices_lock;
