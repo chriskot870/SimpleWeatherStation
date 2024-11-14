@@ -20,8 +20,71 @@
 #include "include/i2cbus.h"
 #include "include/sht4x.h"
 
+mutex sht4x_devices_lock;
+static map<Sht4xDeviceLocation, Sht4xDeviceData*> sht4x_devices;
+
 I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
-    : i2cbus_(i2cbus), slave_address_(slave_address) {}
+    : i2cbus_(i2cbus), slave_address_(slave_address) {
+
+  /*
+   * Check that the i2c bus name is a valid name
+   */
+  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),i2c_devicename_prefix) != 0) {
+    return;
+  }
+  /*
+   * Check that slave addresses are valid
+   */
+  auto item = find(sht4x_slave_address_options.begin(), sht4x_slave_address_options.end(), slave_address_);
+  if (item == sht4x_slave_address_options.end()) {
+    return;
+  }
+
+  /*
+   * If the names are valid, Create the device
+   */
+  device_.bus_name_ = i2cbus.busName();
+  device_.slave_address_ = slave_address;
+
+  /*
+   * If the device is already on the list then some other instance has
+   * validated it and we don't need to add it to the list
+   */
+  std::lock_guard<std::mutex> guard_devices(sht4x_devices_lock);
+  if (sht4x_devices.contains(device_) == true) {
+    /*
+     * Some previous instance has added the device to the devices list
+     */
+    device_data_ = sht4x_devices[device_];
+    return;
+  }
+
+  /*
+   * Create a DeviceData and use it to see if serial number succeeds
+   * If serial number succeeds we count it OK. We don't know what
+   * the value should be for each device so we assume if we don't
+   * get an error it is an SHT4x device
+   */
+  device_data_ = new Sht4xDeviceData();
+
+  expected<uint8_t, int> x_return;
+  x_return = getSerialNumber();
+  if (x_return.has_value() == false) {
+    /*
+     * I can't get the whoami so reset device_data_ to nullptr
+     * to indicate the device doesn't seem to be at the bus and slave
+     * address provided.
+     * This causes all other routines to call an ENODEV error
+     */
+    delete device_data_;
+    device_data_ = nullptr;
+    return;
+  }
+
+  sht4x_devices[device_] = device_data_;
+
+  return;
+}
 
 uint8_t I2cSht4x::deviceAddress() {
   return slave_address_;

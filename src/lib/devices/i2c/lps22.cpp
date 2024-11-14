@@ -21,8 +21,8 @@
 
 #include "include/lps22.h"
 
-mutex devices_lock;
-static map<Lps22DeviceLocation, Lps22DeviceData*> devices;
+mutex lps22_devices_lock;
+static map<Lps22DeviceLocation, Lps22DeviceData*> lps22_devices;
 /*
  * Constructor
  */
@@ -38,8 +38,8 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
   /*
    * Check that slave addresses are valid
    */
-  auto item = find(slave_address_options.begin(), slave_address_options.end(), slave_address_);
-  if (item == slave_address_options.end()) {
+  auto item = find(lps22_slave_address_options.begin(), lps22_slave_address_options.end(), slave_address_);
+  if (item == lps22_slave_address_options.end()) {
     return;
   }
 
@@ -53,12 +53,12 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
    * If the device is already on the list then some other instance has
    * validated it and we don't need to add it to the list
    */
-  std::lock_guard<std::mutex> guard_devices(devices_lock);
-  if (devices.contains(device_) == true) {
+  std::lock_guard<std::mutex> guard_devices(lps22_devices_lock);
+  if (lps22_devices.contains(device_) == true) {
     /*
      * Some previous instance has added the device to the devices list
      */
-    device_data_ = devices[device_];
+    device_data_ = lps22_devices[device_];
     return;
   }
 
@@ -93,7 +93,7 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
     device_data_ = nullptr;
     return;
   }
-  devices[device_] = device_data_;
+  lps22_devices[device_] = device_data_;
 
   return;
 }
@@ -231,14 +231,12 @@ int Lps22::init() {
      * We assume the deice isn't at the bus,slave location so
      * free the device_ptr_
      */
-    delete device_data_;
     return x_return.error();
   }
   if (x_return.value() != kLps22hbWhoAmIValue) {
     /*
      * If the value is not a match record it as a Bad Message
      */
-     delete device_data_;
     return EBADMSG;
   }
 

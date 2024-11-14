@@ -22,6 +22,7 @@
 #include <mutex>
 #include <vector>
 #include <map>
+#include <memory>
 
 /*
  * This device provides temperature and pressure data so include the interfaces.
@@ -47,6 +48,9 @@ using std::chrono::milliseconds;
 using std::map;
 using std::vector;
 using std::mutex;
+using std::recursive_mutex;
+using std::shared_ptr;
+using std::make_shared;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
@@ -60,7 +64,7 @@ constexpr uint8_t kLps22hbI2cPrimaryAddress =
 constexpr uint8_t kLps22hbI2cSecondaryAddress =
     0x5C;  // See data sheet section 7.2.1.
 
-const vector<uint8_t> slave_address_options = { kLps22hbI2cPrimaryAddress, kLps22hbI2cSecondaryAddress };
+const vector<uint8_t> lps22_slave_address_options = { kLps22hbI2cPrimaryAddress, kLps22hbI2cSecondaryAddress };
 
 /*
  * The constant value always retrurned by the Who Am I register

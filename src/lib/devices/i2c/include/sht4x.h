@@ -18,6 +18,9 @@
 #include <chrono>
 #include <expected>
 #include <string>
+#include <map>
+#include <mutex>
+#include <vector>
 
 /*
  * This device has temperature and relative humidity sensors so add the interfaces
@@ -41,12 +44,20 @@ using std::chrono::time_point;
 using std::chrono::system_clock;
 using std::chrono::steady_clock;
 using std::chrono::milliseconds;
+using std::atomic_bool;
+using std::vector;
+using std::map;
+using std::mutex;
+using std::recursive_mutex;
+using std::find;
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
  */
 constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
 constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
+
+const vector<uint8_t> sht4x_slave_address_options = { kSht4xI2cPrimaryAddress, kSht4xI2cSecondaryAddress };
 
 constexpr std::chrono::milliseconds kDefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
@@ -153,6 +164,52 @@ const int shtx_max_timings[] = {
     110000       /* 0.11 seconds */
 };
 
+class Sht4xDeviceLocation {
+ public:
+  string bus_name_;
+  uint8_t slave_address_;
+
+  /*
+   * We need the == comparison to support the contain function for this class
+   * to be used as a key in a map.
+   */
+  bool operator==(const Sht4xDeviceLocation& data) const {
+    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+      return true;
+    }
+    return false;
+  }
+
+  /*
+   * If you have == you should also have !=
+   */
+  bool operator!=(const Sht4xDeviceLocation& data) const {
+    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+      return false;
+    }
+    return true;
+  }
+
+  /*
+   * We need the < operator in order to use this class as a key for a map
+   * We set the order that the busname is checked then slave on that bus
+   */
+  bool operator<(const Sht4xDeviceLocation& data) const {
+    if (bus_name_.compare(data.bus_name_) < 0) return true;
+    if (bus_name_.compare(data.bus_name_) > 0) return false;
+    if (slave_address_ < data.slave_address_) return true;
+    return false;
+  }
+};
+
+class Sht4xDeviceData {
+ public:
+
+  recursive_mutex lock_ = {};
+  uint64_t read_total_ = 0;
+  atomic_bool initialized = false;
+};
+
 class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
  public:
   I2cSht4x(I2cBus i2cbus_, uint8_t slave_address);
@@ -178,10 +235,11 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   string error_message();
 
  private:
-  /*
-     * Private Data
-     */
-
+   /*
+    * Private Data
+    */
+  Sht4xDeviceLocation device_;
+  Sht4xDeviceData* device_data_ = nullptr;
   // Number of measurements made
   uint64_t measure_count_ = 0;
 
