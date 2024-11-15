@@ -290,7 +290,10 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   static std::recursive_mutex device_lock_;  /* Lock the device before making any requests */
 
   Lps22DeviceLocation device_;  // Where the device is located on the system, bus and slave
-  Lps22DeviceData* device_data_ = nullptr;  // The device level data for the device this instance uses
+  //Lps22DeviceData* device_data_ = nullptr;  // The device level data for the device this instance uses
+  shared_ptr<Lps22DeviceData> device_data_ = nullptr;
+  shared_ptr<Lps22DeviceData> dptr = nullptr;
+
   I2cBus i2cbus_;  // The i2c bus used to transfer data
   uint8_t slave_address_;  // slave address for device on the bus
 

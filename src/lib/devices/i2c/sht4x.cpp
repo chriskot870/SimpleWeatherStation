@@ -8,7 +8,7 @@
 #include "include/sht4x.h"
 
 mutex sht4x_devices_lock;
-static map<Sht4xDeviceLocation, Sht4xDeviceData*> sht4x_devices;
+static map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> sht4x_devices;
 
 I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
     : i2cbus_(i2cbus), slave_address_(slave_address) {
@@ -51,8 +51,10 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
    * If serial number succeeds we count it OK. We don't know what
    * the value should be for each device so we assume if we don't
    * get an error it is an SHT4x device
+   * 
+   * TODO: I should be using make_shared but it doesn't compile.
    */
-  device_data_ = new Sht4xDeviceData();
+  device_data_ = shared_ptr<Sht4xDeviceData>(new Sht4xDeviceData());
 
   expected<uint8_t, int> x_return;
   x_return = getSerialNumber();
@@ -63,8 +65,9 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
      * address provided.
      * This causes all other routines to call an ENODEV error
      */
-    delete device_data_;
-    device_data_ = nullptr;
+    device_data_.reset();
+    // delete device_data_;
+    // device_data_ = nullptr;
     return;
   }
 

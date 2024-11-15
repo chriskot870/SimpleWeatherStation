@@ -8,7 +8,9 @@
 #include "include/lps22.h"
 
 mutex lps22_devices_lock;
-static map<Lps22DeviceLocation, Lps22DeviceData*> lps22_devices;
+//static map<Lps22DeviceLocation, Lps22DeviceData*> lps22_devices;
+static map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> lps22_devices;
+
 /*
  * Constructor
  */
@@ -50,9 +52,11 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
 
   /*
    * Create a DeviceData and use it to see if whoami works
-   * If whoami does not work then 
+   * If whoami does not work then reset device_data_
+   * 
+   * TODO: I should be using make_shared but it doesn't compile.
    */
-  device_data_ = new Lps22DeviceData();
+  device_data_ = shared_ptr<Lps22DeviceData>(new Lps22DeviceData());
 
   expected<uint8_t, int> x_return;
   x_return = whoami();
@@ -63,8 +67,7 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
      * address provided.
      * This causes all other routines to call an ENODEV error
      */
-    delete device_data_;
-    device_data_ = nullptr;
+    device_data_.reset();
     return;
   }
 
@@ -75,8 +78,7 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
     /*
      * free up the memory and set the device_data_ to nullptr
      */
-    delete device_data_;
-    device_data_ = nullptr;
+    device_data_.reset();
     return;
   }
   lps22_devices[device_] = device_data_;

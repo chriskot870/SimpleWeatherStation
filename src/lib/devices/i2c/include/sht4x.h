@@ -25,6 +25,7 @@
 #include <map>
 #include <mutex>
 #include <vector>
+#include <memory>
 #include <algorithm>
 #include <cstring>
 #include <cmath>
@@ -58,6 +59,8 @@ using std::vector;
 using std::map;
 using std::mutex;
 using std::recursive_mutex;
+using std::shared_ptr;
+using std::make_shared;
 using std::find;
 
 /*
@@ -248,7 +251,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
     * Private Data
     */
   Sht4xDeviceLocation device_;
-  Sht4xDeviceData* device_data_ = nullptr;
+  shared_ptr<Sht4xDeviceData> device_data_ = nullptr;
   // Number of measurements made
   uint64_t measure_count_ = 0;
 
