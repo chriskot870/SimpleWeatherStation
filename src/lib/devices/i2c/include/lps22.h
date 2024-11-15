@@ -56,8 +56,10 @@ using std::map;
 using std::vector;
 using std::mutex;
 using std::recursive_mutex;
+using std::lock_guard;
 using std::shared_ptr;
 using std::make_shared;
+using std::find;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 

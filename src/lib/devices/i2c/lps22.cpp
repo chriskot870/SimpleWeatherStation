@@ -41,7 +41,7 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
    * If the device is already on the list then some other instance has
    * validated it and we don't need to add it to the list
    */
-  std::lock_guard<std::mutex> guard_devices(lps22_devices_lock);
+  lock_guard<mutex> guard_devices(lps22_devices_lock);
   if (lps22_devices.contains(device_) == true) {
     /*
      * Some previous instance has added the device to the devices list
@@ -97,7 +97,7 @@ expected<uint8_t, int> Lps22::whoami() {
     return unexpected(retval);
   }
 
-  std::lock_guard<std::recursive_mutex> guard(device_data_->lock_);  /* get the device lock
+  lock_guard<recursive_mutex> guard(device_data_->lock_);  /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -121,7 +121,7 @@ int Lps22::reset() {
   if (device_data_ == nullptr) {
     return ENODEV;
   }
-  std::lock_guard<std::recursive_mutex> guard(device_data_->lock_);  /* get the device lock
+  lock_guard<recursive_mutex> guard(device_data_->lock_);  /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -190,7 +190,7 @@ int Lps22::reset() {
   return 0;
 }
 
-std::chrono::milliseconds Lps22::getMeasurementInterval() {
+milliseconds Lps22::getMeasurementInterval() {
   /*
    * Return the minimum interval allowed
    */
@@ -234,7 +234,7 @@ int Lps22::init() {
 }
 
 
-int Lps22::setMeasurementInterval(std::chrono::milliseconds interval) {
+int Lps22::setMeasurementInterval(milliseconds interval) {
   /*
    * TODO:
    * Should check for some boundary conditions here
@@ -263,7 +263,7 @@ int Lps22::getMeasurement() {
   if (device_data_ == nullptr) {
     return ENODEV;
   }
-  std::lock_guard<std::recursive_mutex> guard(device_data_->lock_);  /* get the device lock
+  lock_guard<recursive_mutex> guard(device_data_->lock_);  /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -367,7 +367,7 @@ int Lps22::getMeasurement() {
       pres_updated = true;
       pressure_error_ = 0;
       pressure_valid_ = true;
-      pressure_measurement_time_ = std::chrono::system_clock::now();
+      pressure_measurement_time_ = system_clock::now();
     }
 
     /*
@@ -392,7 +392,7 @@ int Lps22::getMeasurement() {
       temp_updated = true;
       temperature_valid_ = true;
       temperature_error_ = 0;
-      temperature_measurement_time_ = std::chrono::system_clock::now();
+      temperature_measurement_time_ = system_clock::now();
     }
 
     if ((temp_updated == true) && (pres_updated == true)) {
@@ -404,7 +404,7 @@ int Lps22::getMeasurement() {
     usleep(10000);
   }
 
-  last_read_ = std::chrono::steady_clock::now();
+  last_read_ = steady_clock::now();
 
   return 0;
 }
@@ -506,18 +506,16 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
  * Private methods
  */
 
-bool Lps22::measurementExpired(time_point<std::chrono::steady_clock> steady_time) {
+bool Lps22::measurementExpired(time_point<steady_clock> steady_time) {
   /*
    * check if the current measurement has expired
    */
   if (instance_measurement_count_ == 0) {
     return true;
   }
-  std::chrono::time_point<std::chrono::steady_clock> now =
-      std::chrono::steady_clock::now();
+  time_point<steady_clock> now = steady_clock::now();
 
-  auto time_diff =
-      std::chrono::duration_cast<std::chrono::milliseconds>(now - steady_time);
+  auto time_diff = duration_cast<milliseconds>(now - steady_time);
 
   if (time_diff > measurement_interval_) {
     return true;

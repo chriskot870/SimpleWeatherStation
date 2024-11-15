@@ -37,7 +37,7 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
    * If the device is already on the list then some other instance has
    * validated it and we don't need to add it to the list
    */
-  std::lock_guard<std::mutex> guard_devices(sht4x_devices_lock);
+  lock_guard<mutex> guard_devices(sht4x_devices_lock);
   if (sht4x_devices.contains(device_) == true) {
     /*
      * Some previous instance has added the device to the devices list
@@ -298,7 +298,7 @@ bool I2cSht4x::measurementExpired() {
     steady_clock::now();
 
   auto time_diff =
-      std::chrono::duration_cast<milliseconds>(now - last_read_);
+      duration_cast<milliseconds>(now - last_read_);
 
   if (time_diff > measurement_interval_) {
     return true;
