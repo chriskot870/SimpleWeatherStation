@@ -163,19 +163,25 @@ typedef enum {
 /*
  * These are in microseonds
  */
-const int shtx_max_timings[] = {
-    1000, /* tpu 1 millisecond */
+static map<Sht4xMaxTimings, int> sht4x_min_delays = {
+    {SHT4X_TIMING_SOFT_RESET,1000}, /* tpu 1 millisecond */
     /*
      * For the next 3 the table says including tpu. I take that
      * to mean I should add the value above, tpu, to these values
      * in the table. I may have that wrong though.
      */
-    1600 + 1000, /* 1.6 millisecond  + tpu = 2.6 milliseconds*/
-    4500 + 1000, /* 4.5 milliseconds + tpu = 5.5 milliseconds */
-    8300 + 1000, /* 8.3 milliseconds + tpu = 9.3 milliseconds */
-    1100000,     /* 1.1 seconds */
-    110000       /* 0.11 seconds */
+    {SHT4X_TIMING_MEASUREMENT_LOW_REPEATABILITY, 1600 + 1000}, /* 1.6 millisecond  + tpu = 2.6 milliseconds*/
+    {SHT4X_TIMING_MEASUREMENT_MED_REPEATABILITY, 500 + 1000}, /* 4.5 milliseconds + tpu = 5.5 milliseconds */
+    {SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY, 8300 + 1000}, /* 8.3 milliseconds + tpu = 9.3 milliseconds */
+    {SHT4X_TIMING_HEATER_DURATION_LONG, 1100000},     /* 1.1 seconds */
+    {SHT4X_TIMING_HEATER_DURATION_SHORT, 110000}   /* 0.11 seconds */
 };
+
+typedef enum {
+  SHT4X_TEMPERATURE,
+  SHT4X_HUMIDITY
+} Sht4xReading_t;
+
 
 class Sht4xDeviceLocation {
  public:
@@ -217,10 +223,21 @@ class Sht4xDeviceLocation {
 
 class Sht4xDeviceData {
  public:
-
   recursive_mutex lock_ = {};
   uint64_t read_total_ = 0;
   atomic_bool initialized = false;
+
+  /*
+   * The time we read in the temperature
+   */
+  int16_t temperature_measurement_ = 0;
+  time_point<system_clock> temperature_measurement_system_time_;
+  time_point<steady_clock> temperature_measurement_steady_time_;
+
+  int32_t humidity_measurement_ = 0;
+  time_point<system_clock> humidity_measurement_system_time_;
+  time_point<steady_clock> humidity_measurement_steady_time_;
+
 };
 
 class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
@@ -239,9 +256,9 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
   expected<RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
 
-  std::chrono::milliseconds getMeasurementInterval();
+  std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);
 
-  int setMeasurementInterval(milliseconds interval);
+  int setMeasurementInterval(milliseconds interval, Sht4xReading_t reading);
 
   int error_code();
 
@@ -262,9 +279,9 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   // Which I2c bus is the device on
   I2cBus i2cbus_;
 
-  // minimum interval between making a measurement.
-  std::chrono::milliseconds measurement_interval_ =
-      kDefaultMeasurementInterval; /* Interval between measurements */
+  // interval between making a measurement per reading type
+  milliseconds temperature_measurement_interval_ = kDefaultMeasurementInterval;
+  milliseconds humidity_measurement_interval_ = kDefaultMeasurementInterval;
 
   // The last time point a measurement was made. Initialize to zero.
   time_point<steady_clock> last_read_{};
@@ -293,7 +310,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
    */
   int getMeasurement(Sht4xMeasurmentMode mode);
 
-  bool measurementExpired();
+  bool measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval);
 };
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_

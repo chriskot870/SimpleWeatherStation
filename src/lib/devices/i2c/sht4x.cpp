@@ -109,7 +109,7 @@ expected<uint32_t, int> I2cSht4x::getSerialNumber() {
   /*
    * I seem to need a delay here so use the high reliability time
    */
-  usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
   /*
    * Now get the result of the command
@@ -120,7 +120,7 @@ expected<uint32_t, int> I2cSht4x::getSerialNumber() {
    * I am not sure I need this extra or not.
    * This could be just tpu value but for now give me plenty of delay
    */
-  usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
   /*
    * read_buffer high order bytes are in offsets 0 and 1. Offset 2 is the
@@ -144,7 +144,7 @@ int I2cSht4x::softReset() {
   /*
    * Give it time to do the reset
    */
-  usleep(shtx_max_timings[SHT4X_TIMING_SOFT_RESET]);
+  usleep(sht4x_min_delays[SHT4X_TIMING_SOFT_RESET]);
 
   return 0;
 }
@@ -153,7 +153,7 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(Temper
   int error;
   float temperature;
 
-  if (measurementExpired() == true) {
+  if (measurementExpired(device_data_->temperature_measurement_steady_time_, temperature_measurement_interval_) == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
     if (error != 0) {
       return unexpected(error);
@@ -182,19 +182,39 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(Temper
   return measurement;
 }
 
-milliseconds I2cSht4x::getMeasurementInterval() {
-  return measurement_interval_;
+milliseconds I2cSht4x::getMeasurementInterval(Sht4xReading_t reading) {
+  milliseconds interval(0);
+  /*
+   * Return the interval allowed
+   */
+  switch (reading) {
+    case SHT4X_TEMPERATURE :
+      interval = temperature_measurement_interval_;
+      break;
+    case SHT4X_HUMIDITY:
+      interval = humidity_measurement_interval_;
+      break;
+  }
+
+  return interval;
 }
 
-int I2cSht4x::setMeasurementInterval(milliseconds interval) {
-  /*
-   * If the request is for less than the minimum interval allowed make it the minimum
-   * May want to return an error instead
-   */
+int I2cSht4x::setMeasurementInterval(milliseconds interval, Sht4xReading_t reading) {
+  milliseconds measurement_interval;
+
   if (interval < kMinimumMeasurementInterval) {
-    measurement_interval_ = kMinimumMeasurementInterval;
+    measurement_interval = kMinimumMeasurementInterval;
   } else {
-    measurement_interval_ = interval;
+    measurement_interval = interval;
+  }
+
+  switch (reading) {
+    case SHT4X_TEMPERATURE :
+      temperature_measurement_interval_ = measurement_interval;
+      break;
+    case SHT4X_HUMIDITY :
+      humidity_measurement_interval_ = measurement_interval;
+      break;
   }
 
   return 0;
@@ -204,7 +224,7 @@ expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurem
   float relative_humidity;
   int error;
 
-  if (measurementExpired() == true) {
+  if (measurementExpired(device_data_->humidity_measurement_steady_time_, humidity_measurement_interval_) == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
     if (error != 0) {
       return unexpected(error);
@@ -263,7 +283,7 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   /*
    * Give it time to make the measurement
    */
-  usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
   /*
    * Now read the result
@@ -274,7 +294,7 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
    * I am not sure I need this extra or not.
    * This could be just tpu value but for now give me plenty of delay
    */
-  usleep(shtx_max_timings[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
   /*
    * We need figure out how to check the CRC's
@@ -287,7 +307,7 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   return 0;
 }
 
-bool I2cSht4x::measurementExpired() {
+bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval) {
   /*
    * check if the current measurement has expired
    */
@@ -300,7 +320,7 @@ bool I2cSht4x::measurementExpired() {
   auto time_diff =
       duration_cast<milliseconds>(now - last_read_);
 
-  if (time_diff > measurement_interval_) {
+  if (time_diff > interval) {
     return true;
   }
 

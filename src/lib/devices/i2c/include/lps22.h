@@ -195,6 +195,13 @@ constexpr uint8_t kLps22hbCtrlRegFifoCtrlFModeShift = 5;
 constexpr uint8_t kLps22hbCtrlRegFifoCtrlWTMMask = 0x1F;
 constexpr uint8_t kLps22hbCtrlRegFifoCtrlWTMShift = 0;
 
+/*
+ * Control register default values
+ */
+constexpr uint8_t default_ctrl_reg_1_ = 0;
+constexpr uint8_t default_ctrl_reg_2_ =
+      kLps22hbCtrlReg2IfAddIncMask;  // So we can do multiple register reads
+
 typedef enum {
   LPS22HB_CTRL_FIFO_CTRL_BYPASS_MODE,
   LPS22HB_CTRL_FIFO_CTRL_FIFO_MODE,
@@ -205,6 +212,11 @@ typedef enum {
   LPS22HB_CTRL_FIFO_CTRL_DYNAMIC_STREAM_MODE,
   LPS22HB_CTRL_FIFO_CTRL_BYPASS_TO_FIFO_MODE
 } Lps22hbFifoCtrl_t;
+
+typedef enum {
+  LPS22HB_TEMPERATURE,
+  LPS22HB_PRESSURE
+} Lps22hbReading_t;
 
 class Lps22DeviceLocation {
  public:
@@ -246,10 +258,24 @@ class Lps22DeviceLocation {
 
 class Lps22DeviceData {
  public:
-
   std::recursive_mutex lock_ = {};
   uint64_t read_total_ = 0;
   atomic_bool initialized = false;
+
+  /*
+   * The time we read in the temperature
+   */
+  int16_t temperature_measurement_ = 0;
+  time_point<system_clock> temperature_measurement_system_time_;
+  time_point<steady_clock> temperature_measurement_steady_time_;
+  milliseconds temperature_response_time;
+
+  int32_t pressure_measurement_ = 0;
+  time_point<system_clock> pressure_measurement_system_time_;
+  time_point<steady_clock> pressure_measurement_steady_time_;
+  milliseconds pressure_response_time;
+
+  
 };
 
 class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
@@ -267,9 +293,9 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   expected<PressureMeasurement, int> getPressureMeasurement(PressureUnit_t unit);
 
-  milliseconds getMeasurementInterval();
+  milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 
-  int setMeasurementInterval(milliseconds interval);
+  int setMeasurementInterval(milliseconds interval, Lps22hbReading_t reading);
 
  private:
   /*
@@ -278,72 +304,20 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   /*
    * There can be multiple instances of this class.
-   * These variables will be used by all instances.
    */
-  static atomic_uint64_t device_read_total_;  /*
-                                               * This is the total measurment requests across all
-                                               * instances. It was primarily to solve a problem
-                                               * with the device. It will alwaya return a temperature
-                                               * value of 0 celsius after a power up.
-                                               * It is also a potentially interesting statistic about
-                                               * how many total measurement requests have been made of
-                                               * the device per power up.
-                                               */
-  static std::recursive_mutex device_lock_;  /* Lock the device before making any requests */
 
   Lps22DeviceLocation device_;  // Where the device is located on the system, bus and slave
-  //Lps22DeviceData* device_data_ = nullptr;  // The device level data for the device this instance uses
   shared_ptr<Lps22DeviceData> device_data_ = nullptr;
-  shared_ptr<Lps22DeviceData> dptr = nullptr;
-
   I2cBus i2cbus_;  // The i2c bus used to transfer data
   uint8_t slave_address_;  // slave address for device on the bus
-
   atomic_uint64_t instance_measurement_count_ = 0;
+  milliseconds temperature_interval_ = kLps22DefaultMeasurementInterval;
+  milliseconds pressure_interval_ = kLps22DefaultMeasurementInterval;
 
-  milliseconds measurement_interval_ =
-      kLps22DefaultMeasurementInterval;  // Interval between measurements
 
-  // The last time point a measurement was made. Initialize to zero.
-  time_point<steady_clock> last_read_{};
-
-  /*
-   * The temperature is a 16 bit signed value
-   */
-  int16_t temperature_measurement_ = 0; // This is the raw measurement
-  /*
-   * This is the time a successful measurement was made for temperature.
-   * It is the clock time and is used to create the time variable for
-   * the TemperatureMeasurement.
-   */
-  time_point<system_clock> temperature_measurement_time_;
-  /*
-   * This is the last time a successful temperature measurement was made.
-   * It is used to determine if a reading has expired. We want a
-   * monotonically increasing clock that is unaffected by any system
-   * clock change. So, we use steady_clock.
-   */
-  time_point<steady_clock> temperature_last_read_;
   bool temperature_error_;
   bool temperature_valid_ = false;
  
-  /*
-   * The barometric pressure is a signed 24 bit value so we treat it as a 32 bit signed value
-   */
-  int32_t pressure_measurement_ = 0;  // This is the raw measurement
-  /*
-   * This is the time a successful measurement was made for pressure.
-   * It is the clock time and is used to create the time variable for
-   * the PressureMeasurement.
-   */
-  time_point<system_clock>  pressure_measurement_time_;
-  /*
-   * This is the last time a successful pressure measurement was made.
-   * It is used to determine if a reading has expired. We want a
-   * monotonically increasing clock that is unaffected by any system
-   * clock change. So, we use steady_clock.
-   */
-  time_point<steady_clock> pressure_last_read_;
   bool pressure_error_;
   bool pressure_valid_ = false;
 
@@ -372,7 +346,7 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   int getMeasurement();
 
-  bool measurementExpired(time_point<steady_clock> steady_time);
+  bool measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval);
 };
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_

@@ -190,11 +190,21 @@ int Lps22::reset() {
   return 0;
 }
 
-milliseconds Lps22::getMeasurementInterval() {
+milliseconds Lps22::getMeasurementInterval(Lps22hbReading_t reading) {
+  milliseconds interval(0);
   /*
    * Return the minimum interval allowed
    */
-  return measurement_interval_;
+  switch (reading) {
+    case LPS22HB_TEMPERATURE :
+      interval = temperature_interval_;
+      break;
+    case LPS22HB_PRESSURE :
+      interval = pressure_interval_;
+      break;
+  }
+
+  return interval;
 }
 
 int Lps22::init() {
@@ -234,12 +244,19 @@ int Lps22::init() {
 }
 
 
-int Lps22::setMeasurementInterval(milliseconds interval) {
+int Lps22::setMeasurementInterval(milliseconds interval, Lps22hbReading_t reading) {
   /*
    * TODO:
    * Should check for some boundary conditions here
    */
-  measurement_interval_ = interval;
+  switch (reading) {
+    case LPS22HB_TEMPERATURE :
+      temperature_interval_ = interval;
+      break;
+    case LPS22HB_PRESSURE :
+      pressure_interval_ = interval;
+      break;
+  }
 
   return 0;
 }
@@ -297,16 +314,15 @@ int Lps22::getMeasurement() {
   }
 
   /*
-   * Add a sleep to allow the command to execute on the device
-   */
-  usleep(10000);
-
-  /*
    * Now loop on the status register waiting for data to be available
    */
-  for (temp_available_count = 0; temp_available_count < 10;
+  for (temp_available_count = 1; temp_available_count <= 10;
        temp_available_count++) {
 
+    /*
+     * Add a sleep to allow the command to execute on the device
+     */
+    usleep(10000);
     /*
      * Get the status register
      */
@@ -359,15 +375,16 @@ int Lps22::getMeasurement() {
         return error;
       }
 
-      pressure_measurement_ = ((pres_buffer[2] & 0x7f) << 16) |
+      device_data_->pressure_measurement_ = ((pres_buffer[2] & 0x7f) << 16) |
                               pres_buffer[1] << 8 | pres_buffer[0];
       if ((pres_buffer[2] & 0x80) == 0x80) {
-        pressure_measurement_ *= -1;
+        device_data_->pressure_measurement_ *= -1;
       }
       pres_updated = true;
       pressure_error_ = 0;
       pressure_valid_ = true;
-      pressure_measurement_time_ = system_clock::now();
+      device_data_->pressure_measurement_system_time_ = system_clock::now();
+      device_data_->pressure_measurement_steady_time_ = steady_clock::now();
     }
 
     /*
@@ -384,27 +401,22 @@ int Lps22::getMeasurement() {
         temperature_error_ = error;
         return error;
       }
-      temperature_measurement_ =
+      device_data_->temperature_measurement_ =
           ((temp_buffer[1] & 0x7F) << 8) | temp_buffer[0];
       if ((temp_buffer[1] & 0x80) == 0x80) {
-        temperature_measurement_ *= -1;
+        device_data_->temperature_measurement_ *= -1;
       }
       temp_updated = true;
       temperature_valid_ = true;
       temperature_error_ = 0;
-      temperature_measurement_time_ = system_clock::now();
+      device_data_->temperature_measurement_system_time_ = system_clock::now();
+      device_data_->temperature_measurement_steady_time_ = steady_clock::now();
     }
 
     if ((temp_updated == true) && (pres_updated == true)) {
       break;
     }
-    /*
-     * TODO: Need to get the correct value and make it a constant
-     */
-    usleep(10000);
   }
-
-  last_read_ = steady_clock::now();
 
   return 0;
 }
@@ -417,7 +429,7 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   if (device_data_ == nullptr) {
     return unexpected(ENODEV);
   }
-  if (measurementExpired(temperature_last_read_)) {
+  if (measurementExpired(device_data_->temperature_measurement_steady_time_, temperature_interval_) == true) {
     /*
      * The device seems to always return a temperature of 0 Centigrade
      * on the first read after a power cycle.
@@ -437,7 +449,7 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
    * Peform the conversion from the data sheet
    */
   temperature =
-      static_cast<float>(temperature_measurement_) / kLps22hbTemperatureFactor;
+      static_cast<float>(device_data_->temperature_measurement_) / kLps22hbTemperatureFactor;
 
   /*
    * Convert to requested units
@@ -456,7 +468,7 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
 
   TemperatureDatum data(temperature, unit);
   
-  TemperatureMeasurement measurement(data, temperature_measurement_time_);
+  TemperatureMeasurement measurement(data, device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
@@ -469,7 +481,7 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
   if (device_data_ == nullptr) {
     return unexpected(ENODEV);
   }
-  if (measurementExpired(pressure_last_read_) == true) {
+  if (measurementExpired(device_data_->pressure_measurement_steady_time_, pressure_interval_) == true) {
     error = getMeasurement();
     if (pressure_valid_ == false) {
       return unexpected(pressure_error_);
@@ -477,7 +489,7 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
   }
 
   pressure =
-      static_cast<float>(pressure_measurement_) / kLps22hbPressureHpaFactor;
+      static_cast<float>(device_data_->pressure_measurement_) / kLps22hbPressureHpaFactor;
   /*
    * Return the value in the requested units
    */
@@ -497,7 +509,7 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
 
   PressureDatum pdata(pressure, unit);
 
-  PressureMeasurement measurement(pdata, pressure_measurement_time_);
+  PressureMeasurement measurement(pdata, device_data_->pressure_measurement_system_time_);
 
   return measurement;
 }
@@ -506,7 +518,7 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
  * Private methods
  */
 
-bool Lps22::measurementExpired(time_point<steady_clock> steady_time) {
+bool Lps22::measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval) {
   /*
    * check if the current measurement has expired
    */
@@ -515,9 +527,9 @@ bool Lps22::measurementExpired(time_point<steady_clock> steady_time) {
   }
   time_point<steady_clock> now = steady_clock::now();
 
-  auto time_diff = duration_cast<milliseconds>(now - steady_time);
+  auto time_diff = duration_cast<milliseconds>(now - last_read_time);
 
-  if (time_diff > measurement_interval_) {
+  if (time_diff > interval) {
     return true;
   }
 
