@@ -136,7 +136,7 @@ typedef enum {
 /*
  * The order here has to match the enum above so that you get the right value inthe array
  */
-const uint8_t sht3x_measurement_command_map[] = {
+const uint8_t sht4x_measurement_command_map[] = {
     kSht4xCommandHighPrecisionMeasurement,
     kSht4xCommandMediumPrecisionMeasurement,
     kSht4xCommandLowPrecisionMeasurement,
@@ -234,7 +234,7 @@ class Sht4xDeviceData {
   time_point<system_clock> temperature_measurement_system_time_;
   time_point<steady_clock> temperature_measurement_steady_time_;
 
-  int32_t humidity_measurement_ = 0;
+  int16_t humidity_measurement_ = 0;
   time_point<system_clock> humidity_measurement_system_time_;
   time_point<steady_clock> humidity_measurement_steady_time_;
 

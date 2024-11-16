@@ -429,6 +429,8 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   if (device_data_ == nullptr) {
     return unexpected(ENODEV);
   }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
+
   if (measurementExpired(device_data_->temperature_measurement_steady_time_, temperature_interval_) == true) {
     /*
      * The device seems to always return a temperature of 0 Centigrade
@@ -481,6 +483,8 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
   if (device_data_ == nullptr) {
     return unexpected(ENODEV);
   }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
+  
   if (measurementExpired(device_data_->pressure_measurement_steady_time_, pressure_interval_) == true) {
     error = getMeasurement();
     if (pressure_valid_ == false) {
