@@ -201,9 +201,6 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(
       break;
   }
 
-  device_data_->temperature_measurement_system_time_ = system_clock::now();
-  device_data_->temperature_measurement_steady_time_ = steady_clock::now();
-
   TemperatureMeasurement measurement(
       TemperatureDatum(temperature, unit),
       device_data_->temperature_measurement_system_time_);
@@ -283,11 +280,8 @@ I2cSht4x::getRelativeHumidityMeasurement() {
   if (relative_humidity > 100.0) {
     relative_humidity = 100.0;
   }
-  device_data_->humidity_measurement_ = relative_humidity;
-  device_data_->humidity_measurement_system_time_ = system_clock::now();
-  device_data_->humidity_measurement_steady_time_ = steady_clock::now();
 
-  RelativeHumidityDatum rhdata(device_data_->humidity_measurement_,
+  RelativeHumidityDatum rhdata(relative_humidity,
                                RELATIVE_HUMIDITY_UNIT_PERCENT);
 
   RelativeHumidityMeasurement measurement(
@@ -347,7 +341,12 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
    */
   device_data_->temperature_measurement_ =
       (read_buffer[0] << 8) + read_buffer[1];
+  device_data_->temperature_measurement_system_time_ = system_clock::now();
+  device_data_->temperature_measurement_steady_time_ = steady_clock::now();
+
   device_data_->humidity_measurement_ = (read_buffer[3] << 8) + read_buffer[4];
+  device_data_->humidity_measurement_system_time_ = system_clock::now();
+  device_data_->humidity_measurement_steady_time_ = steady_clock::now();
 
   last_read_ = steady_clock::now();
 
