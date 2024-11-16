@@ -16,17 +16,19 @@ static map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> lps22_devices;
  */
 Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
     : i2cbus_(i2cbus), slave_address_(slave_address) {
-  
-   /*
+
+  /*
    * Check that the i2c bus name is a valid name
    */
-  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),i2c_devicename_prefix) != 0) {
+  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),
+                               i2c_devicename_prefix) != 0) {
     return;
   }
   /*
    * Check that slave addresses are valid
    */
-  auto item = find(lps22_slave_address_options.begin(), lps22_slave_address_options.end(), slave_address_);
+  auto item = find(lps22_slave_address_options.begin(),
+                   lps22_slave_address_options.end(), slave_address_);
   if (item == lps22_slave_address_options.end()) {
     return;
   }
@@ -97,7 +99,7 @@ expected<uint8_t, int> Lps22::whoami() {
     return unexpected(retval);
   }
 
-  lock_guard<recursive_mutex> guard(device_data_->lock_);  /* get the device lock
+  lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -121,7 +123,7 @@ int Lps22::reset() {
   if (device_data_ == nullptr) {
     return ENODEV;
   }
-  lock_guard<recursive_mutex> guard(device_data_->lock_);  /* get the device lock
+  lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -196,10 +198,10 @@ milliseconds Lps22::getMeasurementInterval(Lps22hbReading_t reading) {
    * Return the minimum interval allowed
    */
   switch (reading) {
-    case LPS22HB_TEMPERATURE :
+    case LPS22HB_TEMPERATURE:
       interval = temperature_interval_;
       break;
-    case LPS22HB_PRESSURE :
+    case LPS22HB_PRESSURE:
       interval = pressure_interval_;
       break;
   }
@@ -243,17 +245,17 @@ int Lps22::init() {
   return retval;
 }
 
-
-int Lps22::setMeasurementInterval(milliseconds interval, Lps22hbReading_t reading) {
+int Lps22::setMeasurementInterval(milliseconds interval,
+                                  Lps22hbReading_t reading) {
   /*
    * TODO:
    * Should check for some boundary conditions here
    */
   switch (reading) {
-    case LPS22HB_TEMPERATURE :
+    case LPS22HB_TEMPERATURE:
       temperature_interval_ = interval;
       break;
-    case LPS22HB_PRESSURE :
+    case LPS22HB_PRESSURE:
       pressure_interval_ = interval;
       break;
   }
@@ -265,9 +267,10 @@ int Lps22::getMeasurement() {
   int retval;
   uint8_t ctrl_register_2, data_available, pressure_available_count,
       temp_available_count;
-  uint8_t temp_buffer[] = {0, 0};  // Temperature is 2 bytes
+  uint8_t temp_buffer[] = {0, 0};     // Temperature is 2 bytes
   uint8_t pres_buffer[] = {0, 0, 0};  // Pressure is 3 bytes
-  bool temp_updated = false, pres_updated = false, temp_overrun = false, pres_overrun = false;
+  bool temp_updated = false, pres_updated = false, temp_overrun = false,
+       pres_overrun = false;
   int error;
 
   temperature_error_ = 0;
@@ -280,7 +283,7 @@ int Lps22::getMeasurement() {
   if (device_data_ == nullptr) {
     return ENODEV;
   }
-  lock_guard<recursive_mutex> guard(device_data_->lock_);  /* get the device lock
+  lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
                                                      */
@@ -305,7 +308,7 @@ int Lps22::getMeasurement() {
                                           &ctrl_register_2,
                                           sizeof(ctrl_register_2));
   if (error != 0) {
-        /*
+    /*
      * If we got an error it applies to both the temperature and pressure
      */
     temperature_error_ = retval;
@@ -327,8 +330,8 @@ int Lps22::getMeasurement() {
      * Get the status register
      */
     retval = i2cbus_.transferDataFromRegisters(slave_address_, kLps22hbStatus,
-                                             &data_available,
-                                             sizeof(data_available));
+                                               &data_available,
+                                               sizeof(data_available));
     if (retval != 0) {
       /*
        * Since this loops we may have gotten a valid value for temperature or pressure
@@ -352,18 +355,21 @@ int Lps22::getMeasurement() {
      * overwritten.
      * We record it, but don't really use it.
      */
-    if ((data_available & kLps22hbStatusTemperatureDataOverRunMask) == kLps22hbStatusTemperatureDataOverRunMask) {
+    if ((data_available & kLps22hbStatusTemperatureDataOverRunMask) ==
+        kLps22hbStatusTemperatureDataOverRunMask) {
       temp_overrun = true;
     }
-    if ((data_available & kLps22hbStatusPressureDataOverRunMask) == kLps22hbStatusPressureDataOverRunMask) {
+    if ((data_available & kLps22hbStatusPressureDataOverRunMask) ==
+        kLps22hbStatusPressureDataOverRunMask) {
       pres_overrun = true;
     }
 
     /*
      * If there is pressure data ready then get the pressure data
      */
-    if ((pres_updated == false ) && ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
-        kLps22hbStatusPressureDataAvailableMask)) {
+    if ((pres_updated == false) &&
+        ((data_available & kLps22hbStatusPressureDataAvailableMask) ==
+         kLps22hbStatusPressureDataAvailableMask)) {
       error = i2cbus_.transferDataFromRegisters(
           slave_address_, kLps22hbPressureOutXl, pres_buffer,
           sizeof(pres_buffer));
@@ -376,7 +382,8 @@ int Lps22::getMeasurement() {
       }
 
       device_data_->pressure_measurement_ = ((pres_buffer[2] & 0x7f) << 16) |
-                              pres_buffer[1] << 8 | pres_buffer[0];
+                                            pres_buffer[1] << 8 |
+                                            pres_buffer[0];
       if ((pres_buffer[2] & 0x80) == 0x80) {
         device_data_->pressure_measurement_ *= -1;
       }
@@ -390,8 +397,9 @@ int Lps22::getMeasurement() {
     /*
      * If there is temperature available ready get the temperature data
      */
-    if ((temp_updated == false) && ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
-        kLps22hbStatusTemperatureDataAvailableMask)) {
+    if ((temp_updated == false) &&
+        ((data_available & kLps22hbStatusTemperatureDataAvailableMask) ==
+         kLps22hbStatusTemperatureDataAvailableMask)) {
       error = i2cbus_.transferDataFromRegisters(
           slave_address_, kLps22hbTempOutL, temp_buffer, sizeof(temp_buffer));
       if (error != 0) {
@@ -421,7 +429,8 @@ int Lps22::getMeasurement() {
   return 0;
 }
 
-expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(TemperatureUnit_t unit) {
+expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(
+    TemperatureUnit_t unit) {
   uint8_t buffer[2] = {0, 0};
   float temperature;
   int error;
@@ -431,7 +440,8 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
 
-  if (measurementExpired(device_data_->temperature_measurement_steady_time_, temperature_interval_) == true) {
+  if (measurementExpired(device_data_->temperature_measurement_steady_time_,
+                         temperature_interval_) == true) {
     /*
      * The device seems to always return a temperature of 0 Centigrade
      * on the first read after a power cycle.
@@ -450,8 +460,8 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   /*
    * Peform the conversion from the data sheet
    */
-  temperature =
-      static_cast<float>(device_data_->temperature_measurement_) / kLps22hbTemperatureFactor;
+  temperature = static_cast<float>(device_data_->temperature_measurement_) /
+                kLps22hbTemperatureFactor;
 
   /*
    * Convert to requested units
@@ -469,13 +479,15 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(Temperatu
   }
 
   TemperatureDatum data(temperature, unit);
-  
-  TemperatureMeasurement measurement(data, device_data_->temperature_measurement_system_time_);
+
+  TemperatureMeasurement measurement(
+      data, device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
 
-expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t unit) {
+expected<PressureMeasurement, int> Lps22::getPressureMeasurement(
+    PressureUnit_t unit) {
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
   int error;
@@ -484,16 +496,17 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
     return unexpected(ENODEV);
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
-  
-  if (measurementExpired(device_data_->pressure_measurement_steady_time_, pressure_interval_) == true) {
+
+  if (measurementExpired(device_data_->pressure_measurement_steady_time_,
+                         pressure_interval_) == true) {
     error = getMeasurement();
     if (pressure_valid_ == false) {
       return unexpected(pressure_error_);
     }
   }
 
-  pressure =
-      static_cast<float>(device_data_->pressure_measurement_) / kLps22hbPressureHpaFactor;
+  pressure = static_cast<float>(device_data_->pressure_measurement_) /
+             kLps22hbPressureHpaFactor;
   /*
    * Return the value in the requested units
    */
@@ -513,7 +526,8 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
 
   PressureDatum pdata(pressure, unit);
 
-  PressureMeasurement measurement(pdata, device_data_->pressure_measurement_system_time_);
+  PressureMeasurement measurement(
+      pdata, device_data_->pressure_measurement_system_time_);
 
   return measurement;
 }
@@ -522,7 +536,8 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(PressureUnit_t 
  * Private methods
  */
 
-bool Lps22::measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval) {
+bool Lps22::measurementExpired(time_point<steady_clock> last_read_time,
+                               milliseconds interval) {
   /*
    * check if the current measurement has expired
    */

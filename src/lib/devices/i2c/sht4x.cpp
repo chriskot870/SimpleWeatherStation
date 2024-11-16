@@ -16,13 +16,15 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
   /*
    * Check that the i2c bus name is a valid name
    */
-  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),i2c_devicename_prefix) != 0) {
+  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),
+                               i2c_devicename_prefix) != 0) {
     return;
   }
   /*
    * Check that slave addresses are valid
    */
-  auto item = find(sht4x_slave_address_options.begin(), sht4x_slave_address_options.end(), slave_address_);
+  auto item = find(sht4x_slave_address_options.begin(),
+                   sht4x_slave_address_options.end(), slave_address_);
   if (item == sht4x_slave_address_options.end()) {
     return;
   }
@@ -157,7 +159,8 @@ int I2cSht4x::softReset() {
   return 0;
 }
 
-expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(TemperatureUnit_t unit) {
+expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(
+    TemperatureUnit_t unit) {
   int error;
   float temperature;
 
@@ -166,7 +169,8 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(Temper
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
 
-  if (measurementExpired(device_data_->temperature_measurement_steady_time_, temperature_measurement_interval_) == true) {
+  if (measurementExpired(device_data_->temperature_measurement_steady_time_,
+                         temperature_measurement_interval_) == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
     if (error != 0) {
       return unexpected(error);
@@ -175,23 +179,34 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(Temper
 
   switch (unit) {
     case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature = ((kSht4xTemperatureFarenheitMultiplier * static_cast<float>(device_data_->temperature_measurement_))/kSht4xTemperatureFarenheitDivisor) -
-                    kSht4xTemperatureFahrenheitOffset;
+      temperature =
+          ((kSht4xTemperatureFarenheitMultiplier *
+            static_cast<float>(device_data_->temperature_measurement_)) /
+           kSht4xTemperatureFarenheitDivisor) -
+          kSht4xTemperatureFahrenheitOffset;
       break;
     case TEMPERATURE_UNIT_CELSIUS:
-      temperature = ((kSht4xTemperatureCelsiusMultiplier * static_cast<float>(device_data_->temperature_measurement_))/kSht4xTemperatureCelsisusDivisor) -
-                    kSht4xTemperatureCelsiusOffset;
+      temperature =
+          ((kSht4xTemperatureCelsiusMultiplier *
+            static_cast<float>(device_data_->temperature_measurement_)) /
+           kSht4xTemperatureCelsisusDivisor) -
+          kSht4xTemperatureCelsiusOffset;
       break;
     case TEMPERATURE_UNIT_KELVIN:
-      temperature = ((kSht4xTemperatureKelvinMultiplier * static_cast<float>(device_data_->temperature_measurement_))/kSht4xTemperatureKelvinDivisor) -
-                    kSht4xTemperatureKelvinOffset;
+      temperature =
+          ((kSht4xTemperatureKelvinMultiplier *
+            static_cast<float>(device_data_->temperature_measurement_)) /
+           kSht4xTemperatureKelvinDivisor) -
+          kSht4xTemperatureKelvinOffset;
       break;
   }
 
   device_data_->temperature_measurement_system_time_ = system_clock::now();
   device_data_->temperature_measurement_steady_time_ = steady_clock::now();
-  
-  TemperatureMeasurement measurement(TemperatureDatum(temperature, unit), device_data_->temperature_measurement_system_time_);
+
+  TemperatureMeasurement measurement(
+      TemperatureDatum(temperature, unit),
+      device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
@@ -202,7 +217,7 @@ milliseconds I2cSht4x::getMeasurementInterval(Sht4xReading_t reading) {
    * Return the interval allowed
    */
   switch (reading) {
-    case SHT4X_TEMPERATURE :
+    case SHT4X_TEMPERATURE:
       interval = temperature_measurement_interval_;
       break;
     case SHT4X_HUMIDITY:
@@ -213,7 +228,8 @@ milliseconds I2cSht4x::getMeasurementInterval(Sht4xReading_t reading) {
   return interval;
 }
 
-int I2cSht4x::setMeasurementInterval(milliseconds interval, Sht4xReading_t reading) {
+int I2cSht4x::setMeasurementInterval(milliseconds interval,
+                                     Sht4xReading_t reading) {
   milliseconds measurement_interval;
 
   if (interval < kMinimumMeasurementInterval) {
@@ -223,10 +239,10 @@ int I2cSht4x::setMeasurementInterval(milliseconds interval, Sht4xReading_t readi
   }
 
   switch (reading) {
-    case SHT4X_TEMPERATURE :
+    case SHT4X_TEMPERATURE:
       temperature_measurement_interval_ = measurement_interval;
       break;
-    case SHT4X_HUMIDITY :
+    case SHT4X_HUMIDITY:
       humidity_measurement_interval_ = measurement_interval;
       break;
   }
@@ -234,7 +250,8 @@ int I2cSht4x::setMeasurementInterval(milliseconds interval, Sht4xReading_t readi
   return 0;
 }
 
-expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurement() {
+expected<RelativeHumidityMeasurement, int>
+I2cSht4x::getRelativeHumidityMeasurement() {
   float relative_humidity;
   int error;
 
@@ -242,15 +259,19 @@ expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurem
     return unexpected(ENODEV);
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
-  if (measurementExpired(device_data_->humidity_measurement_steady_time_, humidity_measurement_interval_) == true) {
+  if (measurementExpired(device_data_->humidity_measurement_steady_time_,
+                         humidity_measurement_interval_) == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
     if (error != 0) {
       return unexpected(error);
     }
   }
 
-  relative_humidity = ((kSht4xRelativeHumidityMultiplier * static_cast<float>(device_data_->humidity_measurement_))/kSht4xRelativeHumidityDivisor) -
-                      kSht4xRelativeHumidityOffset;
+  relative_humidity =
+      ((kSht4xRelativeHumidityMultiplier *
+        static_cast<float>(device_data_->humidity_measurement_)) /
+       kSht4xRelativeHumidityDivisor) -
+      kSht4xRelativeHumidityOffset;
 
   /*
    * SHT4x document says:
@@ -266,9 +287,11 @@ expected<RelativeHumidityMeasurement, int> I2cSht4x::getRelativeHumidityMeasurem
   device_data_->humidity_measurement_system_time_ = system_clock::now();
   device_data_->humidity_measurement_steady_time_ = steady_clock::now();
 
-  RelativeHumidityDatum rhdata(device_data_->humidity_measurement_, RELATIVE_HUMIDITY_UNIT_PERCENT);
-  
-  RelativeHumidityMeasurement measurement(rhdata , device_data_->humidity_measurement_system_time_);
+  RelativeHumidityDatum rhdata(device_data_->humidity_measurement_,
+                               RELATIVE_HUMIDITY_UNIT_PERCENT);
+
+  RelativeHumidityMeasurement measurement(
+      rhdata, device_data_->humidity_measurement_system_time_);
 
   return measurement;
 }
@@ -322,7 +345,8 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   /*
    * We need figure out how to check the CRC's
    */
-  device_data_->temperature_measurement_ = (read_buffer[0] << 8) + read_buffer[1];
+  device_data_->temperature_measurement_ =
+      (read_buffer[0] << 8) + read_buffer[1];
   device_data_->humidity_measurement_ = (read_buffer[3] << 8) + read_buffer[4];
 
   last_read_ = steady_clock::now();
@@ -330,18 +354,17 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   return 0;
 }
 
-bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval) {
+bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time,
+                                  milliseconds interval) {
   /*
    * check if the current measurement has expired
    */
   if (measure_count_ == 0) {
     return true;
   }
-  time_point<steady_clock> now =
-    steady_clock::now();
+  time_point<steady_clock> now = steady_clock::now();
 
-  auto time_diff =
-      duration_cast<milliseconds>(now - last_read_time);
+  auto time_diff = duration_cast<milliseconds>(now - last_read_time);
 
   if (time_diff > interval) {
     return true;

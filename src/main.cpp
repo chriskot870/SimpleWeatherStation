@@ -12,8 +12,8 @@
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
-#include "temperature_datum.h"
 #include "pressure_datum.h"
+#include "temperature_datum.h"
 
 using std::cout;
 using std::endl;
@@ -68,7 +68,8 @@ int main() {
     auto cur_time = std::chrono::system_clock::to_time_t(now_time);
     std::cout << "Date: " << std::ctime(&cur_time);
 
-     auto x_sht4x_temp = sht4x.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
+    auto x_sht4x_temp =
+        sht4x.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
     if (x_sht4x_temp.has_value() == false) {
       printf("Failed to get Temperature from SHT4x Device: %d\n",
              x_sht4x_temp.error());
@@ -78,22 +79,27 @@ int main() {
       printf("Failed to get Temperature from SHT4x Device: %d\n",
              x_sht4x_humidity.error());
     }
-    printf("SHT44 Raw Temperature Centigrade: %5.2f\n", x_sht4x_temp.value().getData().getValue());
+    printf("SHT44 Raw Temperature Centigrade: %5.2f\n",
+           x_sht4x_temp.value().getData().getValue());
     printf("SHT44 Raw Temperature Fahrenheit: %5.2f\n",
-           TemperatureDatum::celsiusToFahrenheit(x_sht4x_temp.value().getData().getValue()));
-    printf("SHT44 Raw Relative Humidity: %5.2f\n", x_sht4x_humidity.value().getData().getValue());
+           TemperatureDatum::celsiusToFahrenheit(
+               x_sht4x_temp.value().getData().getValue()));
+    printf("SHT44 Raw Relative Humidity: %5.2f\n",
+           x_sht4x_humidity.value().getData().getValue());
 
-    auto x_lps22_temp = lps22.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
+    auto x_lps22_temp =
+        lps22.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
     if (x_lps22_temp.has_value() == false) {
       printf("Failed to get Temperature from LPS22HB Device: %d\n",
              x_lps22_temp.error());
     } else {
-      printf("LPS22 Raw Temperature Centigrade: %5.2f\n", x_lps22_temp.value().getData().getValue());
+      printf("LPS22 Raw Temperature Centigrade: %5.2f\n",
+             x_lps22_temp.value().getData().getValue());
       printf("LPS22 Raw Temperature Fahrenheit: %5.2f\n",
-           TemperatureDatum::celsiusToFahrenheit(x_lps22_temp.value().getData().getValue()));
+             TemperatureDatum::celsiusToFahrenheit(
+                 x_lps22_temp.value().getData().getValue()));
     }
-    auto x_lps22_pressure =
-        lps22.getPressureMeasurement(PRESSURE_UNIT_Mb);
+    auto x_lps22_pressure = lps22.getPressureMeasurement(PRESSURE_UNIT_Mb);
     if (x_lps22_pressure.has_value() == false) {
       printf("Failed to get Barometric Pressure from LPS22HB Device: %d\n",
              x_lps22_pressure.error());
@@ -105,8 +111,11 @@ int main() {
     float pval(pdata.getValue());
     float pval_mercury = PressureDatum::MbToInchesMercury(pval);
 
-    printf("LPS22 Raw Barometric Pressure millibar: %5.2f\n", x_lps22_pressure.value().getData().getValue());
-    printf("LPS22 Raw Barometric Pressure inches  : %5.2f\n", PressureDatum::MbToInchesMercury(x_lps22_pressure.value().getData().getValue()));
+    printf("LPS22 Raw Barometric Pressure millibar: %5.2f\n",
+           x_lps22_pressure.value().getData().getValue());
+    printf("LPS22 Raw Barometric Pressure inches  : %5.2f\n",
+           PressureDatum::MbToInchesMercury(
+               x_lps22_pressure.value().getData().getValue()));
 
     cout << endl;
     sleep(10);

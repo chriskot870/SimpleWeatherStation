@@ -11,24 +11,24 @@
 #ifndef SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
 #define SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
 
+#include <errno.h>
+#include <fcntl.h>
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>
-#include <string>
-#include <map>
-#include <mutex>
-#include <vector>
-#include <memory>
-#include <algorithm>
-#include <cstring>
 #include <cmath>
+#include <cstring>
+#include <expected>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
 #include "include/i2cbus.h"
 
@@ -39,30 +39,30 @@
 #include "relative_humidity_interface.h"
 #include "temperature_interface.h"
 
-#include "temperature_measurement.h"
 #include "relative_humidity_measurement.h"
+#include "temperature_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
  */
 #include "include/i2cbus.h"
 
-using std::expected;
-using std::string;
-using std::unexpected;
-using std::chrono::time_point;
-using std::chrono::system_clock;
-using std::chrono::steady_clock;
-using std::chrono::milliseconds;
 using std::atomic_bool;
-using std::vector;
+using std::expected;
+using std::find;
+using std::lock_guard;
+using std::make_shared;
 using std::map;
 using std::mutex;
 using std::recursive_mutex;
-using std::lock_guard;
 using std::shared_ptr;
-using std::make_shared;
-using std::find;
+using std::string;
+using std::unexpected;
+using std::vector;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+using std::chrono::system_clock;
+using std::chrono::time_point;
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
@@ -70,7 +70,8 @@ using std::find;
 constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
 constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
 
-const vector<uint8_t> sht4x_slave_address_options = { kSht4xI2cPrimaryAddress, kSht4xI2cSecondaryAddress };
+const vector<uint8_t> sht4x_slave_address_options = {kSht4xI2cPrimaryAddress,
+                                                     kSht4xI2cSecondaryAddress};
 
 constexpr std::chrono::milliseconds kDefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
@@ -80,7 +81,8 @@ constexpr std::chrono::milliseconds kSteadyClockZero(0);
 /*
  * Commands
  */
-constexpr uint8_t kSht4xResponseLength = 6;  // All commands have same response length
+constexpr uint8_t kSht4xResponseLength =
+    6;  // All commands have same response length
 constexpr uint8_t kSht4xCommandLength = 1;
 constexpr uint8_t kSht4xSerialReturnLength = 6;
 constexpr uint8_t kSht4xResetLength = 1;
@@ -116,7 +118,8 @@ constexpr int kSht4xRelativeHumidityMultiplier = 125;
 constexpr int kSht4xRelativeHumidityDivisor = 65535;
 constexpr int kSht4xRelativeHumidityOffset = 6;
 
-constexpr int kSht4xTemperatureKelvinMultiplier = kSht4xTemperatureCelsiusMultiplier;
+constexpr int kSht4xTemperatureKelvinMultiplier =
+    kSht4xTemperatureCelsiusMultiplier;
 constexpr int kSht4xTemperatureKelvinDivisor = kSht4xTemperatureCelsisusDivisor;
 constexpr float kSht4xTemperatureKelvinOffset =
     kSht4xTemperatureCelsiusOffset + 273.15;
@@ -164,24 +167,23 @@ typedef enum {
  * These are in microseonds
  */
 static map<Sht4xMaxTimings, int> sht4x_min_delays = {
-    {SHT4X_TIMING_SOFT_RESET,1000}, /* tpu 1 millisecond */
+    {SHT4X_TIMING_SOFT_RESET, 1000}, /* tpu 1 millisecond */
     /*
      * For the next 3 the table says including tpu. I take that
      * to mean I should add the value above, tpu, to these values
      * in the table. I may have that wrong though.
      */
-    {SHT4X_TIMING_MEASUREMENT_LOW_REPEATABILITY, 1600 + 1000}, /* 1.6 millisecond  + tpu = 2.6 milliseconds*/
-    {SHT4X_TIMING_MEASUREMENT_MED_REPEATABILITY, 500 + 1000}, /* 4.5 milliseconds + tpu = 5.5 milliseconds */
-    {SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY, 8300 + 1000}, /* 8.3 milliseconds + tpu = 9.3 milliseconds */
-    {SHT4X_TIMING_HEATER_DURATION_LONG, 1100000},     /* 1.1 seconds */
-    {SHT4X_TIMING_HEATER_DURATION_SHORT, 110000}   /* 0.11 seconds */
+    {SHT4X_TIMING_MEASUREMENT_LOW_REPEATABILITY,
+     1600 + 1000}, /* 1.6 millisecond  + tpu = 2.6 milliseconds*/
+    {SHT4X_TIMING_MEASUREMENT_MED_REPEATABILITY,
+     500 + 1000}, /* 4.5 milliseconds + tpu = 5.5 milliseconds */
+    {SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY,
+     8300 + 1000}, /* 8.3 milliseconds + tpu = 9.3 milliseconds */
+    {SHT4X_TIMING_HEATER_DURATION_LONG, 1100000}, /* 1.1 seconds */
+    {SHT4X_TIMING_HEATER_DURATION_SHORT, 110000}  /* 0.11 seconds */
 };
 
-typedef enum {
-  SHT4X_TEMPERATURE,
-  SHT4X_HUMIDITY
-} Sht4xReading_t;
-
+typedef enum { SHT4X_TEMPERATURE, SHT4X_HUMIDITY } Sht4xReading_t;
 
 class Sht4xDeviceLocation {
  public:
@@ -193,7 +195,8 @@ class Sht4xDeviceLocation {
    * to be used as a key in a map.
    */
   bool operator==(const Sht4xDeviceLocation& data) const {
-    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+    if ((bus_name_ == data.bus_name_) &&
+        (slave_address_ == data.slave_address_)) {
       return true;
     }
     return false;
@@ -203,7 +206,8 @@ class Sht4xDeviceLocation {
    * If you have == you should also have !=
    */
   bool operator!=(const Sht4xDeviceLocation& data) const {
-    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+    if ((bus_name_ == data.bus_name_) &&
+        (slave_address_ == data.slave_address_)) {
       return false;
     }
     return true;
@@ -214,9 +218,12 @@ class Sht4xDeviceLocation {
    * We set the order that the busname is checked then slave on that bus
    */
   bool operator<(const Sht4xDeviceLocation& data) const {
-    if (bus_name_.compare(data.bus_name_) < 0) return true;
-    if (bus_name_.compare(data.bus_name_) > 0) return false;
-    if (slave_address_ < data.slave_address_) return true;
+    if (bus_name_.compare(data.bus_name_) < 0)
+      return true;
+    if (bus_name_.compare(data.bus_name_) > 0)
+      return false;
+    if (slave_address_ < data.slave_address_)
+      return true;
     return false;
   }
 };
@@ -237,7 +244,6 @@ class Sht4xDeviceData {
   int16_t humidity_measurement_ = 0;
   time_point<system_clock> humidity_measurement_system_time_;
   time_point<steady_clock> humidity_measurement_steady_time_;
-
 };
 
 class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
@@ -252,7 +258,8 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
   int softReset();
 
-  expected<TemperatureMeasurement, int> getTemperatureMeasurement(TemperatureUnit_t unit);
+  expected<TemperatureMeasurement, int> getTemperatureMeasurement(
+      TemperatureUnit_t unit);
 
   expected<RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
 
@@ -265,7 +272,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   string error_message();
 
  private:
-   /*
+  /*
     * Private Data
     */
   Sht4xDeviceLocation device_;
@@ -289,13 +296,13 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   // Temperature measurement
   uint16_t temperature_measurement_;
 
-  time_point<system_clock>  temperature_measurement_time_;
+  time_point<system_clock> temperature_measurement_time_;
 
   time_point<system_clock> temperature_measurement_clock_time_;
 
   // Humidity measurement
   uint16_t relative_humidity_measurement_;
-  time_point<system_clock>  relative_humidity_measurement_time_;
+  time_point<system_clock> relative_humidity_measurement_time_;
 
   time_point<system_clock> relativehumidity_measurement_clock_time_;
 
@@ -310,7 +317,8 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
    */
   int getMeasurement(Sht4xMeasurmentMode mode);
 
-  bool measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval);
+  bool measurementExpired(time_point<steady_clock> last_read_time,
+                          milliseconds interval);
 };
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_

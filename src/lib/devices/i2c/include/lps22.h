@@ -13,32 +13,32 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <i2c/smbus.h>
+#include <linux/i2c-dev.h>
+#include <stdatomic.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <i2c/smbus.h>
-#include <linux/i2c-dev.h>
-#include <chrono>
-#include <expected>
-#include <string>
-#include <cstring>
-#include <stdatomic.h>
 #include <algorithm>
-#include <mutex>
-#include <vector>
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <expected>
 #include <map>
 #include <memory>
-#include <atomic>
-#include <cstdint>
+#include <mutex>
+#include <string>
+#include <vector>
 
 /*
  * This device provides temperature and pressure data so include the interfaces.
  * The device makes temperature and pressure measurements so add those includes.
  */
 #include "pressure_interface.h"
+#include "pressure_measurement.h"
 #include "temperature_interface.h"
 #include "temperature_measurement.h"
-#include "pressure_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
@@ -46,20 +46,20 @@
 #include "include/i2cbus.h"
 
 using std::expected;
-using std::string;
-using std::unexpected;
-using std::chrono::time_point;
-using std::chrono::steady_clock;
-using std::chrono::system_clock;
-using std::chrono::milliseconds;
+using std::find;
+using std::lock_guard;
+using std::make_shared;
 using std::map;
-using std::vector;
 using std::mutex;
 using std::recursive_mutex;
-using std::lock_guard;
 using std::shared_ptr;
-using std::make_shared;
-using std::find;
+using std::string;
+using std::unexpected;
+using std::vector;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+using std::chrono::system_clock;
+using std::chrono::time_point;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
@@ -73,7 +73,8 @@ constexpr uint8_t kLps22hbI2cPrimaryAddress =
 constexpr uint8_t kLps22hbI2cSecondaryAddress =
     0x5C;  // See data sheet section 7.2.1.
 
-const vector<uint8_t> lps22_slave_address_options = { kLps22hbI2cPrimaryAddress, kLps22hbI2cSecondaryAddress };
+const vector<uint8_t> lps22_slave_address_options = {
+    kLps22hbI2cPrimaryAddress, kLps22hbI2cSecondaryAddress};
 
 /*
  * The constant value always retrurned by the Who Am I register
@@ -200,7 +201,7 @@ constexpr uint8_t kLps22hbCtrlRegFifoCtrlWTMShift = 0;
  */
 constexpr uint8_t default_ctrl_reg_1_ = 0;
 constexpr uint8_t default_ctrl_reg_2_ =
-      kLps22hbCtrlReg2IfAddIncMask;  // So we can do multiple register reads
+    kLps22hbCtrlReg2IfAddIncMask;  // So we can do multiple register reads
 
 typedef enum {
   LPS22HB_CTRL_FIFO_CTRL_BYPASS_MODE,
@@ -213,10 +214,7 @@ typedef enum {
   LPS22HB_CTRL_FIFO_CTRL_BYPASS_TO_FIFO_MODE
 } Lps22hbFifoCtrl_t;
 
-typedef enum {
-  LPS22HB_TEMPERATURE,
-  LPS22HB_PRESSURE
-} Lps22hbReading_t;
+typedef enum { LPS22HB_TEMPERATURE, LPS22HB_PRESSURE } Lps22hbReading_t;
 
 class Lps22DeviceLocation {
  public:
@@ -228,7 +226,8 @@ class Lps22DeviceLocation {
    * to be used as a key in a map.
    */
   bool operator==(const Lps22DeviceLocation& data) const {
-    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+    if ((bus_name_ == data.bus_name_) &&
+        (slave_address_ == data.slave_address_)) {
       return true;
     }
     return false;
@@ -238,7 +237,8 @@ class Lps22DeviceLocation {
    * If you have == you should also have !=
    */
   bool operator!=(const Lps22DeviceLocation& data) const {
-    if ((bus_name_ == data.bus_name_) && (slave_address_ == data.slave_address_)) {
+    if ((bus_name_ == data.bus_name_) &&
+        (slave_address_ == data.slave_address_)) {
       return false;
     }
     return true;
@@ -249,9 +249,12 @@ class Lps22DeviceLocation {
    * We set the order that the busname is checked then slave on that bus
    */
   bool operator<(const Lps22DeviceLocation& data) const {
-    if (bus_name_.compare(data.bus_name_) < 0) return true;
-    if (bus_name_.compare(data.bus_name_) > 0) return false;
-    if (slave_address_ < data.slave_address_) return true;
+    if (bus_name_.compare(data.bus_name_) < 0)
+      return true;
+    if (bus_name_.compare(data.bus_name_) > 0)
+      return false;
+    if (slave_address_ < data.slave_address_)
+      return true;
     return false;
   }
 };
@@ -274,13 +277,10 @@ class Lps22DeviceData {
   time_point<system_clock> pressure_measurement_system_time_;
   time_point<steady_clock> pressure_measurement_steady_time_;
   milliseconds pressure_response_time;
-
-  
 };
 
 class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
  public:
-
   Lps22(I2cBus i2cbus_, uint8_t slave_address);
 
   int reset();
@@ -289,9 +289,11 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   expected<uint8_t, int> whoami();
 
-  expected<TemperatureMeasurement, int> getTemperatureMeasurement(TemperatureUnit_t unit);
+  expected<TemperatureMeasurement, int> getTemperatureMeasurement(
+      TemperatureUnit_t unit);
 
-  expected<PressureMeasurement, int> getPressureMeasurement(PressureUnit_t unit);
+  expected<PressureMeasurement, int> getPressureMeasurement(
+      PressureUnit_t unit);
 
   milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 
@@ -306,18 +308,18 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
    * There can be multiple instances of this class.
    */
 
-  Lps22DeviceLocation device_;  // Where the device is located on the system, bus and slave
+  Lps22DeviceLocation
+      device_;  // Where the device is located on the system, bus and slave
   shared_ptr<Lps22DeviceData> device_data_ = nullptr;
-  I2cBus i2cbus_;  // The i2c bus used to transfer data
+  I2cBus i2cbus_;          // The i2c bus used to transfer data
   uint8_t slave_address_;  // slave address for device on the bus
   atomic_uint64_t instance_measurement_count_ = 0;
   milliseconds temperature_interval_ = kLps22DefaultMeasurementInterval;
   milliseconds pressure_interval_ = kLps22DefaultMeasurementInterval;
 
-
   bool temperature_error_;
   bool temperature_valid_ = false;
- 
+
   bool pressure_error_;
   bool pressure_valid_ = false;
 
@@ -346,7 +348,8 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   int getMeasurement();
 
-  bool measurementExpired(time_point<steady_clock> last_read_time, milliseconds interval);
+  bool measurementExpired(time_point<steady_clock> last_read_time,
+                          milliseconds interval);
 };
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
