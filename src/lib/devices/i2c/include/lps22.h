@@ -308,7 +308,8 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
   /*
    * Private Variables
    */
-
+  static mutex lps22_devices_lock;
+  static map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> lps22_devices;
   /*
    * There can be multiple instances of this class.
    */

@@ -17,7 +17,7 @@
 
 #include "include/i2cbus.h"
 
-static mutex i2cbus_lock;
+mutex I2cBus::i2cbus_lock;
 
 I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
   int i2c_bus, retval;
@@ -195,7 +195,7 @@ int I2cBus::readCommandResult(uint8_t slave_address, uint8_t* buffer,
   struct i2c_rdwr_ioctl_data xfer;
 
   lock_guard<mutex> guard(i2cbus_lock);  // Get the lock before accessing the i2cbus
-  
+
   i2c_bus = open(bus_device_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
     return errno;

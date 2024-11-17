@@ -69,7 +69,8 @@ class I2cBus {
   string busName();
 
  private:
-
+  static mutex i2cbus_lock;
+  
   string bus_device_name_;
 
   unsigned long i2c_functions_ = 0;

@@ -7,8 +7,8 @@
  */
 #include "include/sht4x.h"
 
-mutex sht4x_devices_lock;
-static map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> sht4x_devices;
+mutex I2cSht4x::sht4x_devices_lock;
+map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> I2cSht4x::sht4x_devices;
 
 I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
     : i2cbus_(i2cbus), slave_address_(slave_address) {

@@ -7,8 +7,8 @@
  */
 #include "include/lps22.h"
 
-mutex lps22_devices_lock;
-static map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> lps22_devices;
+mutex Lps22::lps22_devices_lock;
+map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> Lps22::lps22_devices;
 
 /*
  * Constructor

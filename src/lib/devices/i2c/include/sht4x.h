@@ -275,6 +275,9 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   /*
     * Private Data
     */
+  static mutex sht4x_devices_lock;
+  static map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> sht4x_devices;
+
   Sht4xDeviceLocation device_;
   shared_ptr<Sht4xDeviceData> device_data_ = nullptr;
   // Number of measurements made
