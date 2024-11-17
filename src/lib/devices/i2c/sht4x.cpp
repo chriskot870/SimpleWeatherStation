@@ -58,8 +58,7 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
    */
   device_data_ = shared_ptr<Sht4xDeviceData>(new Sht4xDeviceData());
 
-  expected<uint8_t, int> x_return;
-  x_return = getSerialNumber();
+  expected<uint8_t, int> x_return = getSerialNumber();
   if (x_return.has_value() == false) {
     /*
      * I can't get the whoami so reset device_data_ to nullptr
@@ -107,6 +106,7 @@ expected<uint32_t, int> I2cSht4x::getSerialNumber() {
     return unexpected(ENODEV);
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
+
   /*
    * Write the serial number command to the device
    */
@@ -147,6 +147,7 @@ int I2cSht4x::softReset() {
     return ENODEV;
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
+
   /*
    * Write the command to the devices
    */
@@ -229,11 +230,7 @@ int I2cSht4x::setMeasurementInterval(milliseconds interval,
                                      Sht4xReading_t reading) {
   milliseconds measurement_interval;
 
-  if (interval < kMinimumMeasurementInterval) {
-    measurement_interval = kMinimumMeasurementInterval;
-  } else {
-    measurement_interval = interval;
-  }
+  measurement_interval = max(interval, kSht44xMinimumMeasurementInterval);
 
   switch (reading) {
     case SHT4X_TEMPERATURE:
@@ -256,6 +253,7 @@ I2cSht4x::getRelativeHumidityMeasurement() {
     return unexpected(ENODEV);
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
+
   if (measurementExpired(device_data_->humidity_measurement_steady_time_,
                          humidity_measurement_interval_) == true) {
     error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
@@ -304,6 +302,7 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
     return ENODEV;
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_);
+
   /*
    * The data is transferred in the following format
    * Offsets: 0,1 16 bits of temperature
@@ -317,6 +316,7 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
    * Increment the counter that monitors how often this routine gets called
    */
   device_data_->read_total_++;
+  measurement_count_++;
 
   i2cbus_.writeCommand(slave_address_, &command, sizeof(command));
 
@@ -348,8 +348,6 @@ int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
   device_data_->humidity_measurement_system_time_ = system_clock::now();
   device_data_->humidity_measurement_steady_time_ = steady_clock::now();
 
-  last_read_ = steady_clock::now();
-
   return 0;
 }
 
@@ -358,7 +356,7 @@ bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time,
   /*
    * check if the current measurement has expired
    */
-  if (measure_count_ == 0) {
+  if (measurement_count_ == 0) {
     return true;
   }
   time_point<steady_clock> now = steady_clock::now();

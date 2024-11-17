@@ -8,7 +8,6 @@
 #include "include/lps22.h"
 
 mutex lps22_devices_lock;
-//static map<Lps22DeviceLocation, Lps22DeviceData*> lps22_devices;
 static map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> lps22_devices;
 
 /*
@@ -60,8 +59,8 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
    */
   device_data_ = shared_ptr<Lps22DeviceData>(new Lps22DeviceData());
 
-  expected<uint8_t, int> x_return;
-  x_return = whoami();
+  
+  expected<uint8_t, int> x_return = whoami();
   if (x_return.has_value() == false) {
     /*
      * I can't get the whoami so reset device_data_ to nullptr
@@ -98,7 +97,6 @@ expected<uint8_t, int> Lps22::whoami() {
   if (device_data_ == nullptr) {
     return unexpected(retval);
   }
-
   lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
                                                      * device lock will be unlcoked when
                                                      * guard's destruct routine gets called
@@ -116,9 +114,7 @@ expected<uint8_t, int> Lps22::whoami() {
 
 int Lps22::reset() {
   int retval;
-  expected<uint8_t, int> x_return;
   uint8_t control_1, control_2;
-  int error;
 
   if (device_data_ == nullptr) {
     return ENODEV;
@@ -247,16 +243,16 @@ int Lps22::init() {
 
 int Lps22::setMeasurementInterval(milliseconds interval,
                                   Lps22hbReading_t reading) {
-  /*
-   * TODO:
-   * Should check for some boundary conditions here
-   */
+  milliseconds measurement_interval;
+
+  measurement_interval = max(interval, kLps22MinimumMeasurementInterval);
+
   switch (reading) {
     case LPS22HB_TEMPERATURE:
-      temperature_interval_ = interval;
+      temperature_interval_ = measurement_interval;
       break;
     case LPS22HB_PRESSURE:
-      pressure_interval_ = interval;
+      pressure_interval_ = measurement_interval;
       break;
   }
 
@@ -319,7 +315,7 @@ int Lps22::getMeasurement() {
   /*
    * Now loop on the status register waiting for data to be available
    */
-  for (temp_available_count = 1; temp_available_count <= 10;
+  for (temp_available_count = 1; temp_available_count <= kLps22WaitResponseLoopCount;
        temp_available_count++) {
 
     /*
@@ -458,7 +454,7 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(
   }
 
   /*
-   * Peform the conversion from the data sheet
+   * Perform the conversion from the data sheet
    */
   temperature = static_cast<float>(device_data_->temperature_measurement_) /
                 kLps22hbTemperatureFactor;

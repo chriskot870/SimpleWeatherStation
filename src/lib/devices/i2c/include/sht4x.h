@@ -75,7 +75,7 @@ const vector<uint8_t> sht4x_slave_address_options = {kSht4xI2cPrimaryAddress,
 
 constexpr std::chrono::milliseconds kDefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
-constexpr std::chrono::milliseconds kMinimumMeasurementInterval(
+constexpr std::chrono::milliseconds kSht44xMinimumMeasurementInterval(
     1000); /* The minimum value for measurement_interval_ */
 constexpr std::chrono::milliseconds kSteadyClockZero(0);
 /*
@@ -278,7 +278,7 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   Sht4xDeviceLocation device_;
   shared_ptr<Sht4xDeviceData> device_data_ = nullptr;
   // Number of measurements made
-  uint64_t measure_count_ = 0;
+  uint64_t measurement_count_ = 0;
 
   // The slave address of the device. The sht45 can be either 0x44 or 0x45.
   uint8_t slave_address_;
@@ -289,22 +289,6 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
   // interval between making a measurement per reading type
   milliseconds temperature_measurement_interval_ = kDefaultMeasurementInterval;
   milliseconds humidity_measurement_interval_ = kDefaultMeasurementInterval;
-
-  // The last time point a measurement was made. Initialize to zero.
-  time_point<steady_clock> last_read_{};
-
-  // Temperature measurement
-  uint16_t temperature_measurement_;
-
-  time_point<system_clock> temperature_measurement_time_;
-
-  time_point<system_clock> temperature_measurement_clock_time_;
-
-  // Humidity measurement
-  uint16_t relative_humidity_measurement_;
-  time_point<system_clock> relative_humidity_measurement_time_;
-
-  time_point<system_clock> relativehumidity_measurement_clock_time_;
 
   // Serial Number
   uint32_t serial_number_ = 0;

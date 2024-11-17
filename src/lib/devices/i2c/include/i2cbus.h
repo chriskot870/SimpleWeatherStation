@@ -11,12 +11,12 @@
 
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
-#include <stdio.h>
-#include <chrono>
-#include <expected>
+#include <mutex>
 #include <string>
 
 using std::string;
+using std::mutex;
+using std::lock_guard;
 
 enum I2cBusStatus { OK, NODEV, UNKNOWN_FUNCTIONS, UNDEFINED };
 
@@ -31,17 +31,17 @@ class I2cBus {
  public:
   I2cBus(string bus_name);
 
-  /**
+  /*
    * This is for use with devices that use a command/result model. This writes a
    * command to the slave_address. It then reads from the slave address to get
-   * the results of that command. Typically there is a delay between wiring the
+   * the results of that command. Typically there is a delay between writing the
    * command and reading the result.
    * The sht4x works this way.
    */
   int writeCommand(uint8_t slave_address, uint8_t* command, uint8_t count);
 
-  /**
-   * This command covers devices that first send a comman via a write. The
+  /*
+   * This command covers devices that first send a command via a write. The
    * subsequent read of just the slave address will return the results.
    * These often require a delay to give some time for the command to
    * get executed on the device. It is then followed by a read.
@@ -49,24 +49,27 @@ class I2cBus {
    */
   int readCommandResult(uint8_t slave_address, uint8_t* buffer, uint8_t count);
 
-  /**
+  /*
    * This routine copies multiple address' from the device to memory
+   * The sht4x works this way.
    */
   int transferDataFromRegisters(uint8_t slave_address, uint8_t sub_adress,
                                 uint8_t* buffer, uint8_t count);
 
-  /**
+  /*
    * This routine copies data from memory to multiple sub-address' in the device
+   * The sht4x works this way.
    */
   int transferDataToRegisters(uint8_t slave_address, uint8_t sub_adress,
                               uint8_t* buffer, uint8_t count);
 
-  /**
+  /*
    * This routine returns the device name
    */
   string busName();
 
  private:
+
   string bus_device_name_;
 
   unsigned long i2c_functions_ = 0;

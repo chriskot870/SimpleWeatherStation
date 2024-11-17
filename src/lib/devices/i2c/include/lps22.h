@@ -3,7 +3,7 @@
  */
 
 /*
- * This contains the SHT45 information. See data sheet
+ * This contains the LPS22HB information. See data sheet
  * https://cdn-shop.adafruit.com/product-files/5665/5665_Datasheet_SHT4x.pdf
  *
  */
@@ -63,8 +63,13 @@ using std::chrono::time_point;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
+constexpr std::chrono::milliseconds kLps22MinimumMeasurementInterval(
+    1000); /* The minimum value for measurement_interval_ */
+
 constexpr milliseconds kLps22DefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
+
+constexpr int kLps22WaitResponseLoopCount = 10;
 /*
  * There are two possible slave addresses
  */
