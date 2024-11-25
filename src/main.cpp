@@ -14,6 +14,7 @@
 #include "include/sht4x.h"
 #include "pressure_datum.h"
 #include "temperature_datum.h"
+#include "include/weather_underground.h"
 
 using std::cout;
 using std::endl;
@@ -63,61 +64,62 @@ int main() {
   printf("SHT44 Serial Number: %d\n", x_serial_number.value());
 
   cout << "Starting" << endl;
-  while (true) {
-    auto now_time = std::chrono::system_clock::now();
-    auto cur_time = std::chrono::system_clock::to_time_t(now_time);
-    std::cout << "Date: " << std::ctime(&cur_time);
 
+  WeatherUnderground wu("KTXROANO168", "Password");
+
+  while (true) {
+    /*
+     * get the current time
+     */
+    auto now_time = std::chrono::system_clock::now();
+
+    /*
+     * Gather up all the raw data
+     */
     auto x_sht4x_temp =
-        sht4x.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
-    if (x_sht4x_temp.has_value() == false) {
-      printf("Failed to get Temperature from SHT4x Device: %d\n",
-             x_sht4x_temp.error());
-    }
+        sht4x.getTemperatureMeasurement(TEMPERATURE_UNIT_FAHRENHEIT);
+
     auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
-    if (x_sht4x_humidity.has_value() == false) {
-      printf("Failed to get Temperature from SHT4x Device: %d\n",
-             x_sht4x_humidity.error());
-    }
-    printf("SHT44 Raw Temperature Centigrade: %5.2f\n",
-           x_sht4x_temp.value().getData().getValue());
-    printf("SHT44 Raw Temperature Fahrenheit: %5.2f\n",
-           TemperatureDatum::celsiusToFahrenheit(
-               x_sht4x_temp.value().getData().getValue()));
-    printf("SHT44 Raw Relative Humidity: %5.2f\n",
-           x_sht4x_humidity.value().getData().getValue());
 
     auto x_lps22_temp =
-        lps22.getTemperatureMeasurement(TEMPERATURE_UNIT_CELSIUS);
-    if (x_lps22_temp.has_value() == false) {
-      printf("Failed to get Temperature from LPS22HB Device: %d\n",
-             x_lps22_temp.error());
-    } else {
-      printf("LPS22 Raw Temperature Centigrade: %5.2f\n",
-             x_lps22_temp.value().getData().getValue());
-      printf("LPS22 Raw Temperature Fahrenheit: %5.2f\n",
-             TemperatureDatum::celsiusToFahrenheit(
-                 x_lps22_temp.value().getData().getValue()));
-    }
-    auto x_lps22_pressure = lps22.getPressureMeasurement(PRESSURE_UNIT_Mb);
-    if (x_lps22_pressure.has_value() == false) {
-      printf("Failed to get Barometric Pressure from LPS22HB Device: %d\n",
-             x_lps22_pressure.error());
-      exit(1);
+        lps22.getTemperatureMeasurement(TEMPERATURE_UNIT_FAHRENHEIT);
+
+    auto x_lps22_pressure = lps22.getPressureMeasurement(PRESSURE_UNIT_INCHES_MERCURY);
+
+    /*
+     * Put the raw data into the wu data
+     */
+    wu.setData("action", "updateraw");
+    wu.setData("dateutc", "now");
+    if (x_sht4x_temp.has_value()) {
+      wu.setData("tempf", x_sht4x_temp.value().getData().getValue());
     }
 
-    PressureMeasurement pmeasurement(x_lps22_pressure.value());
-    PressureDatum pdata(x_lps22_pressure.value().getData());
-    float pval(pdata.getValue());
-    float pval_mercury = PressureDatum::MbToInchesMercury(pval);
+    if (x_sht4x_humidity.has_value()) {
+      wu.setData("humidity", x_sht4x_humidity.value().getData().getValue());
+    }
 
-    printf("LPS22 Raw Barometric Pressure millibar: %5.2f\n",
-           x_lps22_pressure.value().getData().getValue());
-    printf("LPS22 Raw Barometric Pressure inches  : %5.2f\n",
-           PressureDatum::MbToInchesMercury(
-               x_lps22_pressure.value().getData().getValue()));
+    if (x_lps22_pressure.has_value()) {
+      wu.setData("baromin", x_lps22_pressure.value().getData().getValue());
+    }
 
-    cout << endl;
-    sleep(10);
+    /*
+     * debug to check out the string
+     */
+    string http_request = wu.buildHttpRequest();
+    printf("Sending HTTP Request: %s\n", http_request.c_str());
+
+    auto errval = wu.sendData();
+    if (errval.has_value() == false) {
+      printf("COMM Error: %d", errval.error());
+    }
+
+    string response = wu.getHttpResponse();
+
+    printf("Response: %s", response.c_str());
+
+    wu.clearData();
+
+    sleep(300);
   }
 }

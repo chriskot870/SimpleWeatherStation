@@ -6,6 +6,7 @@
 #
 set(EXECUTABLE_NAME ${CMAKE_PROJECT_NAME})
 
+find_package(fmt REQUIRED)
 #
 # Add the executable to be built and the local files used
 # to build the executable
@@ -15,6 +16,7 @@ add_executable(${EXECUTABLE_NAME}
 )
 
 target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++23)
+#target_compile_options(${EXECUTABLE_NAME} PUBLIC -lfmt)
 
 #
 # List the sub-directories that need to be built
@@ -29,7 +31,12 @@ add_subdirectory(lib)
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     i2cdevices
     units
-    unit_interfaces)
+    unit_interfaces
+    weatherunderground
+    fmt
+    curl
+    )
+
 
 #
 # define where to install the target

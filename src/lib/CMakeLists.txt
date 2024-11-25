@@ -3,3 +3,4 @@
 #
 add_subdirectory(units)
 add_subdirectory(devices)
+add_subdirectory(weather_underground)
