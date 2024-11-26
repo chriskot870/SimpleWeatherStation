@@ -22,7 +22,7 @@ class RelativeHumidityMeasurement {
   /*
    * Return the data of the measurement
    */
-  RelativeHumidityDatum getData();
+  RelativeHumidityDatum getDatum();
 
   /*
    * Return the time of the measurement

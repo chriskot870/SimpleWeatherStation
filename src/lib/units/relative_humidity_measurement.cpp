@@ -12,7 +12,7 @@ RelativeHumidityMeasurement::RelativeHumidityMeasurement(RelativeHumidityDatum d
 /*
  * Return the data value
  */
-RelativeHumidityDatum RelativeHumidityMeasurement::getData() {
+RelativeHumidityDatum RelativeHumidityMeasurement::getDatum() {
 
   return data_;
 }

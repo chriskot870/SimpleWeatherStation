@@ -17,7 +17,7 @@ class PressureMeasurement {
  public:
   PressureMeasurement (PressureDatum data, time_point<system_clock> clock_time);
 
-  PressureDatum getData();
+  PressureDatum getDatum();
 
   time_point<system_clock> getTime();
 

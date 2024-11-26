@@ -7,7 +7,7 @@
 
 TemperatureMeasurement::TemperatureMeasurement (TemperatureDatum data, time_point<system_clock> clock_time) : data_(data), clock_time_(clock_time) {}
 
-TemperatureDatum TemperatureMeasurement::getData() {
+TemperatureDatum TemperatureMeasurement::getDatum() {
 
   return data_;
 }

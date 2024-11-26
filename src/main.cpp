@@ -117,15 +117,25 @@ int main(int argc, char** argv) {
     wu.setData("action", "updateraw");
     wu.setData("dateutc", "now");
     if (x_sht4x_temp.has_value()) {
-      wu.setData("tempf", x_sht4x_temp.value().getData().getValue());
+      wu.setData("tempf", x_sht4x_temp.value().getDatum().getValue());
     }
 
     if (x_sht4x_humidity.has_value()) {
-      wu.setData("humidity", x_sht4x_humidity.value().getData().getValue());
+      wu.setData("humidity", x_sht4x_humidity.value().getDatum().getValue());
+    }
+
+    /*
+     * The dew point depends on temperature and humidity so make sure they exist
+     */
+    if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
+      auto dew_point = getDewPointMeasurement(x_sht4x_temp.value(), x_sht4x_humidity.value());
+      if (dew_point.has_value()) {
+        wu.setData("dewpoint", dew_point.value().getDatum().getValue());
+      }
     }
 
     if (x_lps22_pressure.has_value()) {
-      wu.setData("baromin", x_lps22_pressure.value().getData().getValue());
+      wu.setData("baromin", x_lps22_pressure.value().getDatum().getValue());
     }
 
     /*

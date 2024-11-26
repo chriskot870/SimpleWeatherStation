@@ -12,7 +12,7 @@ PressureMeasurement::PressureMeasurement(PressureDatum data, time_point<system_c
 /*
  * Returns the datum of the measurement
  */
-PressureDatum PressureMeasurement::getData() {
+PressureDatum PressureMeasurement::getDatum() {
 
   return data_;
 }

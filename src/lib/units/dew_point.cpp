@@ -51,11 +51,11 @@ expected<TemperatureMeasurement, int> getDewPointMeasurement( TemperatureMeasure
     return unexpected(ERANGE);
   }
 
-  expected<TemperatureDatum, int> dew_point_temp = getDewPoint(temperature.getData(), humidity.getData(), temperature.getData().getUnit());
+  expected<TemperatureDatum, int> dew_point_temp = getDewPoint(temperature.getDatum(), humidity.getDatum(), temperature.getDatum().getUnit());
   if (dew_point_temp.has_value()) {
     return unexpected(dew_point_temp.error());
   }
-  
+
   TemperatureMeasurement dew_point_msmnt(dew_point_temp.value(), temperature.getTime());
 
   return dew_point_msmnt;

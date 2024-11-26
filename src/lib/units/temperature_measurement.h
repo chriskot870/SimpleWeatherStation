@@ -16,7 +16,7 @@ class TemperatureMeasurement {
  public:
   TemperatureMeasurement (TemperatureDatum data, time_point<system_clock> clock_time);
 
-  TemperatureDatum getData();
+  TemperatureDatum getDatum();
 
   time_point<system_clock> getTime();
 
