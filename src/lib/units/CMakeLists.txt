@@ -15,6 +15,7 @@ add_library(units STATIC
     temperature_measurement.cpp
     pressure_measurement.cpp
     relative_humidity_measurement.cpp
+    dew_point.cpp
     )
 
 #

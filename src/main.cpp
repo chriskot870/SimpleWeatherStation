@@ -13,8 +13,10 @@
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
+#include "relative_humidity_datum.h"
 #include "pressure_datum.h"
 #include "temperature_datum.h"
+#include "dew_point.h"
 #include "include/weather_underground.h"
 
 using std::cout;
