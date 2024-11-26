@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
@@ -20,7 +21,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-int main() {
+int main(int argc, char** argv) {
   string temperature;
   string humidity;
   float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
@@ -28,6 +29,26 @@ int main() {
   std::expected<uint8_t, int> x_whoami;
   std::expected<uint32_t, int> x_serial_number;
   int error;
+  int opt;
+  string wu_id;
+  string wu_pwd;
+
+  /*
+   * Make sure the wu_id and wu_pwd are empty
+   */
+  wu_id.clear();
+  wu_pwd.clear();
+
+  while ((opt = getopt(argc, argv, "1:p:")) != -1) {
+    switch (opt) {
+      case 'p' :
+        wu_pwd.append(optarg);
+        break;
+      case 'i':
+        wu_id.append(optarg);
+        break;
+    }
+  }
 
   I2cBus i2c_bus = I2cBus(string("/dev/i2c-1"));
 
@@ -65,7 +86,9 @@ int main() {
 
   cout << "Starting" << endl;
 
-  WeatherUnderground wu("KTXROANO168", "Password");
+  //WeatherUnderground wu("KTXROANO168", "Password");
+
+  WeatherUnderground wu(wu_id, wu_pwd);
 
   while (true) {
     /*
@@ -118,7 +141,7 @@ int main() {
 
     printf("Response: %s", response.c_str());
 
-    wu.clearData();
+    wu.reset();
 
     sleep(300);
   }

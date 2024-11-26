@@ -7,7 +7,18 @@
  */
 #include "include/weather_underground.h"
 
-map<string, FieldType> wu_field_properties;
+/*
+ * Any filed that matches the pattern of the key has the associated properties
+ */
+const map<string, WuFieldProperties> wu_field_regex_list = {
+  {"^ID$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
+  {"^PASSWORD$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
+  {"^dateutc$", WuFieldProperties(WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT, "{:%Y-%m-%d %H:%M:%S}")},
+  {"^action$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
+  {"^baromin$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{}")},
+  {"^humidity$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{}")},
+  {"^temp[2-9]?f$|^temp[1-9][0-9]f$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{}")}  // This supports tempf, temp2-99f
+};
 
 map<string, FieldType>  wu_fields = {
   {"ID", TEXT},
@@ -89,8 +100,12 @@ expected<bool, int> WeatherUnderground::sendData() {
 
   http_get_request_ = buildHttpRequest();
 
+  /*
+   * Now use curl to send the HTTP GET request
+   */
   CURL *curl = curl_easy_init();
   CURLcode res;
+
   /*
    * Set the URL options
    */
@@ -115,6 +130,128 @@ expected<bool, int> WeatherUnderground::sendData() {
   return true;
 }
 
+expected<bool, int> WeatherUnderground::setVarData(string field, variant<float, string, system_clock::time_point> value) {
+
+  /*
+   * Sanity check by walking through the regex list to make sure it is a valid field
+   */
+  expected<WuFieldProperties, int> field_properties = getFieldProperties(field);
+  if (field_properties.has_value() == false) {
+    return unexpected(field_properties.error());
+  }
+
+  /*
+   * We only get ID and PASSWORD from id_ and password_ when class is created.
+   */
+  if ((field == "ID") || field == "PASSWORD") {
+    return unexpected(EINVAL);
+  }
+  /*
+   * It is my understanding the action can only be updateraw
+   */
+  if (field == "action") {
+    if ((value.index() != WU_FIELD_TYPE_STRING) || (get<string>(value) != "updateraw")) {
+      return unexpected(EINVAL);
+    }
+  }
+
+  /*
+   * dateutc can either be system_clock::time_point or "now"
+   * So it's type check needs to be done separately
+   */
+  if (field == "dateutc") {
+    if ((value.index() != WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT) || (value.index() != WU_FIELD_TYPE_STRING)) {
+      return unexpected(EINVAL);
+    }
+    if ((value.index() == WU_FIELD_TYPE_STRING) && (get<string>(value) != "now")) {
+      return unexpected(EINVAL);
+    }
+  } else {
+    /*
+     * Make sure all the other fields are passing the correct type
+     */
+    if (field_properties.value().type_ != value.index()) {
+      return unexpected(EINVAL);
+    }
+  }
+
+  /*
+   * It's OK to add the field and it's value
+   */
+  addData(field, value);
+
+  return true;
+}
+
+  expected<bool, int> WeatherUnderground::addData(string field, variant<float, string, system_clock::time_point> value) {
+  /*
+   * This is a private routine. The public routine setData does all the sanity checking
+   * And then calls this routine to actually add the field data to the map.
+   * We assume that field and value a valid when we get here.
+   * This allows us to add ID and PASSWORD when we send the data.
+   */
+  
+  
+  /*
+   * Create the field's data and set the value to what was passed in
+   */
+  WuFieldData field_data;
+  field_data.data = value;
+  
+  /*
+   * Get the field's properties in order to get the default format
+   */
+  expected<WuFieldProperties, int> field_properties = getFieldProperties(field);
+  if (field_properties.has_value() == false) {
+    return unexpected(field_properties.error());
+  }
+ 
+  /*
+   * Get the data string to be converted to escaped URL
+   * Define data_string before switch so it won't go out of scope.
+   * You need to use fmt::runtime() to use a variable for the
+   * format string.
+   */
+  string data_string;
+  switch (value.index()) {
+    case WU_FIELD_TYPE_NUMBER :
+      data_string = format(fmt::runtime(field_properties.value().default_format_), get<float>(value));
+      break;
+    case WU_FIELD_TYPE_STRING :
+      data_string = format(fmt::runtime(field_properties.value().default_format_), get<string>(value));
+      break;
+    case WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT :
+      data_string = format(fmt::runtime(field_properties.value().default_format_), get<system_clock::time_point>(value));
+      break;
+  }
+
+  /*
+   * Now escape the string and store it in the url_data field
+   */
+  CURL *curl = curl_easy_init();
+  field_data.url_data = string(curl_easy_escape(curl, data_string.c_str(), data_string.length()));
+  curl_easy_cleanup(curl);
+
+  /*
+   * Now store the field data into the wu_data_ array
+   */
+  wu_data_[field] = field_data;
+
+  return true;
+}
+
+expected<WuFieldProperties, int> WeatherUnderground::getFieldProperties(string field) {
+
+  for (auto [rgx, properties] : wu_field_regex_list) {
+    if (std::regex_match(field, regex(rgx)) == true) {
+      return properties;
+      break;
+    }
+  }
+
+  return unexpected(EINVAL);
+}
+
 expected<bool, int> WeatherUnderground::setData(string field, string value) {
   int n;
   /*
@@ -136,7 +273,7 @@ expected<bool, int> WeatherUnderground::setData(string field, string value) {
       }
     }
 
-    wu_text_data_[field] = value;
+
 
   return true;
 }
@@ -193,8 +330,9 @@ expected<bool, int> WeatherUnderground::setData(string field, system_clock value
   return true;
 }
 
-void WeatherUnderground::clearData() {
+void WeatherUnderground::reset() {
 
+    wu_data_.clear();
     wu_number_data_.clear();
     wu_text_data_.clear();
     clearHttpResponse();
@@ -205,54 +343,24 @@ void WeatherUnderground::clearData() {
 
 string WeatherUnderground::buildHttpRequest() {
   string url_get_string;
-  string number_value;
-  char *escaped_value;
 
   /*
-   * Escape get parameters
+   * Add the ID and PASSWORD
    */
-  CURL *curl = curl_easy_init();
-  /*
-   * First we need to build the string with the values
-   * We start with the url and ID and password. Then loop through the fields
-   */
-  url_get_string += url_separater + "ID=";
-  url_get_string.append(curl_easy_escape(curl,id_.c_str(), id_.length()));
-  url_get_string += url_separater + "PASSWORD=";
-  url_get_string.append(curl_easy_escape(curl, password_.c_str(), password_.length()));
+  addData("ID", id_);
+  addData("PASSWORD", password_);
 
   /*
-   * Now walk through the possible fields and see if the values have been set
+   * Now walk through the url data map and create the urk escaped get string.
    */
-
-  for (auto [key, value] : wu_fields) {
-    switch (value) {
-        case TEXT :
-        case DATE :
-            if (wu_text_data_.contains(key)) {
-                url_get_string += url_separater + key + "=";
-                escaped_value = curl_easy_escape(curl, wu_text_data_[key].c_str(), wu_text_data_[key].length());
-                url_get_string.append(curl_easy_escape(curl, escaped_value, strlen(escaped_value)));
-            }
-        break;
-        case NUMBER :
-            if (wu_number_data_.contains(key)) {
-                url_get_string += url_separater + key + "=";
-                number_value = fmt::format("{:.2f}", wu_number_data_[key]);
-                escaped_value = curl_easy_escape(curl, number_value.c_str(), number_value.length());
-                url_get_string.append(escaped_value, strlen(escaped_value));
-            }
-            break;
-    }
+  for (auto [field, value] : wu_data_) {
+    url_get_string += format("&{}={}", field, value.url_data);
   }
 
   /*
    * Put the URL pieces together
    */
-  string url_http_string = wu_url + "?";
-  url_http_string.append(url_get_string);
-
-  curl_easy_cleanup(curl);
+  string url_http_string = wu_url + "?" + url_get_string;
 
   return url_http_string;
 
