@@ -33,6 +33,9 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     units
     unit_interfaces
     weatherunderground
+    temperature_units
+    pressure_units
+    humidity_units
     fmt
     curl
     )

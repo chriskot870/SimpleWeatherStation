@@ -56,7 +56,9 @@
         "variant": "cpp",
         "cstring": "cpp",
         "expected": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "map": "cpp",
+        "cinttypes": "cpp"
     },
     "editor.formatOnSave": true
 }

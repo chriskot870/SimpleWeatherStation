@@ -29,3 +29,8 @@ target_include_directories(units PUBLIC , ${CMAKE_CURRENT_SOURCE_DIR})
 #
 target_compile_options(unit_interfaces INTERFACE -std=c++23)
 target_compile_options(units PUBLIC -std=c++23)
+
+add_subdirectory(temperature)
+add_subdirectory(pressure)
+add_subdirectory(humidity)
+

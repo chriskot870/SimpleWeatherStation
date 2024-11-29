@@ -19,6 +19,13 @@
 #include "dew_point.h"
 #include "include/weather_underground.h"
 
+#include "fahrenheit.h"
+#include "celsius.h"
+#include "kelvin.h"
+#include "inches_mercury.h"
+#include "millibar.h"
+#include "relative_humidity.h"
+
 using std::cout;
 using std::endl;
 using std::string;
@@ -35,13 +42,16 @@ int main(int argc, char** argv) {
   string wu_id;
   string wu_pwd;
 
+  //qw_units::Fahrenheit tmpf(45.3);
+
+
   /*
    * Make sure the wu_id and wu_pwd are empty
    */
   wu_id.clear();
   wu_pwd.clear();
 
-  while ((opt = getopt(argc, argv, "1:p:")) != -1) {
+  while ((opt = getopt(argc, argv, "i:p:")) != -1) {
     switch (opt) {
       case 'p' :
         wu_pwd.append(optarg);
