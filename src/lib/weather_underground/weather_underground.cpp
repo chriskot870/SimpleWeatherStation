@@ -15,9 +15,9 @@ const map<string, WuFieldProperties> wu_field_regex_list = {
   {"^PASSWORD$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
   {"^dateutc$", WuFieldProperties(WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT, "{:%Y-%m-%d %H:%M:%S}")},
   {"^action$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
-  {"^baromin$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{}")},
-  {"^humidity$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{}")},
-  {"^temp[2-9]?f$|^temp[1-9][0-9]f$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{}")}  // This supports tempf, temp2-99f
+  {"^baromin$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")},
+  {"^humidity$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")},
+  {"^temp[2-9]?f$|^temp[1-9][0-9]f$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")}  // This supports tempf, temp2-99f
 };
 
 map<string, FieldType>  wu_fields = {
@@ -94,7 +94,10 @@ expected<bool, int> WeatherUnderground::sendData() {
   /*
    * We have to make sure that these values exist in the map
    */
-  if ((wu_text_data_.contains("action") == false) || (wu_text_data_["action"] != "updateraw") || (wu_text_data_.contains("dateutc")== false)) {
+  if ((wu_data_.contains("action") == false) ||
+      (wu_data_["action"].data.index() != WU_FIELD_TYPE_STRING) ||
+      (get<string>(wu_data_["action"].data) != "updateraw") ||
+      (wu_data_.contains("dateutc") == false)) {
     return unexpected(EINVAL);
   }
 
@@ -160,7 +163,7 @@ expected<bool, int> WeatherUnderground::setVarData(string field, variant<float, 
    * So it's type check needs to be done separately
    */
   if (field == "dateutc") {
-    if ((value.index() != WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT) || (value.index() != WU_FIELD_TYPE_STRING)) {
+    if (!((value.index() == WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT) || (value.index() == WU_FIELD_TYPE_STRING))) {
       return unexpected(EINVAL);
     }
     if ((value.index() == WU_FIELD_TYPE_STRING) && (get<string>(value) != "now")) {
@@ -218,7 +221,18 @@ expected<bool, int> WeatherUnderground::setVarData(string field, variant<float, 
       data_string = format(fmt::runtime(field_properties.value().default_format_), get<float>(value));
       break;
     case WU_FIELD_TYPE_STRING :
-      data_string = format(fmt::runtime(field_properties.value().default_format_), get<string>(value));
+      /*
+       * The dateutc can be a time or just the word now.
+       * Probably not the best place to sort that out but it
+       * seems to be the simplist place to put it.
+       * If dateutc is a string then don't use the default
+       * format for it.
+       */
+      if (field == "dateutc") {
+        data_string = format("{}", get<string>(value));
+      } else {
+        data_string = format(fmt::runtime(field_properties.value().default_format_), get<string>(value));
+      }
       break;
     case WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT :
       data_string = format(fmt::runtime(field_properties.value().default_format_), get<system_clock::time_point>(value));

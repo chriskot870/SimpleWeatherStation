@@ -18,6 +18,8 @@
 #include "temperature_datum.h"
 #include "dew_point.h"
 #include "include/weather_underground.h"
+#include "fmt/printf.h"
+#include "fmt/chrono.h"
 
 #include "fahrenheit.h"
 #include "celsius.h"
@@ -29,6 +31,7 @@
 using std::cout;
 using std::endl;
 using std::string;
+using fmt::format;
 
 int main(int argc, char** argv) {
   string temperature;
@@ -100,7 +103,7 @@ int main(int argc, char** argv) {
 
   //WeatherUnderground wu("KTXROANO168", "Password");
 
-  WeatherUnderground wu(wu_id, wu_pwd);
+  WeatherUnderground wu("KTXROANO168", "HW0SG8q3");
 
   while (true) {
     /*
@@ -108,6 +111,9 @@ int main(int argc, char** argv) {
      */
     auto now_time = std::chrono::system_clock::now();
 
+    std::time_t now_t = std::chrono::system_clock::to_time_t(now_time);
+
+    cout << std::ctime(&now_t);
     /*
      * Gather up all the raw data
      */
@@ -124,14 +130,14 @@ int main(int argc, char** argv) {
     /*
      * Put the raw data into the wu data
      */
-    wu.setData("action", "updateraw");
-    wu.setData("dateutc", "now");
+    wu.setVarData("action", "updateraw");
+    wu.setVarData("dateutc", "now");
     if (x_sht4x_temp.has_value()) {
-      wu.setData("tempf", x_sht4x_temp.value().getDatum().getValue());
+      wu.setVarData("tempf", x_sht4x_temp.value().getDatum().getValue());
     }
 
     if (x_sht4x_humidity.has_value()) {
-      wu.setData("humidity", x_sht4x_humidity.value().getDatum().getValue());
+      wu.setVarData("humidity", x_sht4x_humidity.value().getDatum().getValue());
     }
 
     /*
@@ -140,12 +146,12 @@ int main(int argc, char** argv) {
     if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
       auto dew_point = getDewPointMeasurement(x_sht4x_temp.value(), x_sht4x_humidity.value());
       if (dew_point.has_value()) {
-        wu.setData("dewpoint", dew_point.value().getDatum().getValue());
+        wu.setVarData("dewpoint", dew_point.value().getDatum().getValue());
       }
     }
 
     if (x_lps22_pressure.has_value()) {
-      wu.setData("baromin", x_lps22_pressure.value().getDatum().getValue());
+      wu.setVarData("baromin", x_lps22_pressure.value().getDatum().getValue());
     }
 
     /*
