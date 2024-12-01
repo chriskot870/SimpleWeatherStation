@@ -20,14 +20,18 @@ namespace qw_units {
 constexpr int temperature_base_conversion_factor = 1000;
 constexpr float temperature_celsius_kelvin_offset = 273.15;
 
+class Celsius;
+class Fahrenheit;
+class Kelvin;
+
 class Temperature {
+
+  friend Celsius;
+  friend Fahrenheit;
+  friend Kelvin;
+
  public:
   Temperature();
-
-  /*
-   * This is basically used to create an object
-   */
-  Temperature(int base_value);
 
    /*
     * I think I want the operator definitions here and all
@@ -71,7 +75,10 @@ class Temperature {
 
   float BaseToKelvin(int base);
 
+ private:
   int64_t base_value_;
+
+  void setBaseValue(int base_value);
 
 };
 

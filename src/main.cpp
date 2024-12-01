@@ -32,6 +32,10 @@ using std::cout;
 using std::endl;
 using std::string;
 using fmt::format;
+using qw_units::Fahrenheit;
+using qw_units::Celsius;
+using qw_units::Kelvin;
+
 
 int main(int argc, char** argv) {
   string temperature;
@@ -45,9 +49,15 @@ int main(int argc, char** argv) {
   string wu_id;
   string wu_pwd;
 
+  float valf, valc;
   //qw_units::Fahrenheit tmpf(45.3);
+  Fahrenheit tempf(45);
+  Celsius tempc(24);
+  valf = tempf.value();
 
+  tempf = tempc;
 
+  valf = tempf.value();
   /*
    * Make sure the wu_id and wu_pwd are empty
    */

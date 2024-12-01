@@ -17,7 +17,7 @@ namespace qw_units {
 class Fahrenheit;
 class Kelvin;
 
-class Celsius : private Temperature {
+class Celsius : public Temperature {
  public:
     Celsius();
 
@@ -34,13 +34,13 @@ class Celsius : private Temperature {
      * I thought I needed these for casting but found a site
      * that used the above.
      */
-    operator Fahrenheit();
+    operator Fahrenheit() const;
 
-    operator Kelvin();
+    operator Kelvin() const;
 
     Celsius& operator=(const Celsius& other);
 
-    float getValue();
+    float value();
 
     int dummy;
 

@@ -13,19 +13,27 @@ Fahrenheit::Fahrenheit(float temp){
   return;
 }
 
-int Fahrenheit::getValue() {
+float Fahrenheit::value() {
 
     return BaseToFahrenheit(base_value_);
 }
 
 Fahrenheit::operator Celsius() const {
 
-  return Celsius(base_value_);
+  Celsius tempc;
+
+  tempc.base_value_ = base_value_;
+
+  return tempc;
 }
 
 Fahrenheit::operator Kelvin() const {
-    
-  return Kelvin(base_value_);
+
+  Kelvin tempk;
+
+  tempk.base_value_ = base_value_;
+  
+  return tempk;
 }
 
 Fahrenheit& Fahrenheit::operator=(const Fahrenheit& other) {

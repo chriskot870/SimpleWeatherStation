@@ -29,7 +29,7 @@ class Kelvin : public Temperature {
 
     Kelvin& operator=(const Kelvin& other);
 
-    float getValue();
+    float value();
 
 };
 

@@ -1,5 +1,6 @@
 add_library(humidity_units STATIC
     relative_humidity.cpp
+    relative_humidity_measurement.cpp
     )
 
 #

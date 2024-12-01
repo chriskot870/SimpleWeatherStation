@@ -35,19 +35,27 @@ Celsius& Celsius::operator=(const Celsius& other) {
   return *this;
 }
 
-float Celsius::getValue() {
+float Celsius::value() {
 
     return BaseToCelsius(base_value_);
 }
 
-Celsius::operator Kelvin() {
+Celsius::operator Kelvin() const {
 
-  return Kelvin(base_value_);
+  Kelvin tempk;
+
+  tempk.setBaseValue(base_value_);
+
+  return tempk;
 }
 
-Celsius::operator Fahrenheit() {
+Celsius::operator Fahrenheit() const {
     
-  return Fahrenheit(base_value_);
+  Fahrenheit tempf;
+
+  tempf.setBaseValue(base_value_);
+
+  return tempf;
 }
 
 }

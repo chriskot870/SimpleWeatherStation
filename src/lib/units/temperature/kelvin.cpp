@@ -13,12 +13,20 @@ Kelvin::Kelvin(float temp){
 
 Kelvin::operator Celsius() const {
 
-  return Celsius(base_value_);
+  Celsius tempc;
+
+  tempc.setBaseValue(base_value_);
+
+  return tempc;
 }
 
 Kelvin::operator Fahrenheit() const {
+
+  Fahrenheit tempf;
+
+  tempf.setBaseValue(base_value_);
     
-  return Fahrenheit(base_value_);
+  return tempf;
 }
 
 Kelvin& Kelvin::operator=(const Kelvin& other) {
@@ -39,7 +47,7 @@ Kelvin& Kelvin::operator=(const Kelvin& other) {
   return *this;
 }
 
-float Kelvin::getValue() {
+float Kelvin::value() {
 
   return BaseToKelvin(base_value_);
 }

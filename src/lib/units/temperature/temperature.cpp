@@ -7,7 +7,11 @@ namespace qw_units {
 
 Temperature::Temperature(){}
 
-Temperature::Temperature(int base_value) : base_value_(base_value) {}
+void Temperature::setBaseValue(int base_value) {
+  base_value_ = base_value;
+
+  return;
+}
 
 bool Temperature::operator==(const Temperature& other) const {
 
@@ -83,7 +87,8 @@ Temperature& Temperature::operator-=(const Temperature& other) {
  */
 int Temperature::CelsiusToBase(float temp) {
 
-  int value = round(temp * temperature_base_conversion_factor);
+  float f = temp * temperature_base_conversion_factor;
+  int value = round(f);
 
   return value;
 }
@@ -97,7 +102,8 @@ float Temperature::BaseToCelsius(int base) {
 
 int Temperature::FahrenheitToBase(float temp) {
 
-  int  value = round((((temp - 32)*5)/9) * temperature_base_conversion_factor);
+  float f = (((temp - 32)*5)/9) * temperature_base_conversion_factor;
+  int  value = round(f);
 
   return value;
 }
@@ -111,14 +117,15 @@ float Temperature::BaseToFahrenheit(int base) {
 
 int Temperature::KelvinToBase(float temp) {
 
-  int value = round((temp - temperature_celsius_kelvin_offset) * temperature_base_conversion_factor);
+  float f = ((temp - temperature_celsius_kelvin_offset) * temperature_base_conversion_factor);
+  int value = round(f);
 
   return value;
 }
 
 float Temperature::BaseToKelvin(int base) {
 
-  float value = (base + temperature_celsius_kelvin_offset)/temperature_base_conversion_factor;
+  float value = ((float)base + temperature_celsius_kelvin_offset)/temperature_base_conversion_factor;
 
   return value;
 }

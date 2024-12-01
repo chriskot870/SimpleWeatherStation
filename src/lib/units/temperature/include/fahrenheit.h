@@ -30,7 +30,7 @@ class Fahrenheit : public Temperature {
 
     Fahrenheit& operator=(const Fahrenheit& other);
 
-    int getValue();
+    float value();
 
 };
 
