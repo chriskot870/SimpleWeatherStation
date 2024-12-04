@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+if [ ! -f $1 ]
+then
+  echo file does not exist $1
+  exit 1
+fi
+
+pkgs=""
+while IFS= read -r line
+do
+  pkgs="$pkgs $line"
+done < $1
+sudo apt -y install $pkgs
