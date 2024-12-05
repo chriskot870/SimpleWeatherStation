@@ -4,7 +4,7 @@ pkgs=`awk '
   BEGIN {OFS=" " }
   {
   if (NF == 4)
-    if ($4 !~ /automatic/) {
+    if ($4 ~ installed && $4 !~ /automatic/) {
       split($1,name, "/");
       print name[1];
     }
