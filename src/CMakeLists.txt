@@ -30,8 +30,6 @@ add_subdirectory(lib)
 #
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     i2cdevices
-    #units
-    #unit_interfaces
     weatherunderground
     temperature_units
     pressure_units
@@ -39,7 +37,6 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     fmt
     curl
     )
-
 
 #
 # define where to install the target

@@ -17,9 +17,7 @@ target_include_directories(i2cdevices PUBLIC
 )
 
 target_link_libraries(i2cdevices PUBLIC
-    #units
-    #unit_interfaces
-    temperature_units
-    pressure_units
-    humidity_units
+  temperature_units
+  pressure_units
+  humidity_units
 )
