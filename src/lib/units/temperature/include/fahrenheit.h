@@ -24,6 +24,8 @@ class Fahrenheit : public Temperature {
 
     Fahrenheit(float temp);
 
+    Fahrenheit(float temp, string fmt_value);
+
     operator Celsius() const;
 
     operator Kelvin() const;
@@ -34,6 +36,6 @@ class Fahrenheit : public Temperature {
 
 };
 
-}
+}  // Namespace qw_units
 
 #endif  // LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_

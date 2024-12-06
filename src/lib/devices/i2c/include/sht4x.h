@@ -36,11 +36,21 @@
  * This device has temperature and relative humidity sensors so add the interfaces
  * and measurements.
  */
+/*
 #include "relative_humidity_interface.h"
 #include "temperature_interface.h"
 
 #include "relative_humidity_measurement.h"
 #include "temperature_measurement.h"
+ */
+#include "relative_humidity.h"
+#include "relative_humidity_measurement.h"
+#include "temperature.h"
+#include "celsius.h"
+#include "fahrenheit.h"
+#include "kelvin.h"
+#include "temperature_measurement.h"
+
 
 /*
  * This is an i2c bus device so add the i2cbus.h
@@ -246,7 +256,7 @@ class Sht4xDeviceData {
   time_point<steady_clock> humidity_measurement_steady_time_;
 };
 
-class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
+class I2cSht4x {
  public:
   I2cSht4x(I2cBus i2cbus_, uint8_t slave_address);
 
@@ -258,10 +268,9 @@ class I2cSht4x : public TemperatureInterface, public RelativeHumidityInterface {
 
   int softReset();
 
-  expected<TemperatureMeasurement, int> getTemperatureMeasurement(
-      TemperatureUnit_t unit);
+  expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  expected<RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
+  expected<qw_units::RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);
 

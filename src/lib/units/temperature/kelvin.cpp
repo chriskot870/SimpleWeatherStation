@@ -11,6 +11,15 @@ Kelvin::Kelvin(float temp){
   return;
 }
 
+Kelvin::Kelvin(float temp, string fmt_value) {
+
+  base_value_ = KelvinToBase(temp);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
 Kelvin::operator Celsius() const {
 
   Celsius tempc;
@@ -52,4 +61,4 @@ float Kelvin::value() {
   return BaseToKelvin(base_value_);
 }
 
-}
+}  // Namespace qw_units

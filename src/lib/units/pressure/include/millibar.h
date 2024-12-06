@@ -15,19 +15,23 @@ namespace qw_units {
  */
 class InchesMercury;
 
-class Millibar : private Pressure {
+class Millibar : public Pressure {
  public:
     Millibar();
 
     Millibar(float temp);
+
+    Millibar(float temp, string fmt_value);
 
     /*
      * Supports implicit casting
      */
     operator InchesMercury() const;
 
-    float getValue();
+    float value();
 
 };
-}
+
+}  // Namespace qw_units
+
 #endif  // LIB_UNITS_PRESSURE_MILLIBAR_H_

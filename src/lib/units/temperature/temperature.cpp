@@ -130,4 +130,33 @@ float Temperature::BaseToKelvin(int base) {
   return value;
 }
 
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Temperature::toString() {
+
+  string data = format(fmt::runtime(fmt_value_), base_value_);
+
+  return data;
 }
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Temperature::toString(string fmt_value) {
+
+  string data = format(fmt::runtime(fmt_value), base_value_);
+
+  return data;
+}
+
+void Temperature::setFormat(string fmt_value) {
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+}  // Namespace qw_units

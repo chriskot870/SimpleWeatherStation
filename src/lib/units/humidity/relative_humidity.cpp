@@ -8,12 +8,25 @@ RelativeHumidity::RelativeHumidity() {}
 RelativeHumidity::RelativeHumidity(float rh) {
 
   base_value_ = round(rh * rh_base_conversion_factor);
+
+  return;
 }
 
-/*
- * We want this just for operator=. I think we might be able to make this private
- */
-RelativeHumidity::RelativeHumidity(int rh) : base_value_(rh) {}
+RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
+
+  base_value_ = round(rh * rh_base_conversion_factor);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+void RelativeHumidity::setBaseValue(int base_value) {
+  
+  base_value_ = base_value;
+
+  return;
+}
 
 bool RelativeHumidity::operator==(const RelativeHumidity& other) const {
 
@@ -96,11 +109,41 @@ RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
   return *this;
 }
 
-float RelativeHumidity::getValue() {
+float RelativeHumidity::value() {
 
   float value = ((float)base_value_ / rh_base_conversion_factor);
 
   return value;
 }
 
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string RelativeHumidity::toString() {
+
+  string data = format(fmt::runtime(fmt_value_), base_value_);
+
+  return data;
 }
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string RelativeHumidity::toString(string fmt_value) {
+
+  string data = format(fmt::runtime(fmt_value), base_value_);
+
+  return data;
+}
+
+void RelativeHumidity::setFormat(string fmt_value) {
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+}  // namespace qw_units
+

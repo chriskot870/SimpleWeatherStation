@@ -11,13 +11,27 @@ InchesMercury::InchesMercury(float temp){
   return;
 }
 
-float InchesMercury::getValue() {
+InchesMercury::InchesMercury(float temp, string fmt_value) {
 
-    return BaseToMillibar(base_value_);
+  base_value_ = InchesMercuryToBase(temp);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+float InchesMercury::value() {
+
+    return BaseToInchesMercury(base_value_);
 }
 
 InchesMercury::operator Millibar() const {
 
-  return Millibar(base_value_);
+  Millibar mb;
+
+  mb.base_value_ = base_value_;
+
+  return mb;
 }
-}
+
+}  // Namespace qw_units

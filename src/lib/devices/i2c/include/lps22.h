@@ -35,10 +35,21 @@
  * This device provides temperature and pressure data so include the interfaces.
  * The device makes temperature and pressure measurements so add those includes.
  */
+/*
 #include "pressure_interface.h"
 #include "pressure_measurement.h"
 #include "temperature_interface.h"
 #include "temperature_measurement.h"
+ */
+#include "celsius.h"
+#include "fahrenheit.h"
+#include "kelvin.h"
+#include "temperature.h"
+#include "temperature_measurement.h"
+#include "pressure.h"
+#include "inches_mercury.h"
+#include "millibar.h"
+#include "pressure_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
@@ -284,7 +295,7 @@ class Lps22DeviceData {
   milliseconds pressure_response_time;
 };
 
-class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
+class Lps22 {
  public:
   Lps22(I2cBus i2cbus_, uint8_t slave_address);
 
@@ -294,11 +305,9 @@ class Lps22 : public TemperatureInterface, public BarometricPressureInterface {
 
   expected<uint8_t, int> whoami();
 
-  expected<TemperatureMeasurement, int> getTemperatureMeasurement(
-      TemperatureUnit_t unit);
+  expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  expected<PressureMeasurement, int> getPressureMeasurement(
-      PressureUnit_t unit);
+  expected<qw_units::PressureMeasurement, int> getPressureMeasurement();
 
   milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 

@@ -425,8 +425,7 @@ int Lps22::getMeasurement() {
   return 0;
 }
 
-expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(
-    TemperatureUnit_t unit) {
+expected<qw_units::TemperatureMeasurement, int> Lps22::getTemperatureMeasurement() {
   uint8_t buffer[2] = {0, 0};
   float temperature;
   int error;
@@ -454,36 +453,25 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement(
   }
 
   /*
-   * Perform the conversion from the data sheet
+   * Perform the conversion from the data sheet gives you degrees in celsius
    */
   temperature = static_cast<float>(device_data_->temperature_measurement_) /
                 kLps22hbTemperatureFactor;
 
   /*
-   * Convert to requested units
+   * create a temprature in celsius
+   * The accuracy is +/- .1 Celsius from the data sheet
    */
-  switch (unit) {
-    case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature = TemperatureDatum::celsiusToFahrenheit(temperature);
-      break;
-    case TEMPERATURE_UNIT_CELSIUS:
-      /* It is already in celsius so just return it*/
-      break;
-    case TEMPERATURE_UNIT_KELVIN:
-      temperature = TemperatureDatum::celsiusToKelvin(temperature);
-      break;
-  }
+  qw_units::Celsius tempc(temperature);
+  qw_units::Celsius acc(.1);
 
-  TemperatureDatum data(temperature, unit);
-
-  TemperatureMeasurement measurement(
-      data, device_data_->temperature_measurement_system_time_);
+  qw_units::TemperatureMeasurement measurement(
+      tempc, acc, device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
 
-expected<PressureMeasurement, int> Lps22::getPressureMeasurement(
-    PressureUnit_t unit) {
+expected<qw_units::PressureMeasurement, int> Lps22::getPressureMeasurement() {
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
   int error;
@@ -501,29 +489,17 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement(
     }
   }
 
+  /*
+   * pressure is measured in hPa which is same as millibar
+   */
   pressure = static_cast<float>(device_data_->pressure_measurement_) /
              kLps22hbPressureHpaFactor;
-  /*
-   * Return the value in the requested units
-   */
-  switch (unit) {
-    case PRESSURE_UNIT_Mb:
-      break;
-    case PRESSURE_UNIT_Pa:
-      pressure = PressureDatum::MbToPa(pressure);
-      break;
-    case PRESSURE_UNIT_PSI:
-      pressure = PressureDatum::MbToPsi(pressure);
-      break;
-    case PRESSURE_UNIT_INCHES_MERCURY:
-      pressure = PressureDatum::MbToInchesMercury(pressure);
-      break;
-  }
+  
+  qw_units::Millibar mb(pressure);
+  qw_units::Millibar acc(.1);
 
-  PressureDatum pdata(pressure, unit);
-
-  PressureMeasurement measurement(
-      pdata, device_data_->pressure_measurement_system_time_);
+  qw_units::PressureMeasurement measurement( mb, acc,
+      device_data_->pressure_measurement_system_time_);
 
   return measurement;
 }

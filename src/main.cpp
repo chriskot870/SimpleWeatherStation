@@ -13,10 +13,12 @@
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
+/*
 #include "relative_humidity_datum.h"
 #include "pressure_datum.h"
 #include "temperature_datum.h"
 #include "dew_point.h"
+ */
 #include "include/weather_underground.h"
 #include "fmt/printf.h"
 #include "fmt/chrono.h"
@@ -35,6 +37,10 @@ using fmt::format;
 using qw_units::Fahrenheit;
 using qw_units::Celsius;
 using qw_units::Kelvin;
+using qw_units::Millibar;
+using qw_units::InchesMercury;
+using std::get;
+using std::holds_alternative;
 
 
 int main(int argc, char** argv) {
@@ -128,40 +134,39 @@ int main(int argc, char** argv) {
      * Gather up all the raw data
      */
     auto x_sht4x_temp =
-        sht4x.getTemperatureMeasurement(TEMPERATURE_UNIT_FAHRENHEIT);
+        sht4x.getTemperatureMeasurement();
 
     auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
 
     auto x_lps22_temp =
-        lps22.getTemperatureMeasurement(TEMPERATURE_UNIT_FAHRENHEIT);
+        lps22.getTemperatureMeasurement();
 
-    auto x_lps22_pressure = lps22.getPressureMeasurement(PRESSURE_UNIT_INCHES_MERCURY);
+    auto x_lps22_pressure = lps22.getPressureMeasurement();
 
     /*
      * Put the raw data into the wu data
      */
     wu.setVarData("action", "updateraw");
     wu.setVarData("dateutc", "now");
+    /*
+     * Weather Underground wants fahrenheit
+     */
     if (x_sht4x_temp.has_value()) {
-      wu.setVarData("tempf", x_sht4x_temp.value().getDatum().getValue());
+      qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
+      wu.setVarData("tempf", tempf.value());
     }
 
     if (x_sht4x_humidity.has_value()) {
-      wu.setVarData("humidity", x_sht4x_humidity.value().getDatum().getValue());
+      qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
+      wu.setVarData("humidity", humidity.value());
     }
 
     /*
-     * The dew point depends on temperature and humidity so make sure they exist
+     * Weather Underground wants inches mercury
      */
-    if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-      auto dew_point = getDewPointMeasurement(x_sht4x_temp.value(), x_sht4x_humidity.value());
-      if (dew_point.has_value()) {
-        wu.setVarData("dewpoint", dew_point.value().getDatum().getValue());
-      }
-    }
-
     if (x_lps22_pressure.has_value()) {
-      wu.setVarData("baromin", x_lps22_pressure.value().getDatum().getValue());
+      qw_units::InchesMercury pressure = x_lps22_pressure.value().inchesMercuryValue();
+      wu.setVarData("baromin", pressure.value());
     }
 
     /*
@@ -169,7 +174,7 @@ int main(int argc, char** argv) {
      */
     string http_request = wu.buildHttpRequest();
     printf("Sending HTTP Request: %s\n", http_request.c_str());
-
+    /*
     auto errval = wu.sendData();
     if (errval.has_value() == false) {
       printf("COMM Error: %d", errval.error());
@@ -178,9 +183,9 @@ int main(int argc, char** argv) {
     string response = wu.getHttpResponse();
 
     printf("Response: %s", response.c_str());
-
+    */
     wu.reset();
 
-    sleep(300);
+    sleep(10);
   }
 }

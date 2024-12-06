@@ -160,8 +160,7 @@ int I2cSht4x::softReset() {
   return 0;
 }
 
-expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(
-    TemperatureUnit_t unit) {
+expected<qw_units::TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
   int error;
   float temperature;
 
@@ -178,6 +177,7 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(
     }
   }
 
+  /*
   switch (unit) {
     case TEMPERATURE_UNIT_FAHRENHEIT:
       temperature =
@@ -201,9 +201,21 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement(
           kSht4xTemperatureKelvinOffset;
       break;
   }
+   */
+  /*
+   * The temprature in Celsisu
+   */
+  temperature =
+          ((kSht4xTemperatureCelsiusMultiplier *
+            static_cast<float>(device_data_->temperature_measurement_)) /
+           kSht4xTemperatureCelsisusDivisor) -
+          kSht4xTemperatureCelsiusOffset;
+  
+  qw_units::Celsius tempc(temperature);
+  qw_units::Celsius acc(.5);
 
-  TemperatureMeasurement measurement(
-      TemperatureDatum(temperature, unit),
+  qw_units::TemperatureMeasurement measurement(
+      tempc, acc,
       device_data_->temperature_measurement_system_time_);
 
   return measurement;
@@ -244,7 +256,7 @@ int I2cSht4x::setMeasurementInterval(milliseconds interval,
   return 0;
 }
 
-expected<RelativeHumidityMeasurement, int>
+expected<qw_units::RelativeHumidityMeasurement, int>
 I2cSht4x::getRelativeHumidityMeasurement() {
   float relative_humidity;
   int error;
@@ -279,11 +291,11 @@ I2cSht4x::getRelativeHumidityMeasurement() {
     relative_humidity = 100.0;
   }
 
-  RelativeHumidityDatum rhdata(relative_humidity,
-                               RELATIVE_HUMIDITY_UNIT_PERCENT);
+  qw_units::RelativeHumidity rhdata(relative_humidity);
+  qw_units::RelativeHumidity acc(.1);
 
-  RelativeHumidityMeasurement measurement(
-      rhdata, device_data_->humidity_measurement_system_time_);
+  qw_units::RelativeHumidityMeasurement measurement(
+      rhdata, acc, device_data_->humidity_measurement_system_time_);
 
   return measurement;
 }

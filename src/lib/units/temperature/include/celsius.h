@@ -10,6 +10,7 @@
 #include "kelvin.h"
 
 namespace qw_units {
+
 /*
  * Need to predeclare these classes
  * I found that out the hard way
@@ -22,6 +23,8 @@ class Celsius : public Temperature {
     Celsius();
 
     Celsius(float temp);
+
+    Celsius(float temp, string fmt_value);
 
     /*
      * These constructors are for casting
@@ -46,6 +49,6 @@ class Celsius : public Temperature {
 
 };
 
-}
+}  // Namespace qw_units
 
 #endif  // LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_

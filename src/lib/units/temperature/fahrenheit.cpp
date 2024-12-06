@@ -13,6 +13,15 @@ Fahrenheit::Fahrenheit(float temp){
   return;
 }
 
+Fahrenheit::Fahrenheit(float temp, string fmt_value) {
+
+  base_value_ = FahrenheitToBase(temp);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
 float Fahrenheit::value() {
 
     return BaseToFahrenheit(base_value_);
@@ -54,4 +63,5 @@ Fahrenheit& Fahrenheit::operator=(const Fahrenheit& other) {
   return *this;
 }
 
-}
+}  // Namespace qw_units
+

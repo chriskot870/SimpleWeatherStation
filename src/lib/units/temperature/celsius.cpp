@@ -12,6 +12,15 @@ Celsius::Celsius(float temp){
   return;
 }
 
+Celsius::Celsius(float temp, string fmt_value) {
+
+  base_value_ = CelsiusToBase(temp);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
 /*
 Celsius::Celsius(const Fahrenheit& obj) : dummy(obj.base_value_) {}
 
@@ -58,4 +67,5 @@ Celsius::operator Fahrenheit() const {
   return tempf;
 }
 
-}
+}  // Namespace qw_units
+

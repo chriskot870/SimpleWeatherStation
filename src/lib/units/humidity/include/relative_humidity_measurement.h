@@ -8,6 +8,7 @@
 #include "relative_humidity.h"
 
 using std::chrono::system_clock;
+using std::chrono::time_point;
 
 namespace qw_units {
 
@@ -15,18 +16,22 @@ class RelativeHumidityMeasurement {
  public:
   RelativeHumidityMeasurement();
 
-  RelativeHumidityMeasurement(RelativeHumidity value, RelativeHumidity accuracy, system_clock time);
+  RelativeHumidityMeasurement(RelativeHumidity value, RelativeHumidity accuracy, time_point<system_clock> time);
 
   RelativeHumidity value();
 
   RelativeHumidity accuracy();
 
-  system_clock time();
+  time_point<system_clock> time();
+
+  RelativeHumidity relativeHumidityValue();
+
+  RelativeHumidity relativeHumidityAccuracy();
 
  private:
   RelativeHumidity value_;
   RelativeHumidity accuracy_;
-  system_clock time_;
+  time_point<system_clock> time_;
 };
 
 }  // Namespace qw_units

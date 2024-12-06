@@ -23,6 +23,8 @@ class Kelvin : public Temperature {
 
     Kelvin(float temp);
 
+    Kelvin(float temp, string fmt_value);
+
     operator Celsius() const;
 
     operator Fahrenheit() const;
@@ -33,6 +35,6 @@ class Kelvin : public Temperature {
 
 };
 
-}
+}  // Namespace qw_units
 
 #endif  // LIB_UNITS_TEMPERATURE_KELVIN_H_

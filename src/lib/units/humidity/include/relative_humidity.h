@@ -7,12 +7,17 @@
 
 #include <math.h>
 #include <compare>
+#include <string>
+#include <fmt/format.h>
 
 using std::strong_ordering;
+using std::string;
+using fmt::format;
 
 namespace qw_units {
 
 constexpr int rh_base_conversion_factor = 100;
+constexpr string relative_humidity_default_format = "{0:.1f}";
 
 class RelativeHumidity {
  public:
@@ -20,7 +25,7 @@ class RelativeHumidity {
 
   RelativeHumidity(float rh);
 
-  RelativeHumidity(int rh);
+  RelativeHumidity(float rh, string fmt_value);
 
   bool operator==(const RelativeHumidity& other) const;
 
@@ -42,13 +47,23 @@ class RelativeHumidity {
 
   RelativeHumidity& operator-=(const RelativeHumidity& other);
 
-  float getValue();
+  float value();
+
+  string toString();
+
+  string toString(string format);
+
+  void setFormat(string fmt_value);
 
  private:
 
    int base_value_;
+
+   string fmt_value_ = relative_humidity_default_format;
+
+   void setBaseValue(int base_value);
 };
 
-}
+}  // Namespace qw_units
 
 #endif  // LIB_UNITS_PRESSURE_INCHES_MERCURY_H_

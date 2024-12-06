@@ -4,20 +4,35 @@ namespace qw_units {
 
 Millibar::Millibar() {}
 
-Millibar::Millibar(float temp){
+Millibar::Millibar(float mb){
 
-  base_value_ = MillibarToBase(temp);
+  base_value_ = MillibarToBase(mb);
 
   return;
 }
 
-float Millibar::getValue() {
+Millibar::Millibar(float mb, string fmt_value) {
+
+  base_value_ = MillibarToBase(mb);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+float Millibar::value() {
 
     return BaseToMillibar(base_value_);
 }
 
 Millibar::operator InchesMercury() const {
+  
+  InchesMercury inhg;
 
-  return InchesMercury(base_value_);
+  inhg.base_value_ = base_value_;
+
+  return inhg;
 }
-}
+
+}  // Namespace qw_units
+

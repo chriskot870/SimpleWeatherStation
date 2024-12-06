@@ -5,9 +5,14 @@
 
 namespace qw_units {
 
-Pressure::Pressure(){}
+Pressure::Pressure() {}
 
-Pressure::Pressure(int base_value) : base_value_(base_value) {}
+void Pressure::setBaseValue(int base_value) {
+  
+  base_value_ = base_value;
+
+  return;
+}
 
 auto Pressure::operator<=>(const Pressure& other) const {
 
@@ -75,9 +80,9 @@ int Pressure::InchesMercuryToBase(float inhg) {
 
 float Pressure::BaseToInchesMercury(int base) {
 
-  float temp = (((float)base / pressure_base_conversion_factor) * inHg_sea_level)/mb_sea_level;
+  float inhg = (((float)base / pressure_base_conversion_factor) * inHg_sea_level)/mb_sea_level;
 
-  return temp;
+  return inhg;
 }
 
 int Pressure::MillibarToBase(float mb) {
@@ -94,4 +99,33 @@ float Pressure::BaseToMillibar(int base) {
   return value;
 }
 
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Pressure::toString() {
+
+  string data = format(fmt::runtime(fmt_value_), base_value_);
+
+  return data;
 }
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Pressure::toString(string fmt_value) {
+
+  string data = format(fmt::runtime(fmt_value), base_value_);
+
+  return data;
+}
+
+void Pressure::setFormat(string fmt_value) {
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+}  // Namespace qw_units
