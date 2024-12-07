@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
      */
     string http_request = wu.buildHttpRequest();
     printf("Sending HTTP Request: %s\n", http_request.c_str());
-    /*
+    
     auto errval = wu.sendData();
     if (errval.has_value() == false) {
       printf("COMM Error: %d", errval.error());
@@ -183,9 +183,9 @@ int main(int argc, char** argv) {
     string response = wu.getHttpResponse();
 
     printf("Response: %s", response.c_str());
-    */
+    
     wu.reset();
 
-    sleep(10);
+    sleep(300);
   }
 }

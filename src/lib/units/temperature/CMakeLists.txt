@@ -1,10 +1,9 @@
 add_library(temperature_units STATIC
-    temperature.cpp
-    celsius.cpp
-    fahrenheit.cpp
-    kelvin.cpp
-    temperature_measurement.cpp
-    )
+  celsius.cpp
+  fahrenheit.cpp
+  kelvin.cpp
+  temperature_measurement.cpp
+)
 
 #
 # Add this directory to the list of directories to look for include files

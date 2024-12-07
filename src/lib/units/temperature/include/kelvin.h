@@ -5,11 +5,22 @@
 #ifndef LIB_UNITS_TEMPERATURE_KELVIN_H_
 #define LIB_UNITS_TEMPERATURE_KELVIN_H_
 
+#include <math.h>
+#include <compare>
+#include <string>
+#include <fmt/format.h>
+#include <variant>
+
 #include "temperature.h"
 #include "celsius.h"
 #include "fahrenheit.h"
 
+using std::string;
+using std::strong_ordering;
+using fmt::format;
+
 namespace qw_units {
+
 /*
  * Need to predeclare these classes
  * I found this out the hard way
@@ -17,22 +28,63 @@ namespace qw_units {
 class Celsius;
 class Fahrenheit;
 
-class Kelvin : public Temperature {
+class Kelvin {
+  friend Celsius;
+  friend Fahrenheit;
+
  public:
-    Kelvin();
+  Kelvin();
 
-    Kelvin(float temp);
+  Kelvin(float temp);
 
-    Kelvin(float temp, string fmt_value);
+  Kelvin(float temp, string fmt_value);
 
-    operator Celsius() const;
+  float value();
 
-    operator Fahrenheit() const;
+  int KelvinToBase(float temp);
 
-    Kelvin& operator=(const Kelvin& other);
+  float BaseToKelvin(int base);
 
-    float value();
+  string toString();
 
+  string toString(string format);
+
+  void setFormat(string fmt_value);
+
+  bool operator==(const Kelvin& other) const;
+
+  bool operator!=(const Kelvin& other) const;
+
+  bool operator<(const Kelvin& other) const;
+
+  bool operator>(const Kelvin& other) const;
+
+  bool operator<=(const Kelvin& other) const;
+
+  bool operator>=(const Kelvin& other) const;
+
+  strong_ordering operator<=>(const Kelvin& other) const;
+
+  Kelvin& operator=(const Kelvin& other);
+
+  Kelvin& operator+=(const Kelvin& other);
+
+  Kelvin& operator-=(const Kelvin& other);
+
+  const Kelvin operator+(const Kelvin &other) const;
+
+  const Kelvin operator-(const Kelvin &other) const;
+
+  operator Celsius() const;
+
+  operator Fahrenheit() const;
+
+ private:
+  int64_t base_value_;
+
+  string fmt_value_ = temperature_default_format;
+
+  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw_units

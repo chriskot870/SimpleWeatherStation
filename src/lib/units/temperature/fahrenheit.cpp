@@ -1,8 +1,10 @@
 
-
 #include "fahrenheit.h"
 
 namespace qw_units {
+
+class Celsius;
+class Kelvin;
 
 Fahrenheit::Fahrenheit(){};
 
@@ -27,24 +29,120 @@ float Fahrenheit::value() {
     return BaseToFahrenheit(base_value_);
 }
 
-Fahrenheit::operator Celsius() const {
+int Fahrenheit::FahrenheitToBase(float temp) {
 
-  Celsius tempc;
+  float f = (((temp - 32)*5)/9) * temperature_base_conversion_factor;
+  int  value = round(f);
 
-  tempc.base_value_ = base_value_;
-
-  return tempc;
+  return value;
 }
 
-Fahrenheit::operator Kelvin() const {
+float Fahrenheit::BaseToFahrenheit(int base) {
 
-  Kelvin tempk;
+  float value = ((((float)base/temperature_base_conversion_factor)*9)/5) + 32;
 
-  tempk.base_value_ = base_value_;
-  
-  return tempk;
+  return value;
 }
 
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Fahrenheit::toString() {
+
+  string data = format(fmt::runtime(fmt_value_), base_value_);
+
+  return data;
+}
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Fahrenheit::toString(string fmt_value) {
+
+  string data = format(fmt::runtime(fmt_value), base_value_);
+
+  return data;
+}
+
+void Fahrenheit::setFormat(string fmt_value) {
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+void Fahrenheit::setBaseValue(int base_value) {
+  base_value_ = base_value;
+
+  return;
+}
+
+
+/*********************************
+ * Operator functions
+ *********************************/
+/*
+ * Comparison operators
+ */
+bool Fahrenheit::operator==(const Fahrenheit& other) const {
+
+  bool value = (base_value_ == other.base_value_);
+
+  return value;
+}
+
+bool Fahrenheit::operator!=(const Fahrenheit& other) const {
+
+  bool value = (base_value_ != other.base_value_);
+
+  return value;
+}
+
+bool Fahrenheit::operator<(const Fahrenheit& other) const {
+
+  bool value = (base_value_ < other.base_value_);
+
+  return value;
+
+}
+
+bool Fahrenheit::operator>(const Fahrenheit& other) const {
+
+  bool value = (base_value_ > other.base_value_);
+
+  return value;
+}
+
+bool Fahrenheit::operator<=(const Fahrenheit& other) const {
+
+  bool value = (base_value_ <= other.base_value_);
+
+  return value;
+}
+
+bool Fahrenheit::operator>=(const Fahrenheit& other) const {
+
+  bool value = (base_value_ >= other.base_value_);
+
+  return value;
+}
+
+strong_ordering Fahrenheit::operator<=>(const Fahrenheit& other) const {
+
+  /*
+   * The <=> returns a std::strong_ordering type.
+   * Either ::less, ::equal, or ::greater
+   */
+  strong_ordering value = (base_value_ <=> other.base_value_);
+
+  return value;
+}
+
+/*
+ * Assignment operators
+ */
 Fahrenheit& Fahrenheit::operator=(const Fahrenheit& other) {
 
   /*
@@ -61,6 +159,65 @@ Fahrenheit& Fahrenheit::operator=(const Fahrenheit& other) {
   base_value_ = other.base_value_;
 
   return *this;
+}
+
+/*
+ * Arithmetic operators
+ */
+Fahrenheit& Fahrenheit::operator+=(const Fahrenheit& other) {
+
+  base_value_ += other.base_value_;
+
+  return *this;
+}
+
+Fahrenheit& Fahrenheit::operator-=(const Fahrenheit& other) {
+
+  base_value_ -= other.base_value_;
+
+  return *this;
+}
+
+/*
+ * Arithmetic operations
+ */
+const Fahrenheit Fahrenheit::operator+(const Fahrenheit &other) const {
+
+  Fahrenheit result = *this;
+
+  result += other;
+
+  return result;
+}
+
+const Fahrenheit Fahrenheit::operator-(const Fahrenheit &other) const {
+
+  Fahrenheit result = *this;
+
+  result -= other;
+
+  return result;
+}
+
+/*
+ * Conversion operators used for implicit casting
+ */
+Fahrenheit::operator Celsius() const {
+
+  Celsius tempc;
+
+  tempc.base_value_ = base_value_;
+
+  return tempc;
+}
+
+Fahrenheit::operator Kelvin() const {
+
+  Kelvin tempk;
+
+  tempk.base_value_ = base_value_;
+  
+  return tempk;
 }
 
 }  // Namespace qw_units

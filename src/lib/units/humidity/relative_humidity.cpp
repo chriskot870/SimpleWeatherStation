@@ -109,6 +109,27 @@ RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
   return *this;
 }
 
+/*
+ * Arithmetic operations
+ */
+const RelativeHumidity RelativeHumidity::operator+(const RelativeHumidity &other) const {
+
+  RelativeHumidity result = *this;
+
+  result += other;
+
+  return result;
+}
+
+const RelativeHumidity RelativeHumidity::operator-(const RelativeHumidity &other) const {
+
+  RelativeHumidity result = *this;
+
+  result -= other;
+
+  return result;
+}
+
 float RelativeHumidity::value() {
 
   float value = ((float)base_value_ / rh_base_conversion_factor);

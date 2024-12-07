@@ -5,9 +5,19 @@
 #ifndef LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
 #define LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
 
+#include <math.h>
+#include <compare>
+#include <string>
+#include <fmt/format.h>
+#include <variant>
+
 #include "temperature.h"
 #include "celsius.h"
 #include "kelvin.h"
+
+using std::string;
+using std::strong_ordering;
+using fmt::format;
 
 namespace qw_units {
 /*
@@ -18,22 +28,67 @@ namespace qw_units {
 class Celsius;
 class Kelvin;
 
-class Fahrenheit : public Temperature {
+class Fahrenheit {
+  friend Celsius;
+  friend Kelvin;
+
  public:
-    Fahrenheit();
+  Fahrenheit();
 
-    Fahrenheit(float temp);
+  Fahrenheit(float temp);
 
-    Fahrenheit(float temp, string fmt_value);
+  Fahrenheit(float temp, string fmt_value);
 
-    operator Celsius() const;
+  float value();
 
-    operator Kelvin() const;
+  int FahrenheitToBase(float temp);
 
-    Fahrenheit& operator=(const Fahrenheit& other);
+  float BaseToFahrenheit(int base);
 
-    float value();
+  string toString();
 
+  string toString(string format);
+
+  void setFormat(string fmt_value);
+
+  /********************
+   * Operator functions
+   ********************/
+
+  bool operator==(const Fahrenheit& other) const;
+
+  bool operator!=(const Fahrenheit& other) const;
+
+  bool operator<(const Fahrenheit& other) const;
+
+  bool operator>(const Fahrenheit& other) const;
+
+  bool operator<=(const Fahrenheit& other) const;
+
+  bool operator>=(const Fahrenheit& other) const;
+
+  strong_ordering operator<=>(const Fahrenheit& other) const;
+
+  Fahrenheit& operator=(const Fahrenheit& other);
+
+  Fahrenheit& operator+=(const Fahrenheit& other);
+
+  Fahrenheit& operator-=(const Fahrenheit& other);
+
+  const Fahrenheit operator+(const Fahrenheit &other) const;
+
+  const Fahrenheit operator-(const Fahrenheit &other) const;
+
+  operator Celsius() const;
+
+  operator Kelvin() const;
+
+ private:
+  int64_t base_value_;
+
+  string fmt_value_ = temperature_default_format;
+
+  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw_units

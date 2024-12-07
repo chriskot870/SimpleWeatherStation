@@ -15,22 +15,65 @@ namespace qw_units {
  */
 class Millibar;
 
-class InchesMercury : public Pressure {
+class InchesMercury {
+
+  friend Millibar;
+
  public:
-    InchesMercury();
+  InchesMercury();
 
-    InchesMercury(float temp);
+  InchesMercury(float temp);
 
-    InchesMercury(float temp, string fmt_value);
+  InchesMercury(float temp, string fmt_value);
 
-    /*
-     * Supports implicit casting
-     * hence the need for the predeclaration
-     */
-    operator Millibar() const;
+  float value();
 
-    float value();
+  int InchesMercuryToBase(float temp);
 
+  float BaseToInchesMercury(int base);
+
+  string toString();
+
+  string toString(string format);
+
+  void setFormat(string fmt_value);
+
+  bool operator==(const InchesMercury& other) const;
+
+  bool operator!=(const InchesMercury& other) const;
+
+  bool operator<(const InchesMercury& other) const;
+
+  bool operator>(const InchesMercury& other) const;
+
+  bool operator<=(const InchesMercury& other) const;
+
+  bool operator>=(const InchesMercury& other) const;
+
+  strong_ordering operator<=>(const InchesMercury& other) const;
+
+  InchesMercury& operator=(const InchesMercury& other);
+
+  InchesMercury& operator+=(const InchesMercury& other);
+
+  InchesMercury& operator-=(const InchesMercury& other);
+
+  const InchesMercury operator+(const InchesMercury &other) const;
+
+  const InchesMercury operator-(const InchesMercury &other) const;
+
+  /*
+   * Supports implicit casting
+   * hence the need for the predeclaration
+   */
+  operator Millibar() const;
+
+  private:
+   int64_t base_value_;
+
+   string fmt_value_ = pressure_default_format;
+
+   void setBaseValue(int base_value);
 };
 
 }  // Namespace qw_units

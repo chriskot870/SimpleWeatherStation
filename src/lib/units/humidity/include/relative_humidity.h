@@ -47,6 +47,10 @@ class RelativeHumidity {
 
   RelativeHumidity& operator-=(const RelativeHumidity& other);
 
+  const RelativeHumidity operator+(const RelativeHumidity &other) const;
+
+  const RelativeHumidity operator-(const RelativeHumidity &other) const;
+
   float value();
 
   string toString();

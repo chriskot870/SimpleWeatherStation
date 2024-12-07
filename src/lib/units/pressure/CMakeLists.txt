@@ -1,9 +1,8 @@
 add_library(pressure_units STATIC
-    pressure.cpp
-    inches_mercury.cpp
-    millibar.cpp
-    pressure_measurement.cpp
-    )
+  inches_mercury.cpp
+  millibar.cpp
+  pressure_measurement.cpp
+)
 
 #
 # Add this directory to the list of directories to look for include files
