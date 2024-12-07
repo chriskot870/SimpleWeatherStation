@@ -10,15 +10,11 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <systemd/sd-journal.h>
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
-/*
-#include "relative_humidity_datum.h"
-#include "pressure_datum.h"
-#include "temperature_datum.h"
-#include "dew_point.h"
- */
+
 #include "include/weather_underground.h"
 #include "fmt/printf.h"
 #include "fmt/chrono.h"
@@ -159,6 +155,17 @@ int main(int argc, char** argv) {
     if (x_sht4x_humidity.has_value()) {
       qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
       wu.setVarData("humidity", humidity.value());
+    }
+
+    /*
+     * If there are valid temperature and relative humidity then add a dewpoint
+     */
+    if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
+      qw_units::Celsius tempc = x_sht4x_temp.value().celsiusValue();
+      qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
+      Celsius dewptc(tempc.value() - ((100 - humidity.value())/5));
+      Fahrenheit dewptf = dewptc;
+      wu.setVarData("dewptf", dewptf.value());
     }
 
     /*

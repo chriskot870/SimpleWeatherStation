@@ -17,7 +17,8 @@ const map<string, WuFieldProperties> wu_field_regex_list = {
   {"^action$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
   {"^baromin$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")},
   {"^humidity$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")},
-  {"^temp[2-9]?f$|^temp[1-9][0-9]f$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")}  // This supports tempf, temp2-99f
+  {"^temp[2-9]?f$|^temp[1-9][0-9]f$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")},  // This supports tempf, temp2-99f
+  {"^dewptf$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")}
 };
 
 map<string, FieldType>  wu_fields = {
