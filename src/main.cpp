@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
       qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
       //Celsius dewptc(tempc.value() - ((100 - humidity.value())/5));
        
-      Celsius dewptc = dewPoint(tempc, humidity);
+      Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
       Fahrenheit dewptf = dewptc;
       wu.setVarData("dewptf", dewptf.value());
     }
