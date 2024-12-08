@@ -35,12 +35,6 @@
  * This device provides temperature and pressure data so include the interfaces.
  * The device makes temperature and pressure measurements so add those includes.
  */
-/*
-#include "pressure_interface.h"
-#include "pressure_measurement.h"
-#include "temperature_interface.h"
-#include "temperature_measurement.h"
- */
 #include "celsius.h"
 #include "fahrenheit.h"
 #include "kelvin.h"
@@ -71,6 +65,13 @@ using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::Kelvin;
+using qw_units::TemperatureMeasurement;
+using qw_units::Millibar;
+using qw_units::InchesMercury;
+using qw_units::PressureMeasurement;
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
@@ -102,6 +103,11 @@ constexpr int kLps22hbTemperatureFactor = 100;
 constexpr uint8_t kLps22hbMaxRegistersTransferred =
     5;  // The maximum number of registers in one transfer
 
+/*
+ * These are gotten from the data sheet
+ */
+const Celsius kLps22hbTemperatureAccuracy(.1);
+const Millibar kLps22hbPressureAccuracy(.1);
 /*
  * Registers
  */
@@ -305,9 +311,9 @@ class Lps22 {
 
   expected<uint8_t, int> whoami();
 
-  expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
+  expected<TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  expected<qw_units::PressureMeasurement, int> getPressureMeasurement();
+  expected<PressureMeasurement, int> getPressureMeasurement();
 
   milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 

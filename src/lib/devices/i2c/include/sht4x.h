@@ -33,15 +33,8 @@
 #include "include/i2cbus.h"
 
 /*
- * This device has temperature and relative humidity sensors so add the interfaces
+ * This device has temperature and relative humidity sensors so add the units
  * and measurements.
- */
-/*
-#include "relative_humidity_interface.h"
-#include "temperature_interface.h"
-
-#include "relative_humidity_measurement.h"
-#include "temperature_measurement.h"
  */
 #include "relative_humidity.h"
 #include "relative_humidity_measurement.h"
@@ -50,7 +43,6 @@
 #include "fahrenheit.h"
 #include "kelvin.h"
 #include "temperature_measurement.h"
-
 
 /*
  * This is an i2c bus device so add the i2cbus.h
@@ -73,6 +65,12 @@ using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::Kelvin;
+using qw_units::TemperatureMeasurement;
+using qw_units::RelativeHumidity;
+using qw_units::RelativeHumidityMeasurement;
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
@@ -88,6 +86,12 @@ constexpr std::chrono::milliseconds kDefaultMeasurementInterval(
 constexpr std::chrono::milliseconds kSht44xMinimumMeasurementInterval(
     1000); /* The minimum value for measurement_interval_ */
 constexpr std::chrono::milliseconds kSteadyClockZero(0);
+
+/*
+ * These were found in the datasheet
+ */
+const Celsius kSht4xTemperatureAccuracy(.5);
+const RelativeHumidity kSht44xHumidityAccuracy(.1);
 /*
  * Commands
  */
@@ -268,9 +272,9 @@ class I2cSht4x {
 
   int softReset();
 
-  expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
+  expected<TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  expected<qw_units::RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
+  expected<RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);
 

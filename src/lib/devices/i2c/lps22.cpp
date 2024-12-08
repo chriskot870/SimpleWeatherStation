@@ -425,7 +425,7 @@ int Lps22::getMeasurement() {
   return 0;
 }
 
-expected<qw_units::TemperatureMeasurement, int> Lps22::getTemperatureMeasurement() {
+expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement() {
   uint8_t buffer[2] = {0, 0};
   float temperature;
   int error;
@@ -460,18 +460,16 @@ expected<qw_units::TemperatureMeasurement, int> Lps22::getTemperatureMeasurement
 
   /*
    * create a temprature in celsius
-   * The accuracy is +/- .1 Celsius from the data sheet
    */
-  qw_units::Celsius tempc(temperature);
-  qw_units::Celsius acc(.1);
+  Celsius tempc(temperature);
 
-  qw_units::TemperatureMeasurement measurement(
-      tempc, acc, device_data_->temperature_measurement_system_time_);
+  TemperatureMeasurement measurement(
+      tempc, kLps22hbTemperatureAccuracy, device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
 
-expected<qw_units::PressureMeasurement, int> Lps22::getPressureMeasurement() {
+expected<PressureMeasurement, int> Lps22::getPressureMeasurement() {
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
   int error;
@@ -495,10 +493,9 @@ expected<qw_units::PressureMeasurement, int> Lps22::getPressureMeasurement() {
   pressure = static_cast<float>(device_data_->pressure_measurement_) /
              kLps22hbPressureHpaFactor;
   
-  qw_units::Millibar mb(pressure);
-  qw_units::Millibar acc(.1);
+  Millibar mb(pressure);
 
-  qw_units::PressureMeasurement measurement( mb, acc,
+  PressureMeasurement measurement( mb, kLps22hbPressureAccuracy,
       device_data_->pressure_measurement_system_time_);
 
   return measurement;

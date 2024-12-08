@@ -160,7 +160,7 @@ int I2cSht4x::softReset() {
   return 0;
 }
 
-expected<qw_units::TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
+expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
   int error;
   float temperature;
 
@@ -178,32 +178,7 @@ expected<qw_units::TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurem
   }
 
   /*
-  switch (unit) {
-    case TEMPERATURE_UNIT_FAHRENHEIT:
-      temperature =
-          ((kSht4xTemperatureFarenheitMultiplier *
-            static_cast<float>(device_data_->temperature_measurement_)) /
-           kSht4xTemperatureFarenheitDivisor) -
-          kSht4xTemperatureFahrenheitOffset;
-      break;
-    case TEMPERATURE_UNIT_CELSIUS:
-      temperature =
-          ((kSht4xTemperatureCelsiusMultiplier *
-            static_cast<float>(device_data_->temperature_measurement_)) /
-           kSht4xTemperatureCelsisusDivisor) -
-          kSht4xTemperatureCelsiusOffset;
-      break;
-    case TEMPERATURE_UNIT_KELVIN:
-      temperature =
-          ((kSht4xTemperatureKelvinMultiplier *
-            static_cast<float>(device_data_->temperature_measurement_)) /
-           kSht4xTemperatureKelvinDivisor) -
-          kSht4xTemperatureKelvinOffset;
-      break;
-  }
-   */
-  /*
-   * The temprature in Celsisu
+   * The temprature in Celsius
    */
   temperature =
           ((kSht4xTemperatureCelsiusMultiplier *
@@ -211,11 +186,10 @@ expected<qw_units::TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurem
            kSht4xTemperatureCelsisusDivisor) -
           kSht4xTemperatureCelsiusOffset;
   
-  qw_units::Celsius tempc(temperature);
-  qw_units::Celsius acc(.5);
+  Celsius tempc(temperature);
 
-  qw_units::TemperatureMeasurement measurement(
-      tempc, acc,
+  TemperatureMeasurement measurement(
+      tempc, kSht4xTemperatureAccuracy,
       device_data_->temperature_measurement_system_time_);
 
   return measurement;
@@ -256,7 +230,7 @@ int I2cSht4x::setMeasurementInterval(milliseconds interval,
   return 0;
 }
 
-expected<qw_units::RelativeHumidityMeasurement, int>
+expected<RelativeHumidityMeasurement, int>
 I2cSht4x::getRelativeHumidityMeasurement() {
   float relative_humidity;
   int error;
@@ -291,11 +265,10 @@ I2cSht4x::getRelativeHumidityMeasurement() {
     relative_humidity = 100.0;
   }
 
-  qw_units::RelativeHumidity rhdata(relative_humidity);
-  qw_units::RelativeHumidity acc(.1);
+  RelativeHumidity rhdata(relative_humidity);
 
-  qw_units::RelativeHumidityMeasurement measurement(
-      rhdata, acc, device_data_->humidity_measurement_system_time_);
+  RelativeHumidityMeasurement measurement(
+      rhdata, kSht44xHumidityAccuracy, device_data_->humidity_measurement_system_time_);
 
   return measurement;
 }
