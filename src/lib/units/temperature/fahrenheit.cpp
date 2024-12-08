@@ -6,6 +6,9 @@ namespace qw_units {
 class Celsius;
 class Kelvin;
 
+/*
+ * Constructor routines
+ */
 Fahrenheit::Fahrenheit(){};
 
 Fahrenheit::Fahrenheit(float temp){
@@ -24,6 +27,9 @@ Fahrenheit::Fahrenheit(float temp, string fmt_value) {
   return;
 }
 
+/*
+ * Data manipulation routines
+ */
 float Fahrenheit::value() {
 
     return BaseToFahrenheit(base_value_);
@@ -66,6 +72,9 @@ string Fahrenheit::toString(string fmt_value) {
   return data;
 }
 
+/*
+ * Set the format for this specific instance
+ */
 void Fahrenheit::setFormat(string fmt_value) {
 
   fmt_value_ = fmt_value;
@@ -73,12 +82,14 @@ void Fahrenheit::setFormat(string fmt_value) {
   return;
 }
 
+/*
+ * Used by conversion routines for implicit cast
+ */
 void Fahrenheit::setBaseValue(int base_value) {
   base_value_ = base_value;
 
   return;
 }
-
 
 /*********************************
  * Operator functions

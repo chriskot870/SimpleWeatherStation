@@ -22,7 +22,7 @@ using fmt::format;
 namespace qw_units {
 
 /*
- * Need to predeclare these classes
+ * Need to predeclare the friend classes
  * I found that out the hard way
  */
 class Fahrenheit;
@@ -65,22 +65,7 @@ class Celsius {
   const Celsius operator-(const Celsius &other) const;
 
   /*
-   * Here we want all the conversion to and from base to the
-   * measurable un
-   */
-  int CelsiusToBase(float temp);
-
-  float BaseToCelsius(int base);
-  /*
    * These constructors are for casting
-   */
-  // Celsius(const Fahrenheit& obj);
-
-  //Celsius(const Kelvin& obj);
-
-  /*
-   * I thought I needed these for casting but found a site
-   * that used the above.
    */
   operator Fahrenheit() const;
 
@@ -101,10 +86,20 @@ class Celsius {
 
   string fmt_value_ = temperature_default_format;
 
+  /*
+   * Here we want all the conversion to and from base to the
+   */
+  int CelsiusToBase(float temp);
+
+  float BaseToCelsius(int base);
+
+  /*
+   * USed for conversion for implicit casting
+   */
   void setBaseValue(int base_value);
 
 };
 
 }  // Namespace qw_units
 
-#endif  // LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
+#endif  // LIB_UNITS_TEMPERATURE_CELSIUS_H_

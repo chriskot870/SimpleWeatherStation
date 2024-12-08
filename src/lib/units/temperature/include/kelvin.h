@@ -22,7 +22,7 @@ using fmt::format;
 namespace qw_units {
 
 /*
- * Need to predeclare these classes
+ * Need to predeclare the friend classes
  * I found this out the hard way
  */
 class Celsius;
@@ -40,10 +40,6 @@ class Kelvin {
   Kelvin(float temp, string fmt_value);
 
   float value();
-
-  int KelvinToBase(float temp);
-
-  float BaseToKelvin(int base);
 
   string toString();
 
@@ -83,6 +79,10 @@ class Kelvin {
   int64_t base_value_;
 
   string fmt_value_ = temperature_default_format;
+
+  int KelvinToBase(float temp);
+
+  float BaseToKelvin(int base);
 
   void setBaseValue(int base_value);
 };

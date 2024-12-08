@@ -23,31 +23,31 @@ class TemperatureMeasurement {
  public:
   TemperatureMeasurement();
 
-  TemperatureMeasurement(variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> value,
-                        variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> accuracy,
+  TemperatureMeasurement(variant<Celsius, Fahrenheit, Kelvin> value,
+                        variant<Celsius, Fahrenheit, Kelvin> accuracy,
                         time_point<system_clock> time);
 
-  variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> value();
+  variant<Celsius, Fahrenheit, Kelvin> value();
 
-  variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> accuracy();
+  variant<Celsius, Fahrenheit, Kelvin> accuracy();
 
   time_point<system_clock> time();
 
-  qw_units::Celsius celsiusValue();
+  Celsius celsiusValue();
 
-  qw_units::Fahrenheit fahrenheitValue();
+  Fahrenheit fahrenheitValue();
 
-  qw_units::Kelvin kelvinValue();
+  Kelvin kelvinValue();
 
-  qw_units::Celsius celsiusAccuracy();
+  Celsius celsiusAccuracy();
 
-  qw_units::Fahrenheit fahrenheitAccuracy();
+  Fahrenheit fahrenheitAccuracy();
 
-  qw_units::Kelvin kelvinAccuracy();
+  Kelvin kelvinAccuracy();
 
  private:
-  variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> value_;
-  variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> accuracy_;
+  variant<Celsius, Fahrenheit, Kelvin> value_;
+  variant<Celsius, Fahrenheit, Kelvin> accuracy_;
   time_point<system_clock> time_;
 };
 

@@ -21,7 +21,7 @@ using fmt::format;
 
 namespace qw_units {
 /*
- * Need to predeclare these classes
+ * Need to predeclare the friend classes
  * I found that out the hard way
  */
 
@@ -40,10 +40,6 @@ class Fahrenheit {
   Fahrenheit(float temp, string fmt_value);
 
   float value();
-
-  int FahrenheitToBase(float temp);
-
-  float BaseToFahrenheit(int base);
 
   string toString();
 
@@ -88,6 +84,10 @@ class Fahrenheit {
 
   string fmt_value_ = temperature_default_format;
 
+  int FahrenheitToBase(float temp);
+
+  float BaseToFahrenheit(int base);
+  
   void setBaseValue(int base_value);
 };
 

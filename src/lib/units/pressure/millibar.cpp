@@ -2,6 +2,9 @@
 
 namespace qw_units {
 
+/*
+ * Constructor routines
+ */
 Millibar::Millibar() {}
 
 Millibar::Millibar(float mb){
@@ -20,9 +23,61 @@ Millibar::Millibar(float mb, string fmt_value) {
   return;
 }
 
+/*
+ * Data manpulation routines
+ */
 float Millibar::value() {
 
     return BaseToMillibar(base_value_);
+}
+
+int Millibar::MillibarToBase(float mb) {
+
+  int  value = round(mb * pressure_base_conversion_factor);
+
+  return value;
+}
+
+float Millibar::BaseToMillibar(int base) {
+
+  float value = (float)base/pressure_base_conversion_factor;
+
+  return value;
+}
+
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Millibar::toString() {
+
+  string data = format(fmt::runtime(fmt_value_), base_value_);
+
+  return data;
+}
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Millibar::toString(string fmt_value) {
+
+  string data = format(fmt::runtime(fmt_value), base_value_);
+
+  return data;
+}
+
+void Millibar::setFormat(string fmt_value) {
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+void Millibar::setBaseValue(int base_value) {
+  base_value_ = base_value;
+
+  return;
 }
 
 /*********************
@@ -140,55 +195,6 @@ const Millibar Millibar::operator-(const Millibar &other) const {
   result -= other;
 
   return result;
-}
-
-int Millibar::MillibarToBase(float mb) {
-
-  int  value = round(mb * pressure_base_conversion_factor);
-
-  return value;
-}
-
-float Millibar::BaseToMillibar(int base) {
-
-  float value = (float)base/pressure_base_conversion_factor;
-
-  return value;
-}
-
-/*
- * Use the default format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string Millibar::toString() {
-
-  string data = format(fmt::runtime(fmt_value_), base_value_);
-
-  return data;
-}
-
-/*
- * Use the provided format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string Millibar::toString(string fmt_value) {
-
-  string data = format(fmt::runtime(fmt_value), base_value_);
-
-  return data;
-}
-
-void Millibar::setFormat(string fmt_value) {
-
-  fmt_value_ = fmt_value;
-
-  return;
-}
-
-void Millibar::setBaseValue(int base_value) {
-  base_value_ = base_value;
-
-  return;
 }
 
 /*

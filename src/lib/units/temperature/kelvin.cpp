@@ -5,6 +5,9 @@ namespace qw_units {
 class Celsius;
 class Fahrenheit;
 
+/*
+ * Constructor routines
+ */
 Kelvin::Kelvin(){};
 
 Kelvin::Kelvin(float temp){
@@ -59,7 +62,6 @@ string Kelvin::toString() {
 
 /*
  * Use the provided format
- * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Kelvin::toString(string fmt_value) {
 
@@ -68,6 +70,9 @@ string Kelvin::toString(string fmt_value) {
   return data;
 }
 
+/*
+ * Set the format for this instance
+ */
 void Kelvin::setFormat(string fmt_value) {
 
   fmt_value_ = fmt_value;
@@ -75,6 +80,9 @@ void Kelvin::setFormat(string fmt_value) {
   return;
 }
 
+/*
+ * Sets the format for this instance
+ */
 void Kelvin::setBaseValue(int base_value) {
   base_value_ = base_value;
 

@@ -21,8 +21,8 @@ namespace qw_units {
    * to millibar values.
    */
   constexpr int pressure_base_conversion_factor = 1000;
-  constexpr float inHg_sea_level = 29.92;
-  constexpr float mb_sea_level = 1013.25;
+  constexpr float inHg_sea_level = 29.92;  // inches mersury at eea level
+  constexpr float mb_sea_level = 1013.25;  // millibars at sea level
   constexpr string pressure_default_format = "{0:.2f}";
 
 }  // Namespace qw_units

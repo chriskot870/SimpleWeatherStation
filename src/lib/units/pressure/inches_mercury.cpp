@@ -2,6 +2,9 @@
 
 namespace qw_units {
 
+/*
+ * Constructor routines
+ */
 InchesMercury::InchesMercury() {}
 
 InchesMercury::InchesMercury(float temp){
@@ -20,13 +23,16 @@ InchesMercury::InchesMercury(float temp, string fmt_value) {
   return;
 }
 
+/*
+ * Data manipulation routiens
+ */
 float InchesMercury::value() {
 
     return BaseToInchesMercury(base_value_);
 }
 
 /*
- * I am using a base of millicelsius
+ * I am using a base of milli-millibars as a base unit
  */
 int InchesMercury::InchesMercuryToBase(float inhg) {
 
@@ -64,6 +70,9 @@ string InchesMercury::toString(string fmt_value) {
   return data;
 }
 
+/*
+ * Set the format for this instance
+ */
 void InchesMercury::setFormat(string fmt_value) {
 
   fmt_value_ = fmt_value;
@@ -71,6 +80,9 @@ void InchesMercury::setFormat(string fmt_value) {
   return;
 }
 
+/*
+ * Used by conversion routines for implicit casting
+ */
 void InchesMercury::setBaseValue(int base_value) {
   base_value_ = base_value;
 

@@ -3,6 +3,9 @@
 
 namespace qw_units {
 
+/*
+ * Constructor routines
+ */
 RelativeHumidity::RelativeHumidity() {}
 
 RelativeHumidity::RelativeHumidity(float rh) {
@@ -15,6 +18,44 @@ RelativeHumidity::RelativeHumidity(float rh) {
 RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
 
   base_value_ = round(rh * rh_base_conversion_factor);
+
+  fmt_value_ = fmt_value;
+
+  return;
+}
+
+/*
+ * Data manipulation routnes
+ */float RelativeHumidity::value() {
+
+  float value = ((float)base_value_ / rh_base_conversion_factor);
+
+  return value;
+}
+
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string RelativeHumidity::toString() {
+
+  string data = format(fmt::runtime(fmt_value_), base_value_);
+
+  return data;
+}
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string RelativeHumidity::toString(string fmt_value) {
+
+  string data = format(fmt::runtime(fmt_value), base_value_);
+
+  return data;
+}
+
+void RelativeHumidity::setFormat(string fmt_value) {
 
   fmt_value_ = fmt_value;
 
@@ -128,42 +169,6 @@ const RelativeHumidity RelativeHumidity::operator-(const RelativeHumidity &other
   result -= other;
 
   return result;
-}
-
-float RelativeHumidity::value() {
-
-  float value = ((float)base_value_ / rh_base_conversion_factor);
-
-  return value;
-}
-
-/*
- * Use the default format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string RelativeHumidity::toString() {
-
-  string data = format(fmt::runtime(fmt_value_), base_value_);
-
-  return data;
-}
-
-/*
- * Use the provided format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string RelativeHumidity::toString(string fmt_value) {
-
-  string data = format(fmt::runtime(fmt_value), base_value_);
-
-  return data;
-}
-
-void RelativeHumidity::setFormat(string fmt_value) {
-
-  fmt_value_ = fmt_value;
-
-  return;
 }
 
 }  // namespace qw_units

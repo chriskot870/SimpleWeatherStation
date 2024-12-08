@@ -70,4 +70,4 @@ class RelativeHumidity {
 
 }  // Namespace qw_units
 
-#endif  // LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
+#endif  // LIB_UNITS_HUMIDITY_RELATIVE_HUMIDITY_H_

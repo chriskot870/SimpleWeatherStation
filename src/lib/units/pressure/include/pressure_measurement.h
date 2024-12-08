@@ -20,31 +20,31 @@ class PressureMeasurement {
  public:
   PressureMeasurement();
 
-  PressureMeasurement(variant<qw_units::Millibar, qw_units::InchesMercury> value,
-                      variant<qw_units::Millibar, qw_units::InchesMercury> accuracy,
+  PressureMeasurement(variant<Millibar, InchesMercury> value,
+                      variant<Millibar, InchesMercury> accuracy,
                       time_point<system_clock> time);
 
-  variant<qw_units::Millibar, qw_units::InchesMercury> value();
+  variant<Millibar, InchesMercury> value();
 
-  variant<qw_units::Millibar, qw_units::InchesMercury> accuracy();
+  variant<Millibar, InchesMercury> accuracy();
 
   time_point<system_clock> time();
 
-  qw_units::Millibar millibarValue();
+  Millibar millibarValue();
 
-  qw_units::InchesMercury inchesMercuryValue();
+  InchesMercury inchesMercuryValue();
 
-  qw_units::Millibar millibarAccuracy();
+  Millibar millibarAccuracy();
 
-  qw_units::InchesMercury inchesMercuryAccuracy();
+  InchesMercury inchesMercuryAccuracy();
 
 
  private:
-  variant<qw_units::Millibar, qw_units::InchesMercury> value_;
-  variant<qw_units::Millibar, qw_units::InchesMercury> accuracy_;
+  variant<Millibar, InchesMercury> value_;
+  variant<Millibar, InchesMercury> accuracy_;
   time_point<system_clock> time_;
 };
 
 }  // Namespace qw_units
 
-#endif  // LIB_UNITS_TEMPERATURE_MEASUREMENT_H_
+#endif  // LIB_UNITS_PRESSURE_MEASUREMENT_H_

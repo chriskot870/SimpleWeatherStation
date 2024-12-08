@@ -28,10 +28,6 @@ class InchesMercury {
 
   float value();
 
-  int InchesMercuryToBase(float temp);
-
-  float BaseToInchesMercury(int base);
-
   string toString();
 
   string toString(string format);
@@ -72,6 +68,10 @@ class InchesMercury {
    int64_t base_value_;
 
    string fmt_value_ = pressure_default_format;
+
+   int InchesMercuryToBase(float temp);
+
+   float BaseToInchesMercury(int base);
 
    void setBaseValue(int base_value);
 };

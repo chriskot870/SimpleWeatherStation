@@ -10,15 +10,15 @@ namespace qw_units {
 
 PressureMeasurement::PressureMeasurement() {}
 
-PressureMeasurement::PressureMeasurement(variant<qw_units::Millibar, qw_units::InchesMercury> value,
-                        variant<qw_units::Millibar, qw_units::InchesMercury> accuracy,
+PressureMeasurement::PressureMeasurement(variant<Millibar, InchesMercury> value,
+                        variant<Millibar, InchesMercury> accuracy,
                         time_point<system_clock> time) : value_(value), accuracy_(accuracy), time_(time) {}
 
-variant<qw_units::Millibar, qw_units::InchesMercury> PressureMeasurement::value() {
+variant<Millibar, InchesMercury> PressureMeasurement::value() {
   return value_;
 }
 
-variant<qw_units::Millibar, qw_units::InchesMercury> PressureMeasurement::accuracy() {
+variant<Millibar, InchesMercury> PressureMeasurement::accuracy() {
   return accuracy_;
 }
 
@@ -26,9 +26,9 @@ time_point<system_clock> PressureMeasurement::time() {
   return time_;
 }
 
-qw_units::Millibar PressureMeasurement::millibarValue() {
+Millibar PressureMeasurement::millibarValue() {
 
-  qw_units::Millibar mbars;
+  Millibar mbars;
 
   if (holds_alternative<InchesMercury>(value_)) {
     mbars = get<InchesMercury>(value_);
@@ -40,9 +40,9 @@ qw_units::Millibar PressureMeasurement::millibarValue() {
   return mbars;
 }
 
-qw_units::InchesMercury PressureMeasurement::inchesMercuryValue() {
+InchesMercury PressureMeasurement::inchesMercuryValue() {
 
-  qw_units::InchesMercury inches;
+  InchesMercury inches;
 
   if (holds_alternative<InchesMercury>(value_)) {
     inches = get<InchesMercury>(value_);
@@ -54,9 +54,9 @@ qw_units::InchesMercury PressureMeasurement::inchesMercuryValue() {
   return inches;
 }
 
-qw_units::Millibar PressureMeasurement::millibarAccuracy() {
+Millibar PressureMeasurement::millibarAccuracy() {
 
-  qw_units::Millibar mbars;
+  Millibar mbars;
 
   if (holds_alternative<InchesMercury>(accuracy_)) {
     mbars = get<InchesMercury>(accuracy_);
@@ -68,9 +68,9 @@ qw_units::Millibar PressureMeasurement::millibarAccuracy() {
   return mbars;
 }
 
-qw_units::InchesMercury PressureMeasurement::inchesMercuryAccuracy() {
+InchesMercury PressureMeasurement::inchesMercuryAccuracy() {
 
-  qw_units::InchesMercury inches;
+  InchesMercury inches;
 
   if (holds_alternative<InchesMercury>(accuracy_)) {
     inches = get<InchesMercury>(accuracy_);

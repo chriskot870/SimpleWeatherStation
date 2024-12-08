@@ -37,10 +37,6 @@ class Millibar {
 
   float value();
 
-  int MillibarToBase(float temp);
-
-  float BaseToMillibar(int base);
-
   string toString();
 
   string toString(string format);
@@ -81,6 +77,10 @@ class Millibar {
 
   string fmt_value_ = pressure_default_format;
 
+  int MillibarToBase(float temp);
+
+  float BaseToMillibar(int base);
+  
   void setBaseValue(int base_value);
 
 };
