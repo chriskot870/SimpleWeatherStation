@@ -17,6 +17,8 @@
 
 #include "include/i2cbus.h"
 
+namespace qw_devices {
+
 mutex I2cBus::i2cbus_lock;
 
 I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
@@ -220,3 +222,5 @@ int I2cBus::readCommandResult(uint8_t slave_address, uint8_t* buffer,
 
   return 0;
 }
+
+}  // Namespace qw_devices

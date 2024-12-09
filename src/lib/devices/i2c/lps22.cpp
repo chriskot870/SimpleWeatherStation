@@ -7,6 +7,8 @@
  */
 #include "include/lps22.h"
 
+namespace qw_devices {
+
 mutex Lps22::lps22_devices_lock;
 map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> Lps22::lps22_devices;
 
@@ -523,3 +525,5 @@ bool Lps22::measurementExpired(time_point<steady_clock> last_read_time,
 
   return false;
 }
+
+}  // Namespace qw_devices

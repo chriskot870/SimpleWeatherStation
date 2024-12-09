@@ -7,6 +7,8 @@
  */
 #include "include/sht4x.h"
 
+namespace qw_devices {
+
 mutex I2cSht4x::sht4x_devices_lock;
 map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> I2cSht4x::sht4x_devices;
 
@@ -353,4 +355,6 @@ bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time,
   }
 
   return false;
+}
+
 }

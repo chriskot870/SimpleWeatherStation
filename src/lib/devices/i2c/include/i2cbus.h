@@ -18,6 +18,8 @@ using std::string;
 using std::mutex;
 using std::lock_guard;
 
+namespace qw_devices {
+  
 enum I2cBusStatus { OK, NODEV, UNKNOWN_FUNCTIONS, UNDEFINED };
 
 /*
@@ -77,4 +79,7 @@ class I2cBus {
 
   I2cBusStatus status_;
 };
+
+}  // Namespace qw_devices
+
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_I2CBUS_H_

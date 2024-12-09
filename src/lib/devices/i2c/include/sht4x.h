@@ -72,6 +72,8 @@ using qw_units::TemperatureMeasurement;
 using qw_units::RelativeHumidity;
 using qw_units::RelativeHumidityMeasurement;
 
+namespace qw_devices {
+
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
  */
@@ -320,5 +322,7 @@ class I2cSht4x {
   bool measurementExpired(time_point<steady_clock> last_read_time,
                           milliseconds interval);
 };
+
+}  // Namespace qw_devices
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_

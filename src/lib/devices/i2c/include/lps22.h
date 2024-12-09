@@ -73,6 +73,8 @@ using qw_units::Millibar;
 using qw_units::InchesMercury;
 using qw_units::PressureMeasurement;
 
+namespace qw_devices {
+
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
 constexpr std::chrono::milliseconds kLps22MinimumMeasurementInterval(
@@ -372,5 +374,7 @@ class Lps22 {
   bool measurementExpired(time_point<steady_clock> last_read_time,
                           milliseconds interval);
 };
+
+}  // Namespace qw_devices
 
 #endif  // SRC_LIB_DEVICES_I2C_INCLUDE_LPS22_H_
