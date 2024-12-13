@@ -378,14 +378,13 @@ int Lps22::getMeasurement() {
         pressure_error_ = error;
         return error;
       }
-
-      device_data_->pressure_measurement_ = ((pres_buffer[2] & 0x7f) << 16) |
-                                            pres_buffer[1] << 8 |
-                                            pres_buffer[0];
-      if ((pres_buffer[2] & 0x80) == 0x80) {
-        device_data_->pressure_measurement_ *= -1;
-      }
-      pres_updated = true;
+      
+      /*
+       * Convert the two's compliment Pressure value to int32_t.
+       */
+      device_data_->pressure_measurement_ = (((pres_buffer[2] << 16) | (pres_buffer[1] << 8) | (pres_buffer[0]))
+                                            ^ kLps22hbPressure2ComplimentXorMask)
+                                            - kLps22hbPressure2ComplimentXorMask;
       pressure_error_ = 0;
       pressure_valid_ = true;
       device_data_->pressure_measurement_system_time_ = system_clock::now();
@@ -407,11 +406,13 @@ int Lps22::getMeasurement() {
         temperature_error_ = error;
         return error;
       }
-      device_data_->temperature_measurement_ =
-          ((temp_buffer[1] & 0x7F) << 8) | temp_buffer[0];
-      if ((temp_buffer[1] & 0x80) == 0x80) {
-        device_data_->temperature_measurement_ *= -1;
-      }
+
+      /*
+       * Convert the two's compliment Temperature value to int16_t.
+       */
+      device_data_->temperature_measurement_ = (((temp_buffer[1] << 8) | temp_buffer[0])
+                                                ^ kLps22hbTemperature2ComplimentXorMask)
+                                                - kLps22hbTemperature2ComplimentXorMask;
       temp_updated = true;
       temperature_valid_ = true;
       temperature_error_ = 0;

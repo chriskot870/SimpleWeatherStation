@@ -238,6 +238,9 @@ typedef enum {
   LPS22HB_CTRL_FIFO_CTRL_BYPASS_TO_FIFO_MODE
 } Lps22hbFifoCtrl_t;
 
+constexpr int kLps22hbTemperature2ComplimentXorMask = 1 << 15;
+constexpr int kLps22hbPressure2ComplimentXorMask = 1 << 23;
+
 typedef enum { LPS22HB_TEMPERATURE, LPS22HB_PRESSURE } Lps22hbReading_t;
 
 class Lps22DeviceLocation {
