@@ -253,11 +253,11 @@ class Sht4xDeviceData {
   /*
    * The time we read in the temperature
    */
-  int16_t temperature_measurement_ = 0;
+  uint16_t temperature_measurement_ = 0;
   time_point<system_clock> temperature_measurement_system_time_;
   time_point<steady_clock> temperature_measurement_steady_time_;
 
-  int16_t humidity_measurement_ = 0;
+  uint16_t humidity_measurement_ = 0;
   time_point<system_clock> humidity_measurement_system_time_;
   time_point<steady_clock> humidity_measurement_steady_time_;
 };
