@@ -260,12 +260,7 @@ I2cSht4x::getRelativeHumidityMeasurement() {
    * SHT4x document says:
    * cropping of the RH signal to the range of 0 %RH … 100 %RH is advised.
    */
-  if (relative_humidity < 0.0) {
-    relative_humidity = 0.0;
-  }
-  if (relative_humidity > 100.0) {
-    relative_humidity = 100.0;
-  }
+  relative_humidity = min(kSht4xHumidityMax, max(kSht4xHumidityMin,relative_humidity));
 
   RelativeHumidity rhdata(relative_humidity);
 

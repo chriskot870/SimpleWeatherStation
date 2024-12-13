@@ -59,6 +59,8 @@ using std::mutex;
 using std::recursive_mutex;
 using std::shared_ptr;
 using std::string;
+using std::min;
+using std::max;
 using std::unexpected;
 using std::vector;
 using std::chrono::milliseconds;
@@ -89,6 +91,8 @@ constexpr std::chrono::milliseconds kSht44xMinimumMeasurementInterval(
     1000); /* The minimum value for measurement_interval_ */
 constexpr std::chrono::milliseconds kSteadyClockZero(0);
 
+constexpr float kSht4xHumidityMin = 0;
+constexpr float kSht4xHumidityMax = 100;
 /*
  * These were found in the datasheet
  */
