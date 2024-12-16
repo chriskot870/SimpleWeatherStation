@@ -55,7 +55,7 @@ float Kelvin::BaseToKelvin(int base) {
  */
 string Kelvin::toString() {
 
-  string data = format(fmt::runtime(fmt_value_), base_value_);
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
@@ -65,7 +65,7 @@ string Kelvin::toString() {
  */
 string Kelvin::toString(string fmt_value) {
 
-  string data = format(fmt::runtime(fmt_value), base_value_);
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }

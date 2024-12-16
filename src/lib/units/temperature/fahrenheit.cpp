@@ -56,7 +56,7 @@ float Fahrenheit::BaseToFahrenheit(int base) {
  */
 string Fahrenheit::toString() {
 
-  string data = format(fmt::runtime(fmt_value_), base_value_);
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
@@ -67,7 +67,7 @@ string Fahrenheit::toString() {
  */
 string Fahrenheit::toString(string fmt_value) {
 
-  string data = format(fmt::runtime(fmt_value), base_value_);
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }

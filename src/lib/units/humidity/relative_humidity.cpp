@@ -39,7 +39,7 @@ RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
  */
 string RelativeHumidity::toString() {
 
-  string data = format(fmt::runtime(fmt_value_), base_value_);
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
@@ -50,7 +50,7 @@ string RelativeHumidity::toString() {
  */
 string RelativeHumidity::toString(string fmt_value) {
 
-  string data = format(fmt::runtime(fmt_value), base_value_);
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }

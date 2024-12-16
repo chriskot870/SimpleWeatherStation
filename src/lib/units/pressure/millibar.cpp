@@ -51,7 +51,7 @@ float Millibar::BaseToMillibar(int base) {
  */
 string Millibar::toString() {
 
-  string data = format(fmt::runtime(fmt_value_), base_value_);
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
@@ -62,7 +62,7 @@ string Millibar::toString() {
  */
 string Millibar::toString(string fmt_value) {
 
-  string data = format(fmt::runtime(fmt_value), base_value_);
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }
