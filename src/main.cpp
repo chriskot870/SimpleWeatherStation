@@ -11,6 +11,9 @@
 #include <string>
 #include <unistd.h>
 #include <systemd/sd-journal.h>
+#include <fstream>
+#include <jsoncpp/json/json.h>
+#include <filesystem>
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
@@ -120,9 +123,45 @@ int main(int argc, char** argv) {
 
   sd_journal_print(LOG_INFO, "Starting");
 
-  //WeatherUnderground wu("KTXROANO168", "Password");
+  Json::Reader wu_config;
+  Json::Value wu_access;
 
-  WeatherUnderground wu("KTXROANO168", "HW0SG8q3");
+  if (std::filesystem::exists("/etc/ws/wu_access.json") == false) {
+    Json::Value initial_data;
+    initial_data["pwu_name"] = "";
+    initial_data["pwu_password"] = "";
+    std::ofstream wu_init_config("/etc/ws/wu_access.json");
+    if (wu_init_config.is_open() == false) {
+      sd_journal_print(LOG_ERR, "Can't initialize WU config file.");
+      exit(1);
+    }
+    Json::StreamWriterBuilder builder;
+    builder["commentStyle"] = "None";
+    builder["indentation"] = "   "; // or "\t" for tabs
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    writer->write(initial_data, &wu_init_config);
+    wu_init_config.close();
+  }
+
+  std::ifstream wu_config_file("/etc/ws/wu_access.json");
+  if (wu_config_file.is_open() == false) {
+    sd_journal_print(LOG_ERR, "Failed to open the WU config file.");
+    exit(1);
+}
+  
+  if (wu_config.parse(wu_config_file, wu_access) == false) {
+    sd_journal_print(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
+    exit(1);
+  }
+  wu_config_file.close();
+
+  if (wu_access["pwu_name"].asString() == "" || wu_access["pwu_password"].asString() == "") {
+    sd_journal_print(LOG_ERR, "Invalid Weather Underground user name or password");
+    exit(1);
+  }
+  
+  WeatherUnderground wu(wu_access["pwu_name"].asString(),
+                        wu_access["pwu_password"].asString());
 
   while (true) {
     /*

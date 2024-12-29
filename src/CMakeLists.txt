@@ -7,6 +7,8 @@
 set(EXECUTABLE_NAME ${CMAKE_PROJECT_NAME})
 
 find_package(fmt REQUIRED)
+#set(jsoncpp_DIR /usr/lib/x86_64-linux-gnu/cmake/jsoncpp)
+#find_package(jsoncpp REQUIRED)
 #
 # Add the executable to be built and the local files used
 # to build the executable
@@ -38,6 +40,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     fmt
     curl
     systemd
+    jsoncpp
     )
 
 #
