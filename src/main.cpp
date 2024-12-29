@@ -90,16 +90,16 @@ int main(int argc, char** argv) {
 
   error = lps22.init();
   if (error != 0) {
-    printf("Initialization of lps22: %d\n", error);
+    sd_journal_print(LOG_ERR, "Initialization of lps22: %d\n", error);
     exit(1);
   }
 
   x_whoami = lps22.whoami();
   if (x_whoami.has_value() != true) {
-    printf("Couldn't get Who am I value for lps22hb: %d\n", x_whoami.error());
+    sd_journal_print(LOG_ERR, "Couldn't get Who am I value for lps22hb: %d\n", x_whoami.error());
     exit(1);
   }
-  printf("LPS22HB who am I Value: 0x%x\n", x_whoami.value());
+  sd_journal_print(LOG_INFO, "LPS22HB who am I Value: 0x%x\n", x_whoami.value());
 
   /*
    * The sht4x device is connected to I2c bus 1 at the primary address
@@ -108,17 +108,17 @@ int main(int argc, char** argv) {
 
   error = sht4x.softReset();
   if (error != 0) {
-    printf("CHT4X reset failed/n");
+    sd_journal_print(LOG_ERR, "CHT4X reset failed/n");
     exit(1);
   }
   x_serial_number = sht4x.getSerialNumber();
   if (x_serial_number.has_value() == false) {
-    printf("Getting SHT44 Serial Number failed: %d\n", x_serial_number.error());
+    sd_journal_print(LOG_ERR, "Getting SHT44 Serial Number failed: %d\n", x_serial_number.error());
     exit(1);
   }
-  printf("SHT44 Serial Number: %d\n", x_serial_number.value());
+  sd_journal_print(LOG_ERR, "SHT44 Serial Number: %d\n", x_serial_number.value());
 
-  cout << "Starting" << endl;
+  sd_journal_print(LOG_INFO, "Starting");
 
   //WeatherUnderground wu("KTXROANO168", "Password");
 
@@ -132,7 +132,8 @@ int main(int argc, char** argv) {
 
     std::time_t now_t = std::chrono::system_clock::to_time_t(now_time);
 
-    cout << std::ctime(&now_t);
+    sd_journal_print(LOG_INFO, "%s",std::ctime(&now_t));
+
     /*
      * Gather up all the raw data
      */
@@ -187,16 +188,16 @@ int main(int argc, char** argv) {
      * debug to check out the string
      */
     string http_request = wu.buildHttpRequest();
-    printf("Sending HTTP Request: %s\n", http_request.c_str());
+    sd_journal_print(LOG_INFO, "%s", http_request.c_str());
     
     auto errval = wu.sendData();
     if (errval.has_value() == false) {
-      printf("COMM Error: %d", errval.error());
+      sd_journal_print(LOG_ERR, "COMM Error: %d", errval.error());
     }
 
     string response = wu.getHttpResponse();
 
-    printf("Response: %s", response.c_str());
+    sd_journal_print(LOG_INFO, "%s", response.c_str());
     
     wu.reset();
 

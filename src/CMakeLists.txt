@@ -37,6 +37,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     weather_utilities
     fmt
     curl
+    systemd
     )
 
 #
