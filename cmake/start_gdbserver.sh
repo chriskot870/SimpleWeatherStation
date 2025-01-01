@@ -4,8 +4,8 @@
 #
 # Load the gdbserver data
 #
-. cmake/gdbserver.config
-
+#. cmake/gdbserver.config
+. $1
 #
 # Make sure the executable got built
 #

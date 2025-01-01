@@ -4,7 +4,8 @@
 #
 # Load the gdbserver data
 #
-. cmake/gdbserver.config
+#. cmake/gdbserver.config
+. $1
 #
 # Check if the gdb server is running. The gdbserver should be stopped
 # when the debugger is stopped. But if it isn't for some reason we

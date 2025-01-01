@@ -1,19 +1,31 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "StartGDBServer",
-        "type": "shell",
-        "command": "cmake/start_gdbserver.sh",
-        "group": "none",
-      },
-      {
-        "label": "StopGDBServer",
-        "type": "shell",
-        "command": "cmake/stop_gdbserver.sh",
-        "group": "none",
-      }
-    ]
-  }
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "StartGDBServer",
+      "type": "shell",
+      "command": "cmake/start_gdbserver.sh cmake/gdbserver.config",
+      "group": "none",
+    },
+    {
+      "label": "StopGDBServer",
+      "type": "shell",
+      "command": "cmake/stop_gdbserver.sh cmake/gdbserver.config",
+      "group": "none",
+    },
+    {
+      "label": "StartGDBwu_set_access",
+      "type": "shell",
+      "command": "cmake/start_gdbserver.sh cmake/gdbwu_set_access.config",
+      "group": "none",
+    },
+    {
+      "label": "StopGDBwu_set_access",
+      "type": "shell",
+      "command": "cmake/stop_gdbserver.sh cmake/gdbwu_set_access.config",
+      "group": "none",
+    }
+  ]
+}
