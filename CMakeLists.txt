@@ -8,10 +8,10 @@ cmake_minimum_required(VERSION 3.20.0)
 #
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake)
 
-# set the prefix to /usr/local/ws
-# TARGETS will get installed into /usr/local/ws/bin by default
+# set the prefix to /usr/local/qw
+# TARGETS will get installed into /usr/local/qw/bin by default
 # This needs to be done prior to defining the project
-set(CMAKE_INSTALL_PREFIX  "/usr/local/ws")
+set(CMAKE_INSTALL_PREFIX  "/usr/local/qw")
 
 #
 # Set the project name and the compilers to be used
