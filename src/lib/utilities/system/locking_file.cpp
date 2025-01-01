@@ -5,7 +5,7 @@ LockingFile::LockingFile(string lockfile) : lockfile_(lockfile) {}
 
 bool LockingFile::lock() {
 
-  fd_= open(lockfile_.c_str(), O_RDONLY | O_CREAT);
+  fd_= open(lockfile_.c_str(), O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   if (fd_ == -1) {
     return false;
   }
