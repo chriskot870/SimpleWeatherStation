@@ -6,14 +6,10 @@
  * The main program to show the data.
  * Right now it's pretty simple
  */
-#include <unistd.h>
-#include <iostream>
-#include <string>
-#include <unistd.h>
-#include <systemd/sd-journal.h>
-#include <fstream>
-#include <jsoncpp/json/json.h>
-#include <filesystem>
+
+#include "weather_station.h"
+#include "locking_file.h"
+#include "logger.h"
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
@@ -34,6 +30,8 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::ifstream;
+using std::ofstream;
 using fmt::format;
 using qw_devices::I2cBus;
 using qw_devices::I2cSht4x;
@@ -47,7 +45,9 @@ using qw_units::Millibar;
 using qw_units::InchesMercury;
 using std::get;
 using std::holds_alternative;
+using std::filesystem::exists;
 
+extern Logger logger;
 
 int main(int argc, char** argv) {
   string temperature;
@@ -87,22 +87,22 @@ int main(int argc, char** argv) {
     }
   }
 
-  I2cBus i2c_bus = I2cBus(string("/dev/i2c-1"));
+  I2cBus i2c_bus = I2cBus(weather_devices_bus);
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
   error = lps22.init();
   if (error != 0) {
-    sd_journal_print(LOG_ERR, "Initialization of lps22: %d\n", error);
+    logger.log(LOG_ERR, "Initialization of lps22");
     exit(1);
   }
 
   x_whoami = lps22.whoami();
   if (x_whoami.has_value() != true) {
-    sd_journal_print(LOG_ERR, "Couldn't get Who am I value for lps22hb: %d\n", x_whoami.error());
+    logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
     exit(1);
   }
-  sd_journal_print(LOG_INFO, "LPS22HB who am I Value: 0x%x\n", x_whoami.value());
+  logger.log(LOG_INFO, "LPS22HB who am I Value");
 
   /*
    * The sht4x device is connected to I2c bus 1 at the primary address
@@ -111,57 +111,69 @@ int main(int argc, char** argv) {
 
   error = sht4x.softReset();
   if (error != 0) {
-    sd_journal_print(LOG_ERR, "CHT4X reset failed/n");
+    logger.log(LOG_ERR, "CHT4X reset failed");
     exit(1);
   }
   x_serial_number = sht4x.getSerialNumber();
   if (x_serial_number.has_value() == false) {
-    sd_journal_print(LOG_ERR, "Getting SHT44 Serial Number failed: %d\n", x_serial_number.error());
+    logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
     exit(1);
   }
-  sd_journal_print(LOG_ERR, "SHT44 Serial Number: %d\n", x_serial_number.value());
+  logger.log(LOG_ERR, "SHT44 Serial Number");
 
-  sd_journal_print(LOG_INFO, "Starting");
+  logger.log(LOG_INFO, "Starting");
 
   Json::Reader wu_config;
   Json::Value wu_access;
 
-  if (std::filesystem::exists("/etc/ws/wu_access.json") == false) {
+  LockingFile config_guard(lock_file_map.at(weather_station_config));
+
+  if (exists(weather_station_config) == false) {
+    config_guard.lock();
+    ofstream wu_init_config(weather_station_config, std::ios::out | std::ios::trunc);
+    if (wu_init_config.is_open() == false) {
+      logger.log(LOG_ERR, "Can't initialize WU config file.");
+      exit(1);
+    }
     Json::Value initial_data;
     initial_data["pwu_name"] = "";
     initial_data["pwu_password"] = "";
-    std::ofstream wu_init_config("/etc/ws/wu_access.json");
-    if (wu_init_config.is_open() == false) {
-      sd_journal_print(LOG_ERR, "Can't initialize WU config file.");
-      exit(1);
-    }
     Json::StreamWriterBuilder builder;
     builder["commentStyle"] = "None";
     builder["indentation"] = "   "; // or "\t" for tabs
     std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
     writer->write(initial_data, &wu_init_config);
     wu_init_config.close();
+    config_guard.unlock();
   }
 
-  std::ifstream wu_config_file("/etc/ws/wu_access.json");
+  config_guard.lock();
+  ifstream wu_config_file(weather_station_config);
   if (wu_config_file.is_open() == false) {
-    sd_journal_print(LOG_ERR, "Failed to open the WU config file.");
+    logger.log(LOG_ERR, "Failed to open the WU config file.");
     exit(1);
-}
+  }
   
   if (wu_config.parse(wu_config_file, wu_access) == false) {
-    sd_journal_print(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
+    logger.log(LOG_ERR, "Failed to parse config Weather Underground config file.");
     exit(1);
   }
   wu_config_file.close();
+  config_guard.unlock();
 
   if (wu_access["pwu_name"].asString() == "" || wu_access["pwu_password"].asString() == "") {
-    sd_journal_print(LOG_ERR, "Invalid Weather Underground user name or password");
+    logger.log(LOG_ERR, "Invalid Weather Underground user name or password");
     exit(1);
   }
-  
-  WeatherUnderground wu(wu_access["pwu_name"].asString(),
+
+  WeatherUnderground* wu = new WeatherUnderground(wu_access["pwu_name"].asString(),
                         wu_access["pwu_password"].asString());
+  
+  int inotify_fd = inotify_init();
+  int watch_fd = inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
+  pollfd fds[1];
+  fds[0].fd = inotify_fd;
+  fds[0].events = POLLIN;
 
   while (true) {
     /*
@@ -171,7 +183,7 @@ int main(int argc, char** argv) {
 
     std::time_t now_t = std::chrono::system_clock::to_time_t(now_time);
 
-    sd_journal_print(LOG_INFO, "%s",std::ctime(&now_t));
+    logger.log(LOG_INFO, std::ctime(&now_t));
 
     /*
      * Gather up all the raw data
@@ -189,19 +201,19 @@ int main(int argc, char** argv) {
     /*
      * Put the raw data into the wu data
      */
-    wu.setVarData("action", "updateraw");
-    wu.setVarData("dateutc", "now");
+    wu->setVarData("action", "updateraw");
+    wu->setVarData("dateutc", "now");
     /*
      * Weather Underground wants fahrenheit
      */
     if (x_sht4x_temp.has_value()) {
       qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
-      wu.setVarData("tempf", tempf.value());
+      wu->setVarData("tempf", tempf.value());
     }
 
     if (x_sht4x_humidity.has_value()) {
       qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
-      wu.setVarData("humidity", humidity.value());
+      wu->setVarData("humidity", humidity.value());
     }
 
     /*
@@ -212,7 +224,7 @@ int main(int argc, char** argv) {
       qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
       Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
       Fahrenheit dewptf = dewptc;
-      wu.setVarData("dewptf", dewptf.value());
+      wu->setVarData("dewptf", dewptf.value());
     }
 
     /*
@@ -220,26 +232,61 @@ int main(int argc, char** argv) {
      */
     if (x_lps22_pressure.has_value()) {
       qw_units::InchesMercury pressure = x_lps22_pressure.value().inchesMercuryValue();
-      wu.setVarData("baromin", pressure.value());
+      wu->setVarData("baromin", pressure.value());
     }
 
     /*
      * debug to check out the string
      */
-    string http_request = wu.buildHttpRequest();
-    sd_journal_print(LOG_INFO, "%s", http_request.c_str());
+    string http_request = wu->buildHttpRequest();
+    logger.log(LOG_INFO, http_request);
     
-    auto errval = wu.sendData();
+    auto errval = wu->sendData();
     if (errval.has_value() == false) {
-      sd_journal_print(LOG_ERR, "COMM Error: %d", errval.error());
+      logger.log(LOG_ERR, "COMM Error");
     }
 
-    string response = wu.getHttpResponse();
+    string response = wu->getHttpResponse();
 
-    sd_journal_print(LOG_INFO, "%s", response.c_str());
+    logger.log(LOG_INFO, response);
     
-    wu.reset();
+    wu->reset();
 
-    sleep(300);
+    int poll_cnt = poll(fds, 1, ws_loop_wait_ms);
+    /*
+     * If poll_cnt is zero it means the configuration file was
+     * not updated and we can just cycle through and gather
+     * another set of data.
+     */
+    if (poll_cnt != 0) {
+      delete wu;
+      /*
+       * If we got here it means the configuration file was
+       * changed. So, we have to get a new username and
+       * password and then gather more data.
+       */
+      config_guard.lock();
+      ifstream wu_config_file(weather_station_config);
+      if (wu_config_file.is_open() == false) {
+        logger.log(LOG_ERR, "Failed to open the WU config file.");
+        exit(1);
+      }
+
+      if (wu_config.parse(wu_config_file, wu_access) == false) {
+        logger.log(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
+        exit(1);
+      }
+      wu_config_file.close();
+      config_guard.lock();
+
+      if (wu_access["pwu_name"].asString() == "" || wu_access["pwu_password"].asString() == "") {
+        logger.log(LOG_ERR, "Invalid Weather Underground user name or password");
+        exit(1);
+      }
+
+      WeatherUnderground* wu = new WeatherUnderground(wu_access["pwu_name"].asString(),
+                        wu_access["pwu_password"].asString());
+  
+    }
   }
 }

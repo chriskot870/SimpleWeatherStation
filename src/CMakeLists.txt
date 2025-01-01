@@ -20,10 +20,7 @@ add_executable(${EXECUTABLE_NAME}
 target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++23)
 #target_compile_options(${EXECUTABLE_NAME} PUBLIC -lfmt)
 
-#
-# List the sub-directories that need to be built
-#
-add_subdirectory(lib)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #
 # List the libraries that will be linked to this executable.
@@ -37,6 +34,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     pressure_units
     humidity_units
     weather_utilities
+    system_utilities
     fmt
     curl
     systemd
@@ -45,4 +43,10 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 
 #
 # define where to install the target
-install(TARGETS WeatherStation)
+install(FILES config/wu_access.json DESTINATION etc)
+install(TARGETS WeatherStation DESTINATION bin)
+
+#
+# List the sub-directories that need to be built
+#
+add_subdirectory(lib)
