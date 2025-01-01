@@ -58,8 +58,6 @@ int main(int argc, char** argv) {
   std::expected<uint32_t, int> x_serial_number;
   int error;
   int opt;
-  string wu_id;
-  string wu_pwd;
 
   float valf, valc;
   //qw_units::Fahrenheit tmpf(45.3);
@@ -70,22 +68,6 @@ int main(int argc, char** argv) {
   tempf = tempc;
 
   valf = tempf.value();
-  /*
-   * Make sure the wu_id and wu_pwd are empty
-   */
-  wu_id.clear();
-  wu_pwd.clear();
-
-  while ((opt = getopt(argc, argv, "i:p:")) != -1) {
-    switch (opt) {
-      case 'p' :
-        wu_pwd.append(optarg);
-        break;
-      case 'i':
-        wu_id.append(optarg);
-        break;
-    }
-  }
 
   I2cBus i2c_bus = I2cBus(weather_devices_bus);
 
@@ -136,8 +118,8 @@ int main(int argc, char** argv) {
       exit(1);
     }
     Json::Value initial_data;
-    initial_data["pwu_name"] = "";
-    initial_data["pwu_password"] = "";
+    initial_data["WeatherUnderground"]["pwu_name"] = "";
+    initial_data["WeatherUnderground"]["pwu_password"] = "";
     Json::StreamWriterBuilder builder;
     builder["commentStyle"] = "None";
     builder["indentation"] = "   "; // or "\t" for tabs
@@ -161,14 +143,19 @@ int main(int argc, char** argv) {
   wu_config_file.close();
   config_guard.unlock();
 
-  if (wu_access["pwu_name"].asString() == "" || wu_access["pwu_password"].asString() == "") {
+  if (wu_access["WeatherUnderground"]["pwu_name"].asString() == "" ||
+      wu_access["WeatherUnderground"]["pwu_password"].asString() == "") {
     logger.log(LOG_ERR, "Invalid Weather Underground user name or password");
     exit(1);
   }
 
-  WeatherUnderground* wu = new WeatherUnderground(wu_access["pwu_name"].asString(),
-                        wu_access["pwu_password"].asString());
+  WeatherUnderground* wu = new WeatherUnderground(
+    wu_access["WeatherUnderground"]["pwu_name"].asString(),
+    wu_access["WeatherUnderground"]["pwu_password"].asString());
   
+  /*
+   * Setup inotify to get notified when config file changes during poll
+   */
   int inotify_fd = inotify_init();
   int watch_fd = inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
   pollfd fds[1];
@@ -279,13 +266,15 @@ int main(int argc, char** argv) {
       wu_config_file.close();
       config_guard.lock();
 
-      if (wu_access["pwu_name"].asString() == "" || wu_access["pwu_password"].asString() == "") {
+      if (wu_access["WeatherUnderground"]["pwu_name"].asString() == "" |
+         wu_access["WeatherUnderground"]["pwu_password"].asString() == "") {
         logger.log(LOG_ERR, "Invalid Weather Underground user name or password");
         exit(1);
       }
 
-      WeatherUnderground* wu = new WeatherUnderground(wu_access["pwu_name"].asString(),
-                        wu_access["pwu_password"].asString());
+      WeatherUnderground* wu = new WeatherUnderground(
+        wu_access["WeatherUnderground"]["pwu_name"].asString(),
+        wu_access["WeatherUnderground"]["pwu_password"].asString());
   
     }
   }
