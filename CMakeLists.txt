@@ -22,3 +22,5 @@ project(WeatherStation CXX)
 # Add the sub-directories to build
 #
 add_subdirectory(src)
+add_subdirectory(tools)
+

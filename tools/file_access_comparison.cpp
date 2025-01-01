@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <sys/file.h>
 
+using std::string;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
@@ -33,6 +34,8 @@ enum MODE {
     STREAM,
     MODE_MAX
 };
+
+const string weather_station_config = "/usr/local/etc/qw/wu_access.json";
 
 void mmap_lock() {
   struct stat fd_stat;
