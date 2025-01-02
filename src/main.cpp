@@ -8,6 +8,7 @@
  */
 
 #include "weather_station.h"
+#include "weather_station_config.h"
 #include "locking_file.h"
 #include "logger.h"
 
@@ -45,7 +46,6 @@ using qw_units::Millibar;
 using qw_units::InchesMercury;
 using std::get;
 using std::holds_alternative;
-using std::filesystem::exists;
 
 extern Logger logger;
 
@@ -105,54 +105,19 @@ int main(int argc, char** argv) {
 
   logger.log(LOG_INFO, "Starting");
 
-  Json::Reader wu_config;
-  Json::Value wu_access;
-
-  LockingFile config_guard(lock_file_map.at(weather_station_config));
-
-  if (exists(weather_station_config) == false) {
-    config_guard.lock();
-    ofstream wu_init_config(weather_station_config, std::ios::out | std::ios::trunc);
-    if (wu_init_config.is_open() == false) {
-      logger.log(LOG_ERR, "Can't initialize WU config file.");
-      exit(1);
-    }
-    Json::Value initial_data;
-    initial_data["WeatherUnderground"]["pwu_name"] = "";
-    initial_data["WeatherUnderground"]["pwu_password"] = "";
-    Json::StreamWriterBuilder builder;
-    builder["commentStyle"] = "None";
-    builder["indentation"] = "   "; // or "\t" for tabs
-    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-    writer->write(initial_data, &wu_init_config);
-    wu_init_config.close();
-    config_guard.unlock();
+  /*
+   * Check the configuration file and initialize values from it
+   */
+  WeatherStationConfig ws_config(weather_station_config);
+  if (ws_config.exists() == false) {
+    ws_config.initialize();
   }
-
-  config_guard.lock();
-  ifstream wu_config_file(weather_station_config);
-  if (wu_config_file.is_open() == false) {
-    logger.log(LOG_ERR, "Failed to open the WU config file.");
-    exit(1);
-  }
-  
-  if (wu_config.parse(wu_config_file, wu_access) == false) {
-    logger.log(LOG_ERR, "Failed to parse config Weather Underground config file.");
-    exit(1);
-  }
-  wu_config_file.close();
-  config_guard.unlock();
-
-  if (wu_access["WeatherUnderground"]["pwu_name"].asString() == "" ||
-      wu_access["WeatherUnderground"]["pwu_password"].asString() == "") {
-    logger.log(LOG_ERR, "Invalid Weather Underground user name or password");
-    exit(1);
-  }
-
+  Json::Value json_config;
+  ws_config.getRoot(json_config);
   WeatherUnderground* wu = new WeatherUnderground(
-    wu_access["WeatherUnderground"]["pwu_name"].asString(),
-    wu_access["WeatherUnderground"]["pwu_password"].asString());
-  
+    json_config["WeatherUnderground"]["pwu_name"].asString(),
+    json_config["WeatherUnderground"]["pwu_password"].asString());
+
   /*
    * Setup inotify to get notified when config file changes during poll
    */
@@ -252,29 +217,11 @@ int main(int argc, char** argv) {
        * changed. So, we have to get a new username and
        * password and then gather more data.
        */
-      config_guard.lock();
-      ifstream wu_config_file(weather_station_config);
-      if (wu_config_file.is_open() == false) {
-        logger.log(LOG_ERR, "Failed to open the WU config file.");
-        exit(1);
-      }
-
-      if (wu_config.parse(wu_config_file, wu_access) == false) {
-        logger.log(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
-        exit(1);
-      }
-      wu_config_file.close();
-      config_guard.lock();
-
-      if (wu_access["WeatherUnderground"]["pwu_name"].asString() == "" |
-         wu_access["WeatherUnderground"]["pwu_password"].asString() == "") {
-        logger.log(LOG_ERR, "Invalid Weather Underground user name or password");
-        exit(1);
-      }
-
+      Json::Value json_config;
+      ws_config.getRoot(json_config);
       WeatherUnderground* wu = new WeatherUnderground(
-        wu_access["WeatherUnderground"]["pwu_name"].asString(),
-        wu_access["WeatherUnderground"]["pwu_password"].asString());
+        json_config["WeatherUnderground"]["pwu_name"].asString(),
+        json_config["WeatherUnderground"]["pwu_password"].asString());
   
     }
   }

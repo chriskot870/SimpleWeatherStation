@@ -26,13 +26,15 @@
 #include <sys/types.h>
 #include <sys/file.h>
 
+#include "locking_file.h"
+#include "logger.h"
+
+#include "weather_station_config.h"
+
 using std::string;
 using std::map;
 
-const string weather_station_config = "/usr/local/qw/etc/wu_access.json";
 const string weather_devices_bus = "/dev/i2c-1";
 constexpr int ws_loop_wait_ms = ((5 * 60) * 1000);  // 5 minutes in milliseconds
-
-const map<string, string> lock_file_map = { {weather_station_config, "/run/lock/wu_access.json.lock"} };
 
 #endif // SRC_INCLUDE_WEATHER_STATION_H

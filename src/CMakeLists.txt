@@ -22,12 +22,26 @@ target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++23)
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_library(weatherstation STATIC
+  weather_station_config.cpp
+)
+
+# add_compile_options(-std=c++23) to use expected class
+target_compile_options(weatherstation PUBLIC -std=c++23)
+
+target_include_directories(weatherstation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_link_libraries(weatherstation PRIVATE
+  system_utilities
+)
+
 #
 # List the libraries that will be linked to this executable.
 # Note we don't need the full path to the libraries from here.
 # Just the library name.
 #
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+    weatherstation
     i2cdevices
     weatherunderground
     temperature_units
