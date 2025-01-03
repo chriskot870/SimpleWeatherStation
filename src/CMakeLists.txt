@@ -57,7 +57,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 
 #
 # define where to install the target
-install(FILES config/wu_access.json DESTINATION etc)
+#install(FILES config/wu_access.json DESTINATION etc)
 install(TARGETS WeatherStation DESTINATION bin)
 
 #

@@ -35,6 +35,5 @@ using std::string;
 using std::map;
 
 const string weather_devices_bus = "/dev/i2c-1";
-constexpr int ws_loop_wait_ms = ((5 * 60) * 1000);  // 5 minutes in milliseconds
 
 #endif // SRC_INCLUDE_WEATHER_STATION_H

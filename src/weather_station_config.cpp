@@ -30,8 +30,12 @@ bool WeatherStationConfig::exists() {
 bool WeatherStationConfig::initialize() {
 
   Json::Value initial_data;
-  initial_data["WeatherUnderground"]["pwu_name"] = "";
-  initial_data["WeatherUnderground"]["pwu_password"] = "";
+  Json::Reader initial_config_reader;
+
+  if (initial_config_reader.parse(ws_default_config, initial_data) == false) {
+    logger.log(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
+    return false;
+  }
 
   bool val = putRoot(initial_data);
 

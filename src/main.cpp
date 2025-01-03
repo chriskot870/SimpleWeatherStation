@@ -117,6 +117,8 @@ int main(int argc, char** argv) {
   WeatherUnderground* wu = new WeatherUnderground(
     json_config["WeatherUnderground"]["pwu_name"].asString(),
     json_config["WeatherUnderground"]["pwu_password"].asString());
+  int reporting_loop_interval =
+    min(max(ws_report_interval_min, json_config["ReportInterval"].asInt()), ws_report_interval_max);
 
   /*
    * Setup inotify to get notified when config file changes during poll
@@ -204,7 +206,7 @@ int main(int argc, char** argv) {
     
     wu->reset();
 
-    int poll_cnt = poll(fds, 1, ws_loop_wait_ms);
+    int poll_cnt = poll(fds, 1, reporting_loop_interval);
     /*
      * If poll_cnt is zero it means the configuration file was
      * not updated and we can just cycle through and gather
@@ -222,7 +224,8 @@ int main(int argc, char** argv) {
       WeatherUnderground* wu = new WeatherUnderground(
         json_config["WeatherUnderground"]["pwu_name"].asString(),
         json_config["WeatherUnderground"]["pwu_password"].asString());
-  
+      reporting_loop_interval = 
+        min(max(ws_report_interval_min, json_config["ReportInterval"].asInt()), ws_report_interval_max);
     }
   }
 }
