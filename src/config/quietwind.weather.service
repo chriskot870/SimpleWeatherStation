@@ -1,9 +1,9 @@
 [Unit]
-Description=Quiet Wind Weather Station
+Description=QuietWind Weather Station
 After=multi-user.target
 
 [Service]
-ExecStart=/usr/local/ws/bin/WeatherStation
+ExecStart=/usr/local/qw/bin/WeatherStation -j
 Type=simple
 
 [Install]

@@ -59,6 +59,16 @@ int main(int argc, char** argv) {
   int error;
   int opt;
 
+  /*
+   * Determine the logging mode from parameters
+   */
+  while(opt = getopt(argc, argv, "j") != -1) {
+    switch (opt) {
+      case 'j' :
+        logger.setMode(LOGGER_MODE_JOURNAL);
+    }
+  }
+
   float valf, valc;
   //qw_units::Fahrenheit tmpf(45.3);
   Fahrenheit tempf(45);
