@@ -50,7 +50,7 @@ fi
 #
 # Now that the build executable is on the target we can start the gdbserver
 #
-gdbserver_command="gdbserver $target_gdbserver_port $target_command"
+gdbserver_command="gdbserver $target_gdbserver_port $target_command $target_args"
 
 #
 # Check if the gdb server is running
@@ -67,7 +67,7 @@ then
 fi
 
 echo Starting gdb server
-ssh $target_user@$target_ip "nohup $gdbserver_command 0>/dev/null 1>&0 2>&0 &"
+ssh $target_user@$target_ip "nohup $gdbserver_command 0<$target_stdin 1>$target_stdout 2>$target_stderr &"
 
 exit 0
 
