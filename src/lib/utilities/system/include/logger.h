@@ -8,12 +8,15 @@
 #include <string>
 #include <syslog.h>
 #include <systemd/sd-journal.h>
+#include <filesystem>
+#include <iostream>
+#include <fstream>
 
 using std::string;
 
 enum LoggerMode {
   LOGGER_MODE_NOLOGGING,
-  LOGGER_MODE_PRINTF,
+  LOGGER_MODE_FILE,
   LOGGER_MODE_JOURNAL,
 };
 
@@ -25,10 +28,20 @@ class Logger {
 
   void setMode(LoggerMode mode);
 
+  void setMode(LoggerMode mode, std::filesystem::path log_path);
+
   LoggerMode getMode();
 
+  ~Logger();
+
  private:
-  LoggerMode mode_ = LOGGER_MODE_PRINTF;
+  LoggerMode mode_ = LOGGER_MODE_NOLOGGING;
+
+  std::ofstream log_stream_;
+
+  std::streambuf *cout_buffer_ = nullptr;
+
+  std::filesystem::path log_path_ = "";
 
 };
 

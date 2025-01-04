@@ -11,10 +11,8 @@
             "request": "launch",
             "program": "${workspaceRoot}/build/src/WeatherStation",
             "args": [
-                "-i",
-                "TXROANO168",
-                "-p",
-                "HW0SG8q3"
+                "-l",
+                "journal"
             ],
             // Use cppdbg when using gdb
             "type": "cppdbg",

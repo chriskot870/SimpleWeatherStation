@@ -17,6 +17,7 @@
 #include <systemd/sd-journal.h>
 #include <fstream>
 #include <jsoncpp/json/json.h>
+#include <chrono>
 #include <filesystem>
 #include <fcntl.h>
 #include <poll.h>
@@ -35,5 +36,9 @@ using std::string;
 using std::map;
 
 const string weather_devices_bus = "/dev/i2c-1";
+
+const string args_log_journal = "journal";
+const string args_log_file = "file";
+const string args_log_nologging = "none";
 
 #endif // SRC_INCLUDE_WEATHER_STATION_H

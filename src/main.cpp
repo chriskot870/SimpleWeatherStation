@@ -16,7 +16,7 @@
 #include "include/sht4x.h"
 
 #include "include/weather_underground.h"
-#include "fmt/printf.h"
+#include "fmt/format.h"
 #include "fmt/chrono.h"
 
 #include "fahrenheit.h"
@@ -46,10 +46,14 @@ using qw_units::Millibar;
 using qw_units::InchesMercury;
 using std::get;
 using std::holds_alternative;
+using fmt::format;
+using std::chrono::system_clock;
+using std::chrono::utc_clock;
+using std::chrono::time_point;
 
 extern Logger logger;
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
   string temperature;
   string humidity;
   float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
@@ -57,15 +61,44 @@ int main(int argc, char** argv) {
   std::expected<uint8_t, int> x_whoami;
   std::expected<uint32_t, int> x_serial_number;
   int error;
-  int opt;
+  int c;
 
   /*
    * Determine the logging mode from parameters
    */
-  while(opt = getopt(argc, argv, "j") != -1) {
-    switch (opt) {
-      case 'j' :
-        logger.setMode(LOGGER_MODE_JOURNAL);
+  
+  while((c = getopt(argc, argv, "l:")) != -1) {
+    switch (c) {
+      case 'l' :
+        string value = optarg;
+        if (value == args_log_journal) {
+          logger.setMode(LOGGER_MODE_JOURNAL);
+          break;
+        }
+        if (value.substr(0, args_log_file.length()) == args_log_file) {
+          if (value.length() == args_log_file.length()) {
+            logger.setMode(LOGGER_MODE_FILE);
+            break;
+          }
+          if (value.substr(args_log_file.length(), 1) != ":") {
+            logger.setMode(LOGGER_MODE_FILE);
+            break;
+          }
+          std::filesystem::path fpath = value.substr(args_log_file.length()+1,value.length() - args_log_file.length()+1);
+          if (std::filesystem::exists(fpath) == false) {
+            std::filesystem::create_directories(fpath.parent_path());
+            std::ofstream log_stream(fpath.string());
+            if (log_stream.is_open() == true) {
+              log_stream.close();
+            }
+          }
+          logger.setMode(LOGGER_MODE_FILE, fpath);
+          break;
+        }
+        if (value == "none") {
+          logger.setMode(LOGGER_MODE_NOLOGGING);
+          break;
+        }
     }
   }
 
@@ -83,6 +116,9 @@ int main(int argc, char** argv) {
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
+
+  logger.log(LOG_INFO, "Checking Hardware");
+
   error = lps22.init();
   if (error != 0) {
     logger.log(LOG_ERR, "Initialization of lps22");
@@ -94,7 +130,7 @@ int main(int argc, char** argv) {
     logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
     exit(1);
   }
-  logger.log(LOG_INFO, "LPS22HB who am I Value");
+  logger.log(LOG_INFO, format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
 
   /*
    * The sht4x device is connected to I2c bus 1 at the primary address
@@ -111,7 +147,7 @@ int main(int argc, char** argv) {
     logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
     exit(1);
   }
-  logger.log(LOG_ERR, "SHT44 Serial Number");
+  logger.log(LOG_ERR, format("SHT44 Serial Number: {}", x_serial_number.value()));
 
   logger.log(LOG_INFO, "Starting");
 
@@ -143,11 +179,8 @@ int main(int argc, char** argv) {
     /*
      * get the current time
      */
-    auto now_time = std::chrono::system_clock::now();
-
-    std::time_t now_t = std::chrono::system_clock::to_time_t(now_time);
-
-    logger.log(LOG_INFO, std::ctime(&now_t));
+    auto now_time = system_clock::now();
+    logger.log(LOG_INFO, format("{:%F %T}", now_time));
 
     /*
      * Gather up all the raw data
@@ -166,6 +199,7 @@ int main(int argc, char** argv) {
      * Put the raw data into the wu data
      */
     wu->setVarData("action", "updateraw");
+    //time_point<utc_clock> utc_time = utc_clock::now();
     wu->setVarData("dateutc", "now");
     /*
      * Weather Underground wants fahrenheit
