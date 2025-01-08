@@ -29,6 +29,7 @@
 
 #include "locking_file.h"
 #include "logger.h"
+#include "systemd.h"
 
 #include "weather_station_config.h"
 
@@ -37,8 +38,9 @@ using std::map;
 
 const string weather_devices_bus = "/dev/i2c-1";
 
-const string args_log_journal = "journal";
-const string args_log_file = "file";
-const string args_log_nologging = "none";
+const string args_log_mode_journal = "journal";
+const string args_log_mode_file = "file";
+const string args_log_mode_nologging = "none";
+
 
 #endif // SRC_INCLUDE_WEATHER_STATION_H

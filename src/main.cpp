@@ -11,6 +11,7 @@
 #include "weather_station_config.h"
 #include "locking_file.h"
 #include "logger.h"
+#include "systemd.h"
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
@@ -46,12 +47,87 @@ using qw_units::Millibar;
 using qw_units::InchesMercury;
 using std::get;
 using std::holds_alternative;
-using fmt::format;
 using std::chrono::system_clock;
 using std::chrono::utc_clock;
 using std::chrono::time_point;
 
 extern Logger logger;
+
+/*
+ * These are the properties of the quietwind.weather.service in
+ * systemd. We only need access to a couple of properties.
+ */
+const SdBusService systemd_service("org.freedesktop.systemd1");
+/*
+ * I am only interested in quietwind.weather object within systemd service
+ */
+const SdBusObject sdbus_qw_weather_object("/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice", systemd_service);
+//const SdBusObject sdbus_qw_weather_object("/org/freedesktop/systemd1/unit/cron_2eservice", systemd_service);
+/*
+ * interfaces supported by quietwind.weather object
+ */
+const SdBusInterface sdbus_dbus_introspectable_interface("org.freedesktop.DBus.Introspectable", sdbus_qw_weather_object);
+const SdBusInterface sdbus_dbus_peer("org.freedesktop.DBus.Peer", sdbus_qw_weather_object);
+const SdBusInterface sdbus_dbus_properties("org.freedesktop.DBus.Properties", sdbus_qw_weather_object);
+const SdBusInterface sdbus_systemd_service("org.freedesktop.systemd1.Service", sdbus_qw_weather_object);
+const SdBusInterface sdbus_systemd_unit("org.freedesktop.systemd1.Unit", sdbus_qw_weather_object);
+
+/*
+ * Properties of interest for quietwind.weather.service
+ */
+SdBusProperty qw_ws_substate("SubState", "s", "emits-change", sdbus_systemd_unit);
+SdBusProperty qw_ws_mainpid("MainPID", "u", "emits-change", sdbus_systemd_service);
+
+bool running_from_systemd() {
+
+  string sub_state;
+  pid_t main_pid;
+  uint32_t burst, directory_mode;
+  const char* sub_state_chr;
+  const char* type_chr;
+  string type;
+  int r;
+
+  sd_bus_error error = SD_BUS_ERROR_NULL;
+  sd_bus_message *message = NULL;
+
+  r = qw_ws_substate.getProperty(&message, &error);
+  if (r < 0) {
+    exit(1);
+  }
+  /* Parse the response message */
+  r = sd_bus_message_read(message, qw_ws_substate.signature_.c_str() , &sub_state_chr);
+  if (r < 0) {
+      exit(1);
+  }
+  sub_state = sub_state_chr;
+  error = SD_BUS_ERROR_NULL;
+  sd_bus_message_unref(message);
+
+  if (sub_state != "running") {
+    return false;
+  }
+  
+  pid_t mypid = getpid();
+
+  r = qw_ws_mainpid.getProperty(&message, &error);
+  if (r < 0) {
+    exit(1);
+  }
+  /* Parse the response message */
+  r = sd_bus_message_read(message, qw_ws_mainpid.signature_.c_str() , &main_pid);
+  if (r < 0) {
+      exit(1);
+  }
+  error = SD_BUS_ERROR_NULL;
+  sd_bus_message_unref(message);
+
+  if (main_pid != mypid) {
+    return false;
+  }
+
+  return true;
+}
 
 int main(int argc, char* argv[]) {
   string temperature;
@@ -62,55 +138,79 @@ int main(int argc, char* argv[]) {
   std::expected<uint32_t, int> x_serial_number;
   int error;
   int c;
+  bool in_systemd = false;
 
+   /*
+    * If we have started from systemd then we always use
+    * LOGGER_MODE_JOURNAL.
+    */
+  in_systemd = running_from_systemd();
+  if (in_systemd == true) {
+    logger.setMode(LOGGER_MODE_JOURNAL);
+    logger.log(LOG_INFO, "Logging in Journal Mode");
+  }
   /*
    * Determine the logging mode from parameters
    */
-  
   while((c = getopt(argc, argv, "l:")) != -1) {
     switch (c) {
       case 'l' :
-        string value = optarg;
-        if (value == args_log_journal) {
-          logger.setMode(LOGGER_MODE_JOURNAL);
+        /*
+         * If we are running from systemd then the
+         * mode will already have been set to LOGGER_MODE_JOURNAL.
+         * We ignore any command line option.
+         */
+        if (in_systemd == true) {
           break;
         }
-        if (value.substr(0, args_log_file.length()) == args_log_file) {
-          if (value.length() == args_log_file.length()) {
+        string value = optarg;
+        size_t pos;
+        /*
+         * Check if it begins with file and has a colon
+         */
+        if (((pos = value.find(":")) != string::npos) && (value.substr(0, args_log_mode_file.length()) == args_log_mode_file)) {
+          /*
+           * It has a colon so see if it is just "file:"
+           */
+          if (value == (args_log_mode_file + ":")) {
             logger.setMode(LOGGER_MODE_FILE);
+            logger.log(LOG_INFO, "Logging in File Mode to cout");
             break;
-          }
-          if (value.substr(args_log_file.length(), 1) != ":") {
-            logger.setMode(LOGGER_MODE_FILE);
-            break;
-          }
-          std::filesystem::path fpath = value.substr(args_log_file.length()+1,value.length() - args_log_file.length()+1);
-          if (std::filesystem::exists(fpath) == false) {
-            std::filesystem::create_directories(fpath.parent_path());
-            std::ofstream log_stream(fpath.string());
-            if (log_stream.is_open() == true) {
-              log_stream.close();
+          } else {
+            /*
+             * We know it has "file:<stuff>".
+             * So erase the "file:" and we are left with the path
+             */
+            value.erase(0, pos + 1);
+            std::filesystem::path fpath = value;
+            if (std::filesystem::exists(fpath) == false) {
+              std::filesystem::create_directories(fpath.parent_path());
+              std::ofstream log_stream(fpath.string());
+              if (log_stream.is_open() == true) {
+                log_stream.close();
+              }
             }
+            logger.setMode(LOGGER_MODE_FILE, fpath);
+            logger.log(LOG_INFO, format("Logging to file: {}", fpath.c_str()));
+            break;
           }
-          logger.setMode(LOGGER_MODE_FILE, fpath);
-          break;
+        } else {
+          /*
+           * No colon so check if it is exactly "file"
+           */
+          if (value == args_log_mode_file) {
+            logger.setMode(LOGGER_MODE_FILE);
+            logger.log(LOG_INFO, "Logging in File Mode to cout");
+            break;
+          }
         }
         if (value == "none") {
           logger.setMode(LOGGER_MODE_NOLOGGING);
+          logger.log(LOG_INFO, "No Logging");
           break;
         }
     }
   }
-
-  float valf, valc;
-  //qw_units::Fahrenheit tmpf(45.3);
-  Fahrenheit tempf(45);
-  Celsius tempc(24);
-  valf = tempf.value();
-
-  tempf = tempc;
-
-  valf = tempf.value();
 
   I2cBus i2c_bus = I2cBus(weather_devices_bus);
 
