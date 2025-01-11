@@ -1,21 +1,21 @@
- /*
+/*
  * Copyright 2024 Chris Kottaridis
  */
 
 #ifndef LIB_UNITS_PRESSURE_MILLIBAR_H_
 #define LIB_UNITS_PRESSURE_MILLIBAR_H_
 
+#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>
-#include <fmt/format.h>
 
-#include "pressure.h"
 #include "inches_mercury.h"
+#include "pressure.h"
 
-using std::strong_ordering;
-using std::string;
 using fmt::format;
+using std::string;
+using std::strong_ordering;
 
 namespace qw_units {
 /*
@@ -55,7 +55,7 @@ class Millibar {
 
   bool operator>=(const Millibar& other) const;
 
-  strong_ordering operator<=>(const Millibar& other) const;
+  strong_ordering operator<=> (const Millibar& other) const;
 
   Millibar& operator=(const Millibar& other);
 
@@ -63,16 +63,16 @@ class Millibar {
 
   Millibar& operator-=(const Millibar& other);
 
-  const Millibar operator+(const Millibar &other) const;
+  const Millibar operator+(const Millibar& other) const;
 
-  const Millibar operator-(const Millibar &other) const;
+  const Millibar operator-(const Millibar& other) const;
 
   /*
    * Supports implicit casting
    */
   operator InchesMercury() const;
 
-  private:
+ private:
   int64_t base_value_;
 
   string fmt_value_ = pressure_default_format;
@@ -80,9 +80,8 @@ class Millibar {
   int MillibarToBase(float temp);
 
   float BaseToMillibar(int base);
-  
-  void setBaseValue(int base_value);
 
+  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw_units

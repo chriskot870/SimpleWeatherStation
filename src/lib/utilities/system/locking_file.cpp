@@ -5,7 +5,8 @@ LockingFile::LockingFile(string lockfile) : lockfile_(lockfile) {}
 
 bool LockingFile::lock() {
 
-  fd_= open(lockfile_.c_str(), O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  fd_ = open(lockfile_.c_str(), O_RDONLY | O_CREAT,
+             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   if (fd_ == -1) {
     return false;
   }
@@ -22,14 +23,12 @@ void LockingFile::unlock() {
 
   if (fd_ != -1) {
     close(fd_);
-    fd_= -1;
+    fd_ = -1;
   }
-   return;
+  return;
 }
 
 LockingFile::~LockingFile() {
-  
+
   unlock();
-
 }
-

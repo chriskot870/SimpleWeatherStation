@@ -11,7 +11,7 @@ class Fahrenheit;
  */
 Celsius::Celsius() {}
 
-Celsius::Celsius(float temp){
+Celsius::Celsius(float temp) {
 
   base_value_ = CelsiusToBase(temp);
 
@@ -32,7 +32,7 @@ Celsius::Celsius(float temp, string fmt_value) {
  */
 float Celsius::value() {
 
-    return BaseToCelsius(base_value_);
+  return BaseToCelsius(base_value_);
 }
 
 int Celsius::CelsiusToBase(float temp) {
@@ -113,7 +113,6 @@ bool Celsius::operator<(const Celsius& other) const {
   bool value = (base_value_ < other.base_value_);
 
   return value;
-
 }
 
 bool Celsius::operator>(const Celsius& other) const {
@@ -137,7 +136,7 @@ bool Celsius::operator>=(const Celsius& other) const {
   return value;
 }
 
-strong_ordering Celsius::operator<=>(const Celsius& other) const {
+strong_ordering Celsius::operator<=> (const Celsius& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -147,7 +146,6 @@ strong_ordering Celsius::operator<=>(const Celsius& other) const {
 
   return value;
 }
-
 
 /*
  * Assignment operators
@@ -187,7 +185,7 @@ Celsius& Celsius::operator-=(const Celsius& other) {
 /*
  * Arithmetic operations
  */
-const Celsius Celsius::operator+(const Celsius &other) const {
+const Celsius Celsius::operator+(const Celsius& other) const {
 
   Celsius result = *this;
 
@@ -196,7 +194,7 @@ const Celsius Celsius::operator+(const Celsius &other) const {
   return result;
 }
 
-const Celsius Celsius::operator-(const Celsius &other) const {
+const Celsius Celsius::operator-(const Celsius& other) const {
 
   Celsius result = *this;
 
@@ -218,7 +216,7 @@ Celsius::operator Kelvin() const {
 }
 
 Celsius::operator Fahrenheit() const {
-    
+
   Fahrenheit tempf;
 
   tempf.setBaseValue(base_value_);
@@ -227,4 +225,3 @@ Celsius::operator Fahrenheit() const {
 }
 
 }  // Namespace qw_units
-

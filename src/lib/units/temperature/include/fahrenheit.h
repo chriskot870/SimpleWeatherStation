@@ -5,19 +5,19 @@
 #ifndef LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
 #define LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
 
+#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>
-#include <fmt/format.h>
 #include <variant>
 
-#include "temperature.h"
 #include "celsius.h"
 #include "kelvin.h"
+#include "temperature.h"
 
+using fmt::format;
 using std::string;
 using std::strong_ordering;
-using fmt::format;
 
 namespace qw_units {
 /*
@@ -63,7 +63,7 @@ class Fahrenheit {
 
   bool operator>=(const Fahrenheit& other) const;
 
-  strong_ordering operator<=>(const Fahrenheit& other) const;
+  strong_ordering operator<=> (const Fahrenheit& other) const;
 
   Fahrenheit& operator=(const Fahrenheit& other);
 
@@ -71,9 +71,9 @@ class Fahrenheit {
 
   Fahrenheit& operator-=(const Fahrenheit& other);
 
-  const Fahrenheit operator+(const Fahrenheit &other) const;
+  const Fahrenheit operator+(const Fahrenheit& other) const;
 
-  const Fahrenheit operator-(const Fahrenheit &other) const;
+  const Fahrenheit operator-(const Fahrenheit& other) const;
 
   operator Celsius() const;
 
@@ -87,7 +87,7 @@ class Fahrenheit {
   int FahrenheitToBase(float temp);
 
   float BaseToFahrenheit(int base);
-  
+
   void setBaseValue(int base_value);
 };
 

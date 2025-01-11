@@ -36,12 +36,12 @@
  * This device has temperature and relative humidity sensors so add the units
  * and measurements.
  */
-#include "relative_humidity.h"
-#include "relative_humidity_measurement.h"
-#include "temperature.h"
 #include "celsius.h"
 #include "fahrenheit.h"
 #include "kelvin.h"
+#include "relative_humidity.h"
+#include "relative_humidity_measurement.h"
+#include "temperature.h"
 #include "temperature_measurement.h"
 
 /*
@@ -49,30 +49,30 @@
  */
 #include "include/i2cbus.h"
 
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::Kelvin;
+using qw_units::RelativeHumidity;
+using qw_units::RelativeHumidityMeasurement;
+using qw_units::TemperatureMeasurement;
 using std::atomic_bool;
 using std::expected;
 using std::find;
 using std::lock_guard;
 using std::make_shared;
 using std::map;
+using std::max;
+using std::min;
 using std::mutex;
 using std::recursive_mutex;
 using std::shared_ptr;
 using std::string;
-using std::min;
-using std::max;
 using std::unexpected;
 using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
-using qw_units::Celsius;
-using qw_units::Fahrenheit;
-using qw_units::Kelvin;
-using qw_units::TemperatureMeasurement;
-using qw_units::RelativeHumidity;
-using qw_units::RelativeHumidityMeasurement;
 
 namespace qw_devices {
 

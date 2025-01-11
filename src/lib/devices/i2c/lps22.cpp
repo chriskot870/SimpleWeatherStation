@@ -61,7 +61,6 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
    */
   device_data_ = shared_ptr<Lps22DeviceData>(new Lps22DeviceData());
 
-  
   expected<uint8_t, int> x_return = whoami();
   if (x_return.has_value() == false) {
     /*
@@ -317,7 +316,8 @@ int Lps22::getMeasurement() {
   /*
    * Now loop on the status register waiting for data to be available
    */
-  for (temp_available_count = 1; temp_available_count <= kLps22WaitResponseLoopCount;
+  for (temp_available_count = 1;
+       temp_available_count <= kLps22WaitResponseLoopCount;
        temp_available_count++) {
 
     /*
@@ -378,13 +378,14 @@ int Lps22::getMeasurement() {
         pressure_error_ = error;
         return error;
       }
-      
+
       /*
        * Convert the two's compliment Pressure value to int32_t.
        */
-      device_data_->pressure_measurement_ = (((pres_buffer[2] << 16) | (pres_buffer[1] << 8) | (pres_buffer[0]))
-                                            ^ kLps22hbPressure2ComplimentXorMask)
-                                            - kLps22hbPressure2ComplimentXorMask;
+      device_data_->pressure_measurement_ =
+          (((pres_buffer[2] << 16) | (pres_buffer[1] << 8) | (pres_buffer[0])) ^
+           kLps22hbPressure2ComplimentXorMask) -
+          kLps22hbPressure2ComplimentXorMask;
       pressure_error_ = 0;
       pressure_valid_ = true;
       device_data_->pressure_measurement_system_time_ = system_clock::now();
@@ -410,9 +411,10 @@ int Lps22::getMeasurement() {
       /*
        * Convert the two's compliment Temperature value to int16_t.
        */
-      device_data_->temperature_measurement_ = (((temp_buffer[1] << 8) | temp_buffer[0])
-                                                ^ kLps22hbTemperature2ComplimentXorMask)
-                                                - kLps22hbTemperature2ComplimentXorMask;
+      device_data_->temperature_measurement_ =
+          (((temp_buffer[1] << 8) | temp_buffer[0]) ^
+           kLps22hbTemperature2ComplimentXorMask) -
+          kLps22hbTemperature2ComplimentXorMask;
       temp_updated = true;
       temperature_valid_ = true;
       temperature_error_ = 0;
@@ -467,7 +469,8 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement() {
   Celsius tempc(temperature);
 
   TemperatureMeasurement measurement(
-      tempc, kLps22hbTemperatureAccuracy, device_data_->temperature_measurement_system_time_);
+      tempc, kLps22hbTemperatureAccuracy,
+      device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
@@ -495,10 +498,11 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement() {
    */
   pressure = static_cast<float>(device_data_->pressure_measurement_) /
              kLps22hbPressureHpaFactor;
-  
+
   Millibar mb(pressure);
 
-  PressureMeasurement measurement( mb, kLps22hbPressureAccuracy,
+  PressureMeasurement measurement(
+      mb, kLps22hbPressureAccuracy,
       device_data_->pressure_measurement_system_time_);
 
   return measurement;

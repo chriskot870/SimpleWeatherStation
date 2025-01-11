@@ -182,12 +182,11 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
   /*
    * The temprature in Celsius
    */
-  temperature =
-          ((kSht4xTemperatureCelsiusMultiplier *
-            static_cast<float>(device_data_->temperature_measurement_)) /
-           kSht4xTemperatureCelsisusDivisor) -
-          kSht4xTemperatureCelsiusOffset;
-  
+  temperature = ((kSht4xTemperatureCelsiusMultiplier *
+                  static_cast<float>(device_data_->temperature_measurement_)) /
+                 kSht4xTemperatureCelsisusDivisor) -
+                kSht4xTemperatureCelsiusOffset;
+
   Celsius tempc(temperature);
 
   TemperatureMeasurement measurement(
@@ -260,12 +259,14 @@ I2cSht4x::getRelativeHumidityMeasurement() {
    * SHT4x document says:
    * cropping of the RH signal to the range of 0 %RH … 100 %RH is advised.
    */
-  relative_humidity = min(kSht4xHumidityMax, max(kSht4xHumidityMin,relative_humidity));
+  relative_humidity =
+      min(kSht4xHumidityMax, max(kSht4xHumidityMin, relative_humidity));
 
   RelativeHumidity rhdata(relative_humidity);
 
   RelativeHumidityMeasurement measurement(
-      rhdata, kSht44xHumidityAccuracy, device_data_->humidity_measurement_system_time_);
+      rhdata, kSht44xHumidityAccuracy,
+      device_data_->humidity_measurement_system_time_);
 
   return measurement;
 }
@@ -352,4 +353,4 @@ bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time,
   return false;
 }
 
-}
+}  // namespace qw_devices

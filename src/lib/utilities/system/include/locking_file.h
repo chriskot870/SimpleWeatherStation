@@ -5,9 +5,9 @@
 #ifndef LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
 #define LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
 
+#include <fcntl.h>
 #include <sys/file.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string>
 
 using std::string;
@@ -26,7 +26,6 @@ class LockingFile {
  private:
   int fd_ = -1;
   string lockfile_;
-
 };
 
 #endif  // LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_

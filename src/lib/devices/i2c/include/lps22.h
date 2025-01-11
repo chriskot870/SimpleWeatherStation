@@ -37,19 +37,26 @@
  */
 #include "celsius.h"
 #include "fahrenheit.h"
+#include "inches_mercury.h"
 #include "kelvin.h"
+#include "millibar.h"
+#include "pressure.h"
+#include "pressure_measurement.h"
 #include "temperature.h"
 #include "temperature_measurement.h"
-#include "pressure.h"
-#include "inches_mercury.h"
-#include "millibar.h"
-#include "pressure_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
  */
 #include "include/i2cbus.h"
 
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::InchesMercury;
+using qw_units::Kelvin;
+using qw_units::Millibar;
+using qw_units::PressureMeasurement;
+using qw_units::TemperatureMeasurement;
 using std::expected;
 using std::find;
 using std::lock_guard;
@@ -65,13 +72,6 @@ using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
-using qw_units::Celsius;
-using qw_units::Fahrenheit;
-using qw_units::Kelvin;
-using qw_units::TemperatureMeasurement;
-using qw_units::Millibar;
-using qw_units::InchesMercury;
-using qw_units::PressureMeasurement;
 
 namespace qw_devices {
 

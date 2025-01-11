@@ -14,13 +14,14 @@ Celsius dewPoint(Celsius tempc, RelativeHumidity rh) {
    * https://en.wikipedia.org/wiki/Dew_point#Measurement
    */
 
-  float val = log(rh.value()/100) + ((dew_point_b * tempc.value())/(dew_point_c + tempc.value()));
+  float val = log(rh.value() / 100) +
+              ((dew_point_b * tempc.value()) / (dew_point_c + tempc.value()));
 
-  float td = (dew_point_c * val)/(dew_point_b - val);
+  float td = (dew_point_c * val) / (dew_point_b - val);
 
   Celsius dewptc(td);
 
   return dewptc;
 }
 
-}  // Namespace qw_utilties
+}  // namespace qw_utilities

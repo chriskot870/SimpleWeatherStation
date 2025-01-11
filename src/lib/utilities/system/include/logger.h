@@ -5,12 +5,12 @@
 #ifndef LIB_UTILITIES_SYSTEM_LOGGER_H_
 #define LIB_UTILITIES_SYSTEM_LOGGER_H_
 
-#include <string>
 #include <syslog.h>
 #include <systemd/sd-journal.h>
 #include <filesystem>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 
 using std::string;
 
@@ -39,10 +39,9 @@ class Logger {
 
   std::ofstream log_stream_;
 
-  std::streambuf *cout_buffer_ = nullptr;
+  std::streambuf* cout_buffer_ = nullptr;
 
   std::filesystem::path log_path_ = "";
-
 };
 
 #endif  // LIB_UTILITIES_SYSTEM_LOGGER_H_

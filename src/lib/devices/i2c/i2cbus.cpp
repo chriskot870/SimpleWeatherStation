@@ -63,7 +63,8 @@ int I2cBus::transferDataToRegisters(uint8_t slave_address, uint8_t reg,
    * This writes data to the device all within one stop bit.
    */
 
-  lock_guard<mutex> guard(i2cbus_lock);  // Get the lock before accessing the i2cbus
+  lock_guard<mutex> guard(
+      i2cbus_lock);  // Get the lock before accessing the i2cbus
 
   i2c_bus = open(bus_device_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
@@ -119,7 +120,8 @@ int I2cBus::transferDataFromRegisters(uint8_t slave_address, uint8_t reg,
   struct i2c_msg fetch_serial_com[2];
   struct i2c_rdwr_ioctl_data xfer;
 
-  lock_guard<mutex> guard(i2cbus_lock);  // Get the lock before accessing the i2cbus
+  lock_guard<mutex> guard(
+      i2cbus_lock);  // Get the lock before accessing the i2cbus
 
   i2c_bus = open(bus_device_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
@@ -163,7 +165,8 @@ int I2cBus::writeCommand(uint8_t slave_address, uint8_t* command,
   struct i2c_msg fetch_serial_com;
   struct i2c_rdwr_ioctl_data xfer;
 
-  lock_guard<mutex> guard(i2cbus_lock);  // Get the lock before accessing the i2cbus
+  lock_guard<mutex> guard(
+      i2cbus_lock);  // Get the lock before accessing the i2cbus
 
   i2c_bus = open(bus_device_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {
@@ -196,7 +199,8 @@ int I2cBus::readCommandResult(uint8_t slave_address, uint8_t* buffer,
   struct i2c_msg fetch_serial_com;
   struct i2c_rdwr_ioctl_data xfer;
 
-  lock_guard<mutex> guard(i2cbus_lock);  // Get the lock before accessing the i2cbus
+  lock_guard<mutex> guard(
+      i2cbus_lock);  // Get the lock before accessing the i2cbus
 
   i2c_bus = open(bus_device_name_.c_str(), O_RDWR);
   if (i2c_bus < 0) {

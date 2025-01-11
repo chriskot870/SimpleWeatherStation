@@ -6,13 +6,13 @@
 
 #include <chrono>
 #include <variant>
-#include "pressure.h"
 #include "inches_mercury.h"
 #include "millibar.h"
+#include "pressure.h"
 
+using std::variant;
 using std::chrono::system_clock;
 using std::chrono::time_point;
-using std::variant;
 
 namespace qw_units {
 
@@ -37,7 +37,6 @@ class PressureMeasurement {
   Millibar millibarAccuracy();
 
   InchesMercury inchesMercuryAccuracy();
-
 
  private:
   variant<Millibar, InchesMercury> value_;

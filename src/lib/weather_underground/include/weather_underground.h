@@ -9,47 +9,48 @@
 #ifndef SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 #define SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 
-#include <string>
-#include <algorithm>
-#include <fmt/format.h>
+#include <curl/curl.h>
 #include <fmt/chrono.h>
-#include <expected>
-#include <chrono>
+#include <fmt/format.h>
+#include <algorithm>
 #include <array>
-#include <vector>
+#include <chrono>
+#include <cstring>
+#include <expected>
 #include <list>
 #include <map>
-#include <curl/curl.h>
-#include <cstring>
 #include <regex>
+#include <string>
 #include <variant>
+#include <vector>
 
-using std::string;
+using fmt::format;
 using std::expected;
-using std::unexpected;
-using std::vector;
-using std::map;
-using std::chrono::system_clock;
-using std::regex;
-using std::variant;
-using std::regex_match;
 using std::find;
 using std::get;
-using fmt::format;
+using std::map;
+using std::regex;
+using std::regex_match;
+using std::string;
+using std::unexpected;
+using std::variant;
+using std::vector;
+using std::chrono::system_clock;
 
-const string wu_url = "https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php";
+const string wu_url =
+    "https://weatherstation.wunderground.com/weatherstation/"
+    "updateweatherstation.php";
 constexpr string url_separater = "&";
 
 /*
  * These are the fields that weather underground recognizes
  * See https://support.weather.com/s/article/PWS-Upload-Protocol?language=en_US
  */
-enum FieldType { // When we switch to WuFieldType below this will not be needed
-    NUMBER,
-    TEXT,
-    DATE
+enum FieldType {  // When we switch to WuFieldType below this will not be needed
+  NUMBER,
+  TEXT,
+  DATE
 };
-
 
 enum WuFieldType {
   WU_FIELD_TYPE_NUMBER,
@@ -70,7 +71,8 @@ class WuFieldProperties {
    * Define the different Consructors
    */
   WuFieldProperties() {}
-  WuFieldProperties(WuFieldType type, string default_format) : type_(type), default_format_(default_format) {}
+  WuFieldProperties(WuFieldType type, string default_format)
+      : type_(type), default_format_(default_format) {}
 };
 
 struct WuFieldData {
@@ -81,7 +83,8 @@ struct WuFieldData {
    * It is important to keep these in sync. I hope to figure out a better way
    * to do that.
    */
-  variant<float, string, system_clock::time_point> data;  // The original value passed
+  variant<float, string, system_clock::time_point>
+      data;         // The original value passed
   string url_data;  // The URL escaped string
 };
 
@@ -96,12 +99,13 @@ class WuRegexTypeAssignment {
 
 class WeatherUnderground {
  public:
-
   WeatherUnderground(string id, string password);
 
-  static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp);
+  static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
+                              void* userp);
 
-  expected<bool, int> setVarData(string field, variant<float, string, system_clock::time_point> value);
+  expected<bool, int> setVarData(
+      string field, variant<float, string, system_clock::time_point> value);
 
   expected<bool, int> setData(string field, string value);
 
@@ -124,20 +128,19 @@ class WeatherUnderground {
   void clearHttpRequest();
 
  private:
-
   string id_;
   string password_;
-  string* response_  = new string();
+  string* response_ = new string();
   string http_get_request_;
 
   map<string, WuFieldData> wu_data_;
   map<string, string> wu_text_data_ = {};
   map<string, float> wu_number_data_ = {};
 
-  expected<bool, int> addData(string field, variant<float, string, system_clock::time_point> value);
+  expected<bool, int> addData(
+      string field, variant<float, string, system_clock::time_point> value);
 
   expected<WuFieldProperties, int> getFieldProperties(string field);
-
 };
 
-#endif // SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H
+#endif  // SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H

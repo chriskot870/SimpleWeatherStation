@@ -7,7 +7,7 @@ namespace qw_units {
  */
 Millibar::Millibar() {}
 
-Millibar::Millibar(float mb){
+Millibar::Millibar(float mb) {
 
   base_value_ = MillibarToBase(mb);
 
@@ -28,19 +28,19 @@ Millibar::Millibar(float mb, string fmt_value) {
  */
 float Millibar::value() {
 
-    return BaseToMillibar(base_value_);
+  return BaseToMillibar(base_value_);
 }
 
 int Millibar::MillibarToBase(float mb) {
 
-  int  value = round(mb * pressure_base_conversion_factor);
+  int value = round(mb * pressure_base_conversion_factor);
 
   return value;
 }
 
 float Millibar::BaseToMillibar(int base) {
 
-  float value = (float)base/pressure_base_conversion_factor;
+  float value = (float)base / pressure_base_conversion_factor;
 
   return value;
 }
@@ -106,7 +106,6 @@ bool Millibar::operator<(const Millibar& other) const {
   bool value = (base_value_ < other.base_value_);
 
   return value;
-
 }
 
 bool Millibar::operator>(const Millibar& other) const {
@@ -130,7 +129,7 @@ bool Millibar::operator>=(const Millibar& other) const {
   return value;
 }
 
-strong_ordering Millibar::operator<=>(const Millibar& other) const {
+strong_ordering Millibar::operator<=> (const Millibar& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -179,7 +178,7 @@ Millibar& Millibar::operator-=(const Millibar& other) {
 /*
  * Arithmetic operations
  */
-const Millibar Millibar::operator+(const Millibar &other) const {
+const Millibar Millibar::operator+(const Millibar& other) const {
 
   Millibar result = *this;
 
@@ -188,7 +187,7 @@ const Millibar Millibar::operator+(const Millibar &other) const {
   return result;
 }
 
-const Millibar Millibar::operator-(const Millibar &other) const {
+const Millibar Millibar::operator-(const Millibar& other) const {
 
   Millibar result = *this;
 
@@ -201,7 +200,7 @@ const Millibar Millibar::operator-(const Millibar &other) const {
  * Conversion routines for implicit casting
  */
 Millibar::operator InchesMercury() const {
-  
+
   InchesMercury inhg;
 
   inhg.base_value_ = base_value_;
@@ -210,4 +209,3 @@ Millibar::operator InchesMercury() const {
 }
 
 }  // Namespace qw_units
-

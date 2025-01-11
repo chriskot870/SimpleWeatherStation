@@ -16,7 +16,8 @@ class RelativeHumidityMeasurement {
  public:
   RelativeHumidityMeasurement();
 
-  RelativeHumidityMeasurement(RelativeHumidity value, RelativeHumidity accuracy, time_point<system_clock> time);
+  RelativeHumidityMeasurement(RelativeHumidity value, RelativeHumidity accuracy,
+                              time_point<system_clock> time);
 
   RelativeHumidity value();
 

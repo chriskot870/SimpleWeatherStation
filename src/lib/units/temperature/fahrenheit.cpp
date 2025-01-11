@@ -11,7 +11,7 @@ class Kelvin;
  */
 Fahrenheit::Fahrenheit(){};
 
-Fahrenheit::Fahrenheit(float temp){
+Fahrenheit::Fahrenheit(float temp) {
 
   base_value_ = FahrenheitToBase(temp);
 
@@ -32,20 +32,21 @@ Fahrenheit::Fahrenheit(float temp, string fmt_value) {
  */
 float Fahrenheit::value() {
 
-    return BaseToFahrenheit(base_value_);
+  return BaseToFahrenheit(base_value_);
 }
 
 int Fahrenheit::FahrenheitToBase(float temp) {
 
-  float f = (((temp - 32)*5)/9) * temperature_base_conversion_factor;
-  int  value = round(f);
+  float f = (((temp - 32) * 5) / 9) * temperature_base_conversion_factor;
+  int value = round(f);
 
   return value;
 }
 
 float Fahrenheit::BaseToFahrenheit(int base) {
 
-  float value = ((((float)base/temperature_base_conversion_factor)*9)/5) + 32;
+  float value =
+      ((((float)base / temperature_base_conversion_factor) * 9) / 5) + 32;
 
   return value;
 }
@@ -116,7 +117,6 @@ bool Fahrenheit::operator<(const Fahrenheit& other) const {
   bool value = (base_value_ < other.base_value_);
 
   return value;
-
 }
 
 bool Fahrenheit::operator>(const Fahrenheit& other) const {
@@ -140,7 +140,7 @@ bool Fahrenheit::operator>=(const Fahrenheit& other) const {
   return value;
 }
 
-strong_ordering Fahrenheit::operator<=>(const Fahrenheit& other) const {
+strong_ordering Fahrenheit::operator<=> (const Fahrenheit& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -192,7 +192,7 @@ Fahrenheit& Fahrenheit::operator-=(const Fahrenheit& other) {
 /*
  * Arithmetic operations
  */
-const Fahrenheit Fahrenheit::operator+(const Fahrenheit &other) const {
+const Fahrenheit Fahrenheit::operator+(const Fahrenheit& other) const {
 
   Fahrenheit result = *this;
 
@@ -201,7 +201,7 @@ const Fahrenheit Fahrenheit::operator+(const Fahrenheit &other) const {
   return result;
 }
 
-const Fahrenheit Fahrenheit::operator-(const Fahrenheit &other) const {
+const Fahrenheit Fahrenheit::operator-(const Fahrenheit& other) const {
 
   Fahrenheit result = *this;
 
@@ -227,9 +227,8 @@ Fahrenheit::operator Kelvin() const {
   Kelvin tempk;
 
   tempk.base_value_ = base_value_;
-  
+
   return tempk;
 }
 
 }  // Namespace qw_units
-

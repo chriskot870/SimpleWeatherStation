@@ -1,23 +1,23 @@
- /*
+/*
  * Copyright 2024 Chris Kottaridis
  */
 
 #ifndef LIB_UNITS_TEMPERATURE_CELSIUS_H_
 #define LIB_UNITS_TEMPERATURE_CELSIUS_H_
 
+#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>
-#include <fmt/format.h>
 #include <variant>
 
-#include "temperature.h"
 #include "fahrenheit.h"
 #include "kelvin.h"
+#include "temperature.h"
 
+using fmt::format;
 using std::string;
 using std::strong_ordering;
-using fmt::format;
 
 namespace qw_units {
 
@@ -30,8 +30,8 @@ class Kelvin;
 
 class Celsius {
 
- friend Fahrenheit;
- friend Kelvin;
+  friend Fahrenheit;
+  friend Kelvin;
 
  public:
   Celsius();
@@ -52,7 +52,7 @@ class Celsius {
 
   bool operator>=(const Celsius& other) const;
 
-  strong_ordering operator<=>(const Celsius& other) const;
+  strong_ordering operator<=> (const Celsius& other) const;
 
   Celsius& operator=(const Celsius& other);
 
@@ -60,9 +60,9 @@ class Celsius {
 
   Celsius& operator-=(const Celsius& other);
 
-  const Celsius operator+(const Celsius &other) const;
+  const Celsius operator+(const Celsius& other) const;
 
-  const Celsius operator-(const Celsius &other) const;
+  const Celsius operator-(const Celsius& other) const;
 
   /*
    * These constructors are for casting
@@ -76,7 +76,7 @@ class Celsius {
   float value();
 
   string toString();
- 
+
   string toString(string format);
 
   void setFormat(string fmt_value);
@@ -97,7 +97,6 @@ class Celsius {
    * USed for conversion for implicit casting
    */
   void setBaseValue(int base_value);
-
 };
 
 }  // Namespace qw_units

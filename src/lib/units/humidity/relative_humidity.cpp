@@ -26,7 +26,8 @@ RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
 
 /*
  * Data manipulation routnes
- */float RelativeHumidity::value() {
+ */
+float RelativeHumidity::value() {
 
   float value = ((float)base_value_ / rh_base_conversion_factor);
 
@@ -63,7 +64,7 @@ void RelativeHumidity::setFormat(string fmt_value) {
 }
 
 void RelativeHumidity::setBaseValue(int base_value) {
-  
+
   base_value_ = base_value;
 
   return;
@@ -111,7 +112,8 @@ bool RelativeHumidity::operator>=(const RelativeHumidity& other) const {
   return value;
 }
 
-strong_ordering RelativeHumidity::operator<=>(const RelativeHumidity& other) const {
+strong_ordering RelativeHumidity::operator<=>
+    (const RelativeHumidity& other) const {
 
   strong_ordering value = (base_value_ <=> other.base_value_);
 
@@ -153,7 +155,8 @@ RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
 /*
  * Arithmetic operations
  */
-const RelativeHumidity RelativeHumidity::operator+(const RelativeHumidity &other) const {
+const RelativeHumidity RelativeHumidity::operator+(
+    const RelativeHumidity& other) const {
 
   RelativeHumidity result = *this;
 
@@ -162,7 +165,8 @@ const RelativeHumidity RelativeHumidity::operator+(const RelativeHumidity &other
   return result;
 }
 
-const RelativeHumidity RelativeHumidity::operator-(const RelativeHumidity &other) const {
+const RelativeHumidity RelativeHumidity::operator-(
+    const RelativeHumidity& other) const {
 
   RelativeHumidity result = *this;
 
@@ -172,4 +176,3 @@ const RelativeHumidity RelativeHumidity::operator-(const RelativeHumidity &other
 }
 
 }  // namespace qw_units
-

@@ -16,7 +16,8 @@ const string ws_lock_directory = "/run/lock/";
 const string ws_lock_file_suffix = ".lock";
 
 constexpr int ws_report_interval_min = 2500;  // 2.5 seconds in milliseconds
-constexpr int ws_report_interval_max = ((60 * 60) * 1000);  // 1 hour in milliseconds
+constexpr int ws_report_interval_max =
+    ((60 * 60) * 1000);  // 1 hour in milliseconds
 /*
  * The ReportInterval is in milliseconds. 300000 = 5 miuntes
  */

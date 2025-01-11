@@ -7,7 +7,7 @@ namespace qw_units {
  */
 InchesMercury::InchesMercury() {}
 
-InchesMercury::InchesMercury(float temp){
+InchesMercury::InchesMercury(float temp) {
 
   base_value_ = InchesMercuryToBase(temp);
 
@@ -28,7 +28,7 @@ InchesMercury::InchesMercury(float temp, string fmt_value) {
  */
 float InchesMercury::value() {
 
-    return BaseToInchesMercury(base_value_);
+  return BaseToInchesMercury(base_value_);
 }
 
 /*
@@ -36,14 +36,17 @@ float InchesMercury::value() {
  */
 int InchesMercury::InchesMercuryToBase(float inhg) {
 
-  int value = round(((inhg * mb_sea_level)/inHg_sea_level) * pressure_base_conversion_factor);
+  int value = round(((inhg * mb_sea_level) / inHg_sea_level) *
+                    pressure_base_conversion_factor);
 
   return value;
 }
 
 float InchesMercury::BaseToInchesMercury(int base) {
 
-  float inhg = (((float)base / pressure_base_conversion_factor) * inHg_sea_level)/mb_sea_level;
+  float inhg =
+      (((float)base / pressure_base_conversion_factor) * inHg_sea_level) /
+      mb_sea_level;
 
   return inhg;
 }
@@ -89,7 +92,6 @@ void InchesMercury::setBaseValue(int base_value) {
   return;
 }
 
-
 bool InchesMercury::operator==(const InchesMercury& other) const {
 
   bool value = (base_value_ == other.base_value_);
@@ -109,7 +111,6 @@ bool InchesMercury::operator<(const InchesMercury& other) const {
   bool value = (base_value_ < other.base_value_);
 
   return value;
-
 }
 
 bool InchesMercury::operator>(const InchesMercury& other) const {
@@ -133,7 +134,7 @@ bool InchesMercury::operator>=(const InchesMercury& other) const {
   return value;
 }
 
-strong_ordering InchesMercury::operator<=>(const InchesMercury& other) const {
+strong_ordering InchesMercury::operator<=> (const InchesMercury& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -182,7 +183,7 @@ InchesMercury& InchesMercury::operator-=(const InchesMercury& other) {
 /*
  * Arithmetic operations
  */
-const InchesMercury InchesMercury::operator+(const InchesMercury &other) const {
+const InchesMercury InchesMercury::operator+(const InchesMercury& other) const {
 
   InchesMercury result = *this;
 
@@ -191,7 +192,7 @@ const InchesMercury InchesMercury::operator+(const InchesMercury &other) const {
   return result;
 }
 
-const InchesMercury InchesMercury::operator-(const InchesMercury &other) const {
+const InchesMercury InchesMercury::operator-(const InchesMercury& other) const {
 
   InchesMercury result = *this;
 

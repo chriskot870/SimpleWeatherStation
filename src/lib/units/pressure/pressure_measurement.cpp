@@ -1,18 +1,19 @@
 #include "pressure_measurement.h"
 
+using std::get;
+using std::holds_alternative;
+using std::variant;
 using std::chrono::system_clock;
 using std::chrono::time_point;
-using std::variant;
-using std::holds_alternative;
-using std::get;
 
 namespace qw_units {
 
 PressureMeasurement::PressureMeasurement() {}
 
-PressureMeasurement::PressureMeasurement(variant<Millibar, InchesMercury> value,
-                        variant<Millibar, InchesMercury> accuracy,
-                        time_point<system_clock> time) : value_(value), accuracy_(accuracy), time_(time) {}
+PressureMeasurement::PressureMeasurement(
+    variant<Millibar, InchesMercury> value,
+    variant<Millibar, InchesMercury> accuracy, time_point<system_clock> time)
+    : value_(value), accuracy_(accuracy), time_(time) {}
 
 variant<Millibar, InchesMercury> PressureMeasurement::value() {
   return value_;

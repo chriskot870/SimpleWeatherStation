@@ -10,7 +10,7 @@ class Fahrenheit;
  */
 Kelvin::Kelvin(){};
 
-Kelvin::Kelvin(float temp){
+Kelvin::Kelvin(float temp) {
 
   base_value_ = KelvinToBase(temp);
 
@@ -36,7 +36,8 @@ float Kelvin::value() {
 
 int Kelvin::KelvinToBase(float temp) {
 
-  float f = ((temp - temperature_celsius_kelvin_offset) * temperature_base_conversion_factor);
+  float f = ((temp - temperature_celsius_kelvin_offset) *
+             temperature_base_conversion_factor);
   int value = round(f);
 
   return value;
@@ -44,7 +45,8 @@ int Kelvin::KelvinToBase(float temp) {
 
 float Kelvin::BaseToKelvin(int base) {
 
-  float value = ((float)base + temperature_celsius_kelvin_offset)/temperature_base_conversion_factor;
+  float value = ((float)base + temperature_celsius_kelvin_offset) /
+                temperature_base_conversion_factor;
 
   return value;
 }
@@ -114,7 +116,6 @@ bool Kelvin::operator<(const Kelvin& other) const {
   bool value = (base_value_ < other.base_value_);
 
   return value;
-
 }
 
 bool Kelvin::operator>(const Kelvin& other) const {
@@ -138,7 +139,7 @@ bool Kelvin::operator>=(const Kelvin& other) const {
   return value;
 }
 
-strong_ordering Kelvin::operator<=>(const Kelvin& other) const {
+strong_ordering Kelvin::operator<=> (const Kelvin& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -187,7 +188,7 @@ Kelvin& Kelvin::operator-=(const Kelvin& other) {
 /*
  * Arithmetic operations
  */
-const Kelvin Kelvin::operator+(const Kelvin &other) const {
+const Kelvin Kelvin::operator+(const Kelvin& other) const {
 
   Kelvin result = *this;
 
@@ -196,7 +197,7 @@ const Kelvin Kelvin::operator+(const Kelvin &other) const {
   return result;
 }
 
-const Kelvin Kelvin::operator-(const Kelvin &other) const {
+const Kelvin Kelvin::operator-(const Kelvin& other) const {
 
   Kelvin result = *this;
 
@@ -222,7 +223,7 @@ Kelvin::operator Fahrenheit() const {
   Fahrenheit tempf;
 
   tempf.setBaseValue(base_value_);
-    
+
   return tempf;
 }
 

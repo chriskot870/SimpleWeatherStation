@@ -3,12 +3,13 @@
 
 extern Logger logger;
 
-using std::string;
-using std::ofstream;
 using std::ifstream;
+using std::ofstream;
+using std::string;
 using std::unique_ptr;
 
-WeatherStationConfig::WeatherStationConfig(const string& config_file) : config_file_(config_file) {}
+WeatherStationConfig::WeatherStationConfig(const string& config_file)
+    : config_file_(config_file) {}
 
 void WeatherStationConfig::setConfigFile(string config_file) {
 
@@ -33,7 +34,8 @@ bool WeatherStationConfig::initialize() {
   Json::Reader initial_config_reader;
 
   if (initial_config_reader.parse(ws_default_config, initial_data) == false) {
-    logger.log(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
+    logger.log(LOG_ERR,
+               "Failed to parse config Weather Undergroubd gonfig file.");
     return false;
   }
 
@@ -57,7 +59,8 @@ bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
   }
 
   if (json_config_reader.parse(config_file_stream, ws_json_config) == false) {
-    logger.log(LOG_ERR, "Failed to parse config Weather Undergroubd gonfig file.");
+    logger.log(LOG_ERR,
+               "Failed to parse config Weather Undergroubd gonfig file.");
     return false;
   }
   config_file_stream.close();
@@ -86,7 +89,7 @@ bool WeatherStationConfig::putRoot(Json::Value data) {
    */
   Json::StreamWriterBuilder builder;
   builder["commentStyle"] = "None";
-  builder["indentation"] = "   "; // or "\t" for tabs
+  builder["indentation"] = "   ";  // or "\t" for tabs
 
   /*
    * Get a stream writer pointer and do the wite.
@@ -114,5 +117,3 @@ string WeatherStationConfig::getLockFileName(string file) {
 
   return lock_file;
 }
-
-

@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright 2024 Chris Kottaridis
  */
 
@@ -17,10 +17,10 @@ using qw_units::Celsius;
 using qw_units::RelativeHumidity;
 
 constexpr float dew_point_b = 17.625;
-const  float dew_point_c = 243.04;
+const float dew_point_c = 243.04;
 
 Celsius dewPoint(Celsius tempc, RelativeHumidity rh);
 
-}  // Namespace qw_utilties
+}  // namespace qw_utilities
 
 #endif  // LIB_UTILITIES_WEATHER_DEWPOINT_H_

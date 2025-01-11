@@ -14,12 +14,12 @@
 #include <mutex>
 #include <string>
 
-using std::string;
-using std::mutex;
 using std::lock_guard;
+using std::mutex;
+using std::string;
 
 namespace qw_devices {
-  
+
 enum I2cBusStatus { OK, NODEV, UNKNOWN_FUNCTIONS, UNDEFINED };
 
 /*
@@ -72,7 +72,7 @@ class I2cBus {
 
  private:
   static mutex i2cbus_lock;
-  
+
   string bus_device_name_;
 
   unsigned long i2c_functions_ = 0;

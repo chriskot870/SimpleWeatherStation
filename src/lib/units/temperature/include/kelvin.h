@@ -1,23 +1,23 @@
- /*
+/*
  * Copyright 2024 Chris Kottaridis
  */
 
 #ifndef LIB_UNITS_TEMPERATURE_KELVIN_H_
 #define LIB_UNITS_TEMPERATURE_KELVIN_H_
 
+#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>
-#include <fmt/format.h>
 #include <variant>
 
-#include "temperature.h"
 #include "celsius.h"
 #include "fahrenheit.h"
+#include "temperature.h"
 
+using fmt::format;
 using std::string;
 using std::strong_ordering;
-using fmt::format;
 
 namespace qw_units {
 
@@ -59,7 +59,7 @@ class Kelvin {
 
   bool operator>=(const Kelvin& other) const;
 
-  strong_ordering operator<=>(const Kelvin& other) const;
+  strong_ordering operator<=> (const Kelvin& other) const;
 
   Kelvin& operator=(const Kelvin& other);
 
@@ -67,9 +67,9 @@ class Kelvin {
 
   Kelvin& operator-=(const Kelvin& other);
 
-  const Kelvin operator+(const Kelvin &other) const;
+  const Kelvin operator+(const Kelvin& other) const;
 
-  const Kelvin operator-(const Kelvin &other) const;
+  const Kelvin operator-(const Kelvin& other) const;
 
   operator Celsius() const;
 

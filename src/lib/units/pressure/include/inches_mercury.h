@@ -5,8 +5,8 @@
 #ifndef LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
 #define LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
 
-#include "pressure.h"
 #include "millibar.h"
+#include "pressure.h"
 
 namespace qw_units {
 /*
@@ -46,7 +46,7 @@ class InchesMercury {
 
   bool operator>=(const InchesMercury& other) const;
 
-  strong_ordering operator<=>(const InchesMercury& other) const;
+  strong_ordering operator<=> (const InchesMercury& other) const;
 
   InchesMercury& operator=(const InchesMercury& other);
 
@@ -54,9 +54,9 @@ class InchesMercury {
 
   InchesMercury& operator-=(const InchesMercury& other);
 
-  const InchesMercury operator+(const InchesMercury &other) const;
+  const InchesMercury operator+(const InchesMercury& other) const;
 
-  const InchesMercury operator-(const InchesMercury &other) const;
+  const InchesMercury operator-(const InchesMercury& other) const;
 
   /*
    * Supports implicit casting
@@ -64,16 +64,16 @@ class InchesMercury {
    */
   operator Millibar() const;
 
-  private:
-   int64_t base_value_;
+ private:
+  int64_t base_value_;
 
-   string fmt_value_ = pressure_default_format;
+  string fmt_value_ = pressure_default_format;
 
-   int InchesMercuryToBase(float temp);
+  int InchesMercuryToBase(float temp);
 
-   float BaseToInchesMercury(int base);
+  float BaseToInchesMercury(int base);
 
-   void setBaseValue(int base_value);
+  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw_units

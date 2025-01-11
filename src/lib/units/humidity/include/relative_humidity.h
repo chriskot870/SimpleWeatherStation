@@ -5,14 +5,14 @@
 #ifndef LIB_UNITS_HUMIDITY_RELATIVE_HUMIDITY_H_
 #define LIB_UNITS_HUMIDITY_RELATIVE_HUMIDITY_H_
 
+#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>
-#include <fmt/format.h>
 
-using std::strong_ordering;
-using std::string;
 using fmt::format;
+using std::string;
+using std::strong_ordering;
 
 namespace qw_units {
 
@@ -39,7 +39,7 @@ class RelativeHumidity {
 
   bool operator>=(const RelativeHumidity& other) const;
 
-  strong_ordering operator<=>(const RelativeHumidity& other) const;
+  strong_ordering operator<=> (const RelativeHumidity& other) const;
 
   RelativeHumidity& operator=(const RelativeHumidity& other);
 
@@ -47,9 +47,9 @@ class RelativeHumidity {
 
   RelativeHumidity& operator-=(const RelativeHumidity& other);
 
-  const RelativeHumidity operator+(const RelativeHumidity &other) const;
+  const RelativeHumidity operator+(const RelativeHumidity& other) const;
 
-  const RelativeHumidity operator-(const RelativeHumidity &other) const;
+  const RelativeHumidity operator-(const RelativeHumidity& other) const;
 
   float value();
 
@@ -60,12 +60,11 @@ class RelativeHumidity {
   void setFormat(string fmt_value);
 
  private:
+  int base_value_;
 
-   int base_value_;
+  string fmt_value_ = relative_humidity_default_format;
 
-   string fmt_value_ = relative_humidity_default_format;
-
-   void setBaseValue(int base_value);
+  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw_units

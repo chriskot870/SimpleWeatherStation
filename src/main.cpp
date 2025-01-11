@@ -7,76 +7,51 @@
  * Right now it's pretty simple
  */
 
-#include "weather_station.h"
-#include "weather_station_config.h"
 #include "locking_file.h"
 #include "logger.h"
 #include "systemd.h"
+#include "weather_station.h"
+#include "weather_station_config.h"
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
 
-#include "include/weather_underground.h"
-#include "fmt/format.h"
 #include "fmt/chrono.h"
+#include "fmt/format.h"
+#include "include/weather_underground.h"
 
-#include "fahrenheit.h"
 #include "celsius.h"
-#include "kelvin.h"
+#include "fahrenheit.h"
 #include "inches_mercury.h"
+#include "kelvin.h"
 #include "millibar.h"
 #include "relative_humidity.h"
 
 #include "dewpoint.h"
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::ifstream;
-using std::ofstream;
 using fmt::format;
 using qw_devices::I2cBus;
 using qw_devices::I2cSht4x;
+using qw_devices::kLps22hbI2cPrimaryAddress;
 using qw_devices::kSht4xI2cPrimaryAddress;
 using qw_devices::Lps22;
-using qw_devices::kLps22hbI2cPrimaryAddress;
-using qw_units::Fahrenheit;
 using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::InchesMercury;
 using qw_units::Kelvin;
 using qw_units::Millibar;
-using qw_units::InchesMercury;
+using std::cout;
+using std::endl;
 using std::get;
 using std::holds_alternative;
+using std::ifstream;
+using std::ofstream;
+using std::string;
 using std::chrono::system_clock;
-using std::chrono::utc_clock;
 using std::chrono::time_point;
+using std::chrono::utc_clock;
 
 extern Logger logger;
-
-/*
- * These are the properties of the quietwind.weather.service in
- * systemd. We only need access to a couple of properties.
- */
-const SdBusService systemd_service("org.freedesktop.systemd1");
-/*
- * I am only interested in quietwind.weather object within systemd service
- */
-const SdBusObject sdbus_qw_weather_object("/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice", systemd_service);
-//const SdBusObject sdbus_qw_weather_object("/org/freedesktop/systemd1/unit/cron_2eservice", systemd_service);
-/*
- * interfaces supported by quietwind.weather object
- */
-const SdBusInterface sdbus_dbus_introspectable_interface("org.freedesktop.DBus.Introspectable", sdbus_qw_weather_object);
-const SdBusInterface sdbus_dbus_peer("org.freedesktop.DBus.Peer", sdbus_qw_weather_object);
-const SdBusInterface sdbus_dbus_properties("org.freedesktop.DBus.Properties", sdbus_qw_weather_object);
-const SdBusInterface sdbus_systemd_service("org.freedesktop.systemd1.Service", sdbus_qw_weather_object);
-const SdBusInterface sdbus_systemd_unit("org.freedesktop.systemd1.Unit", sdbus_qw_weather_object);
-
-/*
- * Properties of interest for quietwind.weather.service
- */
-SdBusProperty qw_ws_substate("SubState", "s", "emits-change", sdbus_systemd_unit);
-SdBusProperty qw_ws_mainpid("MainPID", "u", "emits-change", sdbus_systemd_service);
 
 bool running_from_systemd() {
 
@@ -87,41 +62,93 @@ bool running_from_systemd() {
   const char* type_chr;
   string type;
   int r;
+  expected<variant<SdBusNumericResult, string>, SdBusError> value;
 
-  sd_bus_error error = SD_BUS_ERROR_NULL;
-  sd_bus_message *message = NULL;
+  /*
+   * Set the System Bus, Service and Object we are interested in
+   */
+  SdBus system_bus(SD_BUS_TYPE_SYSTEM);  // We want the system bus
+  SdBusService systemd_service(
+      "org.freedesktop.systemd1",
+      system_bus);  // we want to talk to systemd service
+  // We want to talk to quietwind.wetaher.service Object within systemd
+  SdBusObject sdbus_qw_weather_object(
+      "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice",
+      systemd_service);
 
-  r = qw_ws_substate.getProperty(&message, &error);
-  if (r < 0) {
-    exit(1);
+  /*
+   * Set the Unit interface and properties in that interface that we need
+   */
+  SdBusInterface sdbus_systemd_unit("org.freedesktop.systemd1.Unit",
+                                    sdbus_qw_weather_object);
+  SdBusProperty qw_ws_substate("SubState", "s", "emits-change",
+                               sdbus_systemd_unit);
+
+  /*
+   * Set the Service interface and the properties in that interface that we need
+   */
+  SdBusInterface sdbus_systemd_service("org.freedesktop.systemd1.Service",
+                                       sdbus_qw_weather_object);
+  SdBusProperty qw_ws_mainpid("MainPID", "u", "emits-change",
+                              sdbus_systemd_service);
+
+  value = qw_ws_substate.getValue();
+  if (value.has_value() == false) {
+    logger.log(LOG_ERR, *value.error().name);
+    logger.log(LOG_ERR, *value.error().message);
+    value.error().clear();
+    return false;
   }
-  /* Parse the response message */
-  r = sd_bus_message_read(message, qw_ws_substate.signature_.c_str() , &sub_state_chr);
-  if (r < 0) {
-      exit(1);
+  /*
+   * Make sure it has a string
+   */
+  if (std::holds_alternative<string>(value.value()) == false) {
+    logger.log(LOG_ERR,
+               fmt::format("Request for SubState did not return a string"));
+    return false;
   }
-  sub_state = sub_state_chr;
-  error = SD_BUS_ERROR_NULL;
-  sd_bus_message_unref(message);
 
+  /*
+   * It is OK to assign a value
+   */
+  sub_state = std::get<string>(value.value());
+
+  /*
+   * Now check to see if the service is running
+   */
   if (sub_state != "running") {
     return false;
   }
-  
+
   pid_t mypid = getpid();
 
-  r = qw_ws_mainpid.getProperty(&message, &error);
-  if (r < 0) {
-    exit(1);
+  /*
+   * It is running so get the PID
+   */
+  value = qw_ws_mainpid.getValue();
+  if (value.has_value() == false) {
+    logger.log(LOG_ERR, *value.error().name);
+    logger.log(LOG_ERR, *value.error().message);
+    value.error().clear();
+    return false;
   }
-  /* Parse the response message */
-  r = sd_bus_message_read(message, qw_ws_mainpid.signature_.c_str() , &main_pid);
-  if (r < 0) {
-      exit(1);
-  }
-  error = SD_BUS_ERROR_NULL;
-  sd_bus_message_unref(message);
 
+  /*
+   * Check that the value is a uint32_t
+   */
+  if (std::holds_alternative<SdBusNumericResult>(value.value()) == false) {
+    logger.log(LOG_ERR,
+               fmt::format("Request for MainPID did not return a uint32_t"));
+    return false;
+  }
+
+  /*
+   * Ok now check if the pid is the same as this process
+   * We get the numeric result. We know that MainPID uses signature
+   * "u". So we get the "u" field from the Numeric Result.
+   */
+  SdBusNumericResult val = std::get<SdBusNumericResult>(value.value());
+  main_pid = val.u;
   if (main_pid != mypid) {
     return false;
   }
@@ -140,7 +167,7 @@ int main(int argc, char* argv[]) {
   int c;
   bool in_systemd = false;
 
-   /*
+  /*
     * If we have started from systemd then we always use
     * LOGGER_MODE_JOURNAL.
     */
@@ -152,9 +179,9 @@ int main(int argc, char* argv[]) {
   /*
    * Determine the logging mode from parameters
    */
-  while((c = getopt(argc, argv, "l:")) != -1) {
+  while ((c = getopt(argc, argv, "l:")) != -1) {
     switch (c) {
-      case 'l' :
+      case 'l':
         /*
          * If we are running from systemd then the
          * mode will already have been set to LOGGER_MODE_JOURNAL.
@@ -168,7 +195,9 @@ int main(int argc, char* argv[]) {
         /*
          * Check if it begins with file and has a colon
          */
-        if (((pos = value.find(":")) != string::npos) && (value.substr(0, args_log_mode_file.length()) == args_log_mode_file)) {
+        if (((pos = value.find(":")) != string::npos) &&
+            (value.substr(0, args_log_mode_file.length()) ==
+             args_log_mode_file)) {
           /*
            * It has a colon so see if it is just "file:"
            */
@@ -216,7 +245,6 @@ int main(int argc, char* argv[]) {
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
-
   logger.log(LOG_INFO, "Checking Hardware");
 
   error = lps22.init();
@@ -230,7 +258,8 @@ int main(int argc, char* argv[]) {
     logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
     exit(1);
   }
-  logger.log(LOG_INFO, format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
+  logger.log(LOG_INFO,
+             format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
 
   /*
    * The sht4x device is connected to I2c bus 1 at the primary address
@@ -247,7 +276,8 @@ int main(int argc, char* argv[]) {
     logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
     exit(1);
   }
-  logger.log(LOG_ERR, format("SHT44 Serial Number: {}", x_serial_number.value()));
+  logger.log(LOG_ERR,
+             format("SHT44 Serial Number: {}", x_serial_number.value()));
 
   logger.log(LOG_INFO, "Starting");
 
@@ -261,16 +291,18 @@ int main(int argc, char* argv[]) {
   Json::Value json_config;
   ws_config.getRoot(json_config);
   WeatherUnderground* wu = new WeatherUnderground(
-    json_config["WeatherUnderground"]["pwu_name"].asString(),
-    json_config["WeatherUnderground"]["pwu_password"].asString());
+      json_config["WeatherUnderground"]["pwu_name"].asString(),
+      json_config["WeatherUnderground"]["pwu_password"].asString());
   int reporting_loop_interval =
-    min(max(ws_report_interval_min, json_config["ReportInterval"].asInt()), ws_report_interval_max);
+      min(max(ws_report_interval_min, json_config["ReportInterval"].asInt()),
+          ws_report_interval_max);
 
   /*
    * Setup inotify to get notified when config file changes during poll
    */
   int inotify_fd = inotify_init();
-  int watch_fd = inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
+  int watch_fd =
+      inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
   pollfd fds[1];
   fds[0].fd = inotify_fd;
   fds[0].events = POLLIN;
@@ -285,13 +317,11 @@ int main(int argc, char* argv[]) {
     /*
      * Gather up all the raw data
      */
-    auto x_sht4x_temp =
-        sht4x.getTemperatureMeasurement();
+    auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
 
     auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
 
-    auto x_lps22_temp =
-        lps22.getTemperatureMeasurement();
+    auto x_lps22_temp = lps22.getTemperatureMeasurement();
 
     auto x_lps22_pressure = lps22.getPressureMeasurement();
 
@@ -305,12 +335,18 @@ int main(int argc, char* argv[]) {
      * Weather Underground wants fahrenheit
      */
     if (x_sht4x_temp.has_value()) {
+      /*
+       * The SHT4x is supposed to be more accurate so use it
+       */
       qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
       wu->setVarData("tempf", tempf.value());
+      qw_units::Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
+      wu->setVarData("temp2f", temp2f.value());
     }
 
     if (x_sht4x_humidity.has_value()) {
-      qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
+      qw_units::RelativeHumidity humidity =
+          x_sht4x_humidity.value().relativeHumidityValue();
       wu->setVarData("humidity", humidity.value());
     }
 
@@ -319,7 +355,8 @@ int main(int argc, char* argv[]) {
      */
     if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
       qw_units::Celsius tempc = x_sht4x_temp.value().celsiusValue();
-      qw_units::RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
+      qw_units::RelativeHumidity humidity =
+          x_sht4x_humidity.value().relativeHumidityValue();
       Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
       Fahrenheit dewptf = dewptc;
       wu->setVarData("dewptf", dewptf.value());
@@ -329,7 +366,8 @@ int main(int argc, char* argv[]) {
      * Weather Underground wants inches mercury
      */
     if (x_lps22_pressure.has_value()) {
-      qw_units::InchesMercury pressure = x_lps22_pressure.value().inchesMercuryValue();
+      qw_units::InchesMercury pressure =
+          x_lps22_pressure.value().inchesMercuryValue();
       wu->setVarData("baromin", pressure.value());
     }
 
@@ -338,7 +376,7 @@ int main(int argc, char* argv[]) {
      */
     string http_request = wu->buildHttpRequest();
     logger.log(LOG_INFO, http_request);
-    
+
     auto errval = wu->sendData();
     if (errval.has_value() == false) {
       logger.log(LOG_ERR, "COMM Error");
@@ -347,7 +385,7 @@ int main(int argc, char* argv[]) {
     string response = wu->getHttpResponse();
 
     logger.log(LOG_INFO, response);
-    
+
     wu->reset();
 
     int poll_cnt = poll(fds, 1, reporting_loop_interval);
@@ -366,10 +404,11 @@ int main(int argc, char* argv[]) {
       Json::Value json_config;
       ws_config.getRoot(json_config);
       WeatherUnderground* wu = new WeatherUnderground(
-        json_config["WeatherUnderground"]["pwu_name"].asString(),
-        json_config["WeatherUnderground"]["pwu_password"].asString());
-      reporting_loop_interval = 
-        min(max(ws_report_interval_min, json_config["ReportInterval"].asInt()), ws_report_interval_max);
+          json_config["WeatherUnderground"]["pwu_name"].asString(),
+          json_config["WeatherUnderground"]["pwu_password"].asString());
+      reporting_loop_interval = min(
+          max(ws_report_interval_min, json_config["ReportInterval"].asInt()),
+          ws_report_interval_max);
     }
   }
 }

@@ -10,10 +10,10 @@ namespace qw_units {
  */
 RelativeHumidityMeasurement::RelativeHumidityMeasurement() {}
 
-RelativeHumidityMeasurement::RelativeHumidityMeasurement(RelativeHumidity value, RelativeHumidity accuracy, time_point<system_clock> time) :
-  value_(value),
-  accuracy_(accuracy),
-  time_(time) {}
+RelativeHumidityMeasurement::RelativeHumidityMeasurement(
+    RelativeHumidity value, RelativeHumidity accuracy,
+    time_point<system_clock> time)
+    : value_(value), accuracy_(accuracy), time_(time) {}
 
 /*
  * Constructor routines

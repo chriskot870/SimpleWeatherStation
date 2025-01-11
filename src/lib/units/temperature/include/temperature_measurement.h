@@ -8,14 +8,14 @@
 #include <chrono>
 #include <variant>
 
-#include "temperature.h"
 #include "celsius.h"
 #include "fahrenheit.h"
 #include "kelvin.h"
+#include "temperature.h"
 
+using std::variant;
 using std::chrono::system_clock;
 using std::chrono::time_point;
-using std::variant;
 
 namespace qw_units {
 
@@ -24,8 +24,8 @@ class TemperatureMeasurement {
   TemperatureMeasurement();
 
   TemperatureMeasurement(variant<Celsius, Fahrenheit, Kelvin> value,
-                        variant<Celsius, Fahrenheit, Kelvin> accuracy,
-                        time_point<system_clock> time);
+                         variant<Celsius, Fahrenheit, Kelvin> accuracy,
+                         time_point<system_clock> time);
 
   variant<Celsius, Fahrenheit, Kelvin> value();
 

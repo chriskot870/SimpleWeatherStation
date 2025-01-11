@@ -1,24 +1,28 @@
 
 #include "temperature_measurement.h"
 
-using std::chrono::system_clock;
-using std::variant;
 using std::get;
 using std::holds_alternative;
+using std::variant;
+using std::chrono::system_clock;
 
 namespace qw_units {
 
 TemperatureMeasurement::TemperatureMeasurement() {}
 
-TemperatureMeasurement::TemperatureMeasurement(variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> value,
-                        variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> accuracy,
-                        time_point<system_clock> time) : value_(value), accuracy_(accuracy), time_(time) {}
+TemperatureMeasurement::TemperatureMeasurement(
+    variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> value,
+    variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> accuracy,
+    time_point<system_clock> time)
+    : value_(value), accuracy_(accuracy), time_(time) {}
 
-variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> TemperatureMeasurement::value() {
+variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin>
+TemperatureMeasurement::value() {
   return value_;
 }
 
-variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> TemperatureMeasurement::accuracy() {
+variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin>
+TemperatureMeasurement::accuracy() {
   return accuracy_;
 }
 
@@ -121,6 +125,5 @@ qw_units::Kelvin TemperatureMeasurement::kelvinAccuracy() {
 
   return tempk;
 }
-
 
 }  // Namespace qw_units
