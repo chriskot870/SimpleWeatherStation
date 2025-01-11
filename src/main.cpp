@@ -12,6 +12,7 @@
 #include "systemd.h"
 #include "weather_station.h"
 #include "weather_station_config.h"
+#include "systemd_quietwind_weather.h"
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
@@ -53,109 +54,6 @@ using std::chrono::utc_clock;
 
 extern Logger logger;
 
-bool running_from_systemd() {
-
-  string sub_state;
-  pid_t main_pid;
-  uint32_t burst, directory_mode;
-  const char* sub_state_chr;
-  const char* type_chr;
-  string type;
-  int r;
-  expected<variant<SdBusNumericResult, string>, SdBusError> value;
-
-  /*
-   * Set the System Bus, Service and Object we are interested in
-   */
-  SdBus system_bus(SD_BUS_TYPE_SYSTEM);  // We want the system bus
-  SdBusService systemd_service(
-      "org.freedesktop.systemd1",
-      system_bus);  // we want to talk to systemd service
-  // We want to talk to quietwind.wetaher.service Object within systemd
-  SdBusObject sdbus_qw_weather_object(
-      "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice",
-      systemd_service);
-
-  /*
-   * Set the Unit interface and properties in that interface that we need
-   */
-  SdBusInterface sdbus_systemd_unit("org.freedesktop.systemd1.Unit",
-                                    sdbus_qw_weather_object);
-  SdBusProperty qw_ws_substate("SubState", "s", "emits-change",
-                               sdbus_systemd_unit);
-
-  /*
-   * Set the Service interface and the properties in that interface that we need
-   */
-  SdBusInterface sdbus_systemd_service("org.freedesktop.systemd1.Service",
-                                       sdbus_qw_weather_object);
-  SdBusProperty qw_ws_mainpid("MainPID", "u", "emits-change",
-                              sdbus_systemd_service);
-
-  value = qw_ws_substate.getValue();
-  if (value.has_value() == false) {
-    logger.log(LOG_ERR, *value.error().name);
-    logger.log(LOG_ERR, *value.error().message);
-    value.error().clear();
-    return false;
-  }
-  /*
-   * Make sure it has a string
-   */
-  if (std::holds_alternative<string>(value.value()) == false) {
-    logger.log(LOG_ERR,
-               fmt::format("Request for SubState did not return a string"));
-    return false;
-  }
-
-  /*
-   * It is OK to assign a value
-   */
-  sub_state = std::get<string>(value.value());
-
-  /*
-   * Now check to see if the service is running
-   */
-  if (sub_state != "running") {
-    return false;
-  }
-
-  pid_t mypid = getpid();
-
-  /*
-   * It is running so get the PID
-   */
-  value = qw_ws_mainpid.getValue();
-  if (value.has_value() == false) {
-    logger.log(LOG_ERR, *value.error().name);
-    logger.log(LOG_ERR, *value.error().message);
-    value.error().clear();
-    return false;
-  }
-
-  /*
-   * Check that the value is a uint32_t
-   */
-  if (std::holds_alternative<SdBusNumericResult>(value.value()) == false) {
-    logger.log(LOG_ERR,
-               fmt::format("Request for MainPID did not return a uint32_t"));
-    return false;
-  }
-
-  /*
-   * Ok now check if the pid is the same as this process
-   * We get the numeric result. We know that MainPID uses signature
-   * "u". So we get the "u" field from the Numeric Result.
-   */
-  SdBusNumericResult val = std::get<SdBusNumericResult>(value.value());
-  main_pid = val.u;
-  if (main_pid != mypid) {
-    return false;
-  }
-
-  return true;
-}
-
 int main(int argc, char* argv[]) {
   string temperature;
   string humidity;
@@ -171,7 +69,7 @@ int main(int argc, char* argv[]) {
     * If we have started from systemd then we always use
     * LOGGER_MODE_JOURNAL.
     */
-  in_systemd = running_from_systemd();
+  in_systemd = isASystemdProcess();
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
     logger.log(LOG_INFO, "Logging in Journal Mode");
