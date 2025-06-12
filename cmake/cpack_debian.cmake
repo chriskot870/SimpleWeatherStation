@@ -18,7 +18,7 @@
 set(CPACK_DEBIAN_PACKAGE_NAME "qw-weatherstation")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "chriskot@quietwind.net")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "arm64")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "stdc++6 (>= 12.2.0-14) libfmt libcurl4 libsystemd libjsoncpp")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>= 12.2.0-14), libsystemd-dev, libfmt-dev, libcurl4, libjsoncpp-dev")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A Simple Weather Station that reports to Weather Underground")
 set(CPACK_DEBIAN_PACKAGE_SECTION "embedded")
 set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
@@ -50,5 +50,8 @@ set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/qw")
 
 #
 # Define the postinst script and the pre removal script
+# Apt wants these scripts named <package>.postinst and <package>.prerm.
+# I didn't see this documented anywhere but got errors when I just had postinst and prerm.
+# These files get installed in /var/lib/dpkg/info along with a package .list file and .md5sum file after installation
 #
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/src/config/postinst;${CMAKE_CURRENT_SOURCE_DIR}/src/config/prerm")
