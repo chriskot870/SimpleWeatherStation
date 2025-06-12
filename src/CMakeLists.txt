@@ -82,9 +82,11 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     )
 
 #
-# define where to install the target
-#install(FILES config/wu_access.json DESTINATION etc)
+# define where to install the targets with respect to CMAKE_INSTALL_PREFIX
+# 
 install(TARGETS WeatherStation DESTINATION bin)
+install(FILES config/wu_access.json DESTINATION etc)
+install(FILES config/quietwind.weather.service DESTINATION etc/systemd/system)
 
 #
 # List the sub-directories that need to be built

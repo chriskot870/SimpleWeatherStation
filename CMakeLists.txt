@@ -24,3 +24,24 @@ project(WeatherStation CXX)
 add_subdirectory(src)
 add_subdirectory(tools)
 
+#
+# The include(Cpack) creates a default package build. In order to control
+# the CPACK settings you need to define a CPACK_PROPERTIES_FILE prior to
+# including CPack. WHen you include CPack the CMake system creates a
+# CPackConfig.cmake file in the build directory. These have default settings.
+# At the end of that file there is an include(${CPACK+PROPERTIES_FILES}).
+# This allows you to change any default setting and add others.
+# It doesn't seem like there needs to be a Cpack.cmkae file at the top
+# level. Just having include(CPcak) seem to be adequate.
+# Be sure and set PACK_PROPERTIES_FILE pror to including CPack.
+#
+# After a build you can cd to build and run cpack and it should build
+# a packge for you.
+#
+# set(CPACK_PROPERTIES_FILE ${CMAKE_SOURCE_DIR}/cmake/cpack_debian.cmake)
+#set(CPACK_GENERATOR "DEB")
+include(${CMAKE_SOURCE_DIR}/cmake/cpack_debian.cmake)
+include(CPack)
+
+
+

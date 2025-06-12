@@ -114,7 +114,7 @@ SdBusProperty::getValue() {
     return unexpected(return_error);
   }
   /*
-   * I am done with the bus and error so clean thrm up
+   * I am done with the bus and error so clean them up
    */
   sd_bus_error_free(&error);
   sd_bus_unref(bus);

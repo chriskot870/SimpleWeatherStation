@@ -3,7 +3,7 @@ Description=QuietWind Weather Station
 After=multi-user.target
 
 [Service]
-ExecStart=/usr/local/qw/bin/WeatherStation -j
+ExecStart=/usr/local/qw/bin/WeatherStation
 Type=simple
 
 [Install]
