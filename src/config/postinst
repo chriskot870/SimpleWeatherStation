@@ -5,23 +5,18 @@
 #
 
 qw_service="quietwind.weather.service"
-qw_install_prefix="/usr/local/qw"
-qw_systemd_service_subdir="systemd/system"
-qw_service_path="$qw_systemd_service_subdir/$qw_service"
+#qw_install_prefix="/usr/local/qw"
+#qw_systemd_service_subdir="systemd/system"
+#qw_service_path="$qw_systemd_service_subdir/$qw_service"
+
+systemctl daemon-reload
 
 #
-# Check for the existence of the service file.
+# Check if it is enabled. If not enable it
 #
-if [ ! -e /etc/$qw_service_path ]; then
-  # If there isn't a link ceate it
-  ln -s $qw_install_prefix/etc/$qw_service_path /etc/$qw_service_path
-fi
-
-# Check and make sure it is a link and points to the correct file
-if [ ! -L /etc/$qw_service_path ] || \
-   [ `realpath /etc/$qw_service_path` != "$qw_install_prefix/etc/$qw_service_path" ]; then
-   echo "Improper /etc/$qw_systemd_service_subdir/$qw_service file"
-  exit 1
+systemctl -q is-enabled $qw_service
+if [ $? -ne 0 ]; then
+  systemctl -q enable $qw_service
 fi
 
 #
@@ -30,14 +25,6 @@ fi
 systemctl -q is-active $qw_service
 if [ $? -ne 0 ]; then
   systemctl -q start $qw_service
-fi
-
-#
-# Check if it is enabled. If not enable it
-#
-systemctl is-enabled $qw_service
-if [ $? -ne 0 ]; then
-  systemctl -q enable $qw_service
 fi
 
 exit 0

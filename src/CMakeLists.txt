@@ -86,7 +86,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 # 
 install(TARGETS WeatherStation DESTINATION bin)
 install(FILES config/wu_access.json DESTINATION etc)
-install(FILES config/quietwind.weather.service DESTINATION etc/systemd/system)
+install(FILES config/quietwind.weather.service DESTINATION /lib/systemd/system)
 
 #
 # List the sub-directories that need to be built

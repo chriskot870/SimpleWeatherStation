@@ -6,54 +6,21 @@
 # If the service is running or enabled stop it and disable it
 #
 qw_service="quietwind.weather.service"
-qw_install_prefix="/usr/local/qw"
-qw_systemd_service_subdir="systemd/system"
-qw_service_path="$qw_systemd_service_subdir/$qw_service"
 
-#
-# Remove the service symlink
-# Make sure it exists
-#
-if [ -e /etc/$qw_service_path ]; then
-  #
-  # if it exists make sure it links to our config file
-  # If it doesn't point to our file then we are not in control so just leave the link
-  #
-  if [ -L /etc/$qw_service_path ] && \
-    [ `realpath /etc/$qw_service_path` ==  "$qw_install_prefix/etc/$qw_service_path" ]; then
-
-    #
-    # It is ours, so stop the service and disable it. Then reload daemon and register that it is gone.
-    #
-    systemctl -q is-active $qw_service
-    if [ $? -eq 0 ]; then
-      systemctl -q stop $qw_service
-    fi
-
-    systemctl -q is-enabled $qw_service
-    if [ $? -eq 0 ]; then
-      systemctl -q disable $qw_service
-    fi
-
-    #
-    # Remove the link
-    # For reasons I am not sure about sometimes after the is-active logic
-    # the link gets removed. So, we only call rm if the link still exists
-    # when we get here to avoid a warning from rm that file doesn't exist
-    # during package removal.
-    #
-    if [ -L /etc/$qw_service_path ]; then
-      rm /etc/$qw_service_path
-    fi
-
-    #
-    # Now let systemd know that the service is not available
-    # Every thing I see seems to point that both these commands are necessary
-    #
-    systemctl daemon-reload
-    systemctl reset-failed $qw_service
-  fi
+systemctl -q is-active $qw_service
+if [ $? -eq 0 ]; then
+  systemctl -q stop $qw_service
 fi
+
+systemctl -q is-enabled $qw_service
+if [ $? -eq 0 ]; then
+  systemctl -q disable $qw_service
+fi
+
+#
+# Now reload the daemons
+#
+systemctl daemon-reload
 
 #
 # It is now safe to remove the files in the package
