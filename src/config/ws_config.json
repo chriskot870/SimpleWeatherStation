@@ -1,0 +1,10 @@
+{
+   "WeatherUndeground": {
+      "pwu_name": "KTXROANO168",
+      "pwu_password": "HW0SG8q3",
+      "report_interval": 300000
+   },
+   "I2cBus": {
+      "weather_devices": "/dev/i2c-1"
+   }
+}

@@ -36,8 +36,6 @@
 using std::map;
 using std::string;
 
-const string weather_devices_bus = "/dev/i2c-1";
-
 const string args_log_mode_journal = "journal";
 const string args_log_mode_file = "file";
 const string args_log_mode_nologging = "none";

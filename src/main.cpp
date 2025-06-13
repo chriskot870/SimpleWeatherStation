@@ -65,6 +65,13 @@ int main(int argc, char* argv[]) {
   int c;
   bool in_systemd = false;
 
+  logger.setMode(LOGGER_MODE_JOURNAL);
+  logger.log(LOG_INFO, "Logging in Journal Mode");
+  while(1) {
+    sleep(10);
+    logger.log(LOG_INFO, "Quietwind Weather Service looping");
+  }
+
   /*
     * If we have started from systemd then we always use
     * LOGGER_MODE_JOURNAL.
@@ -139,7 +146,17 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  I2cBus i2c_bus = I2cBus(weather_devices_bus);
+  /*
+   * Check the configuration file and initialize values from it
+   */
+  WeatherStationConfig ws_config(weather_station_config);
+  if (ws_config.exists() == false) {
+    ws_config.initialize();
+  }
+  Json::Value json_config;
+  ws_config.getRoot(json_config);
+
+  I2cBus i2c_bus = I2cBus(json_config["I2cBus"]["weather_devices"].asString());
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
@@ -179,20 +196,11 @@ int main(int argc, char* argv[]) {
 
   logger.log(LOG_INFO, "Starting");
 
-  /*
-   * Check the configuration file and initialize values from it
-   */
-  WeatherStationConfig ws_config(weather_station_config);
-  if (ws_config.exists() == false) {
-    ws_config.initialize();
-  }
-  Json::Value json_config;
-  ws_config.getRoot(json_config);
   WeatherUnderground* wu = new WeatherUnderground(
       json_config["WeatherUnderground"]["pwu_name"].asString(),
       json_config["WeatherUnderground"]["pwu_password"].asString());
   int reporting_loop_interval =
-      min(max(ws_report_interval_min, json_config["ReportInterval"].asInt()),
+      min(max(ws_report_interval_min, json_config["WeatherUndergroubnd"]["report_interval"].asInt()),
           ws_report_interval_max);
 
   /*
