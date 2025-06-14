@@ -18,7 +18,15 @@
 set(CPACK_DEBIAN_PACKAGE_NAME "qw-weatherstation")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "chriskot@quietwind.net")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "arm64")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>= 12.2.0-14), libsystemd-dev, libfmt-dev, libcurl4, libjsoncpp-dev")
+#
+# We use libstdc++ in order to use the expect construct.
+# We need libsystemd-dev in order to talk to systemd daemon via C++
+# We need libfmt to format output messages
+# We need libcurl4 in order to build a htps command to send to Weather Station
+# We need libjsoncpp-dev to access the configuration json file via C++
+# We need jq to access json configuration file for postinst
+#
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>= 12.2.0-14), libsystemd-dev, libfmt-dev, libcurl4, libjsoncpp-dev, jq")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A Simple Weather Station that reports to Weather Underground")
 set(CPACK_DEBIAN_PACKAGE_SECTION "embedded")
 set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
