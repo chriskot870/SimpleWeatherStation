@@ -35,7 +35,7 @@ bool WeatherStationConfig::initialize() {
 
   if (initial_config_reader.parse(ws_default_config, initial_data) == false) {
     logger.log(LOG_ERR,
-               "Failed to parse config Weather Undergroubd gonfig file.");
+               "Failed to parse config Weather Undergroubd config file.");
     return false;
   }
 
