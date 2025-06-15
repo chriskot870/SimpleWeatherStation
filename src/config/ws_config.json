@@ -4,7 +4,29 @@
       "pwu_password": "HW0SG8q3",
       "report_interval": 300000
    },
-   "I2cBus": {
-      "weather_devices": "/dev/i2c-1"
+   "Hardware": {
+      "I2c": {
+         "Bus": {
+            "name": "/dev/i2c-1",
+            "device_addresses": {
+               "sht4x": 68,
+               "lps22": 93,
+               "ds3231": 104
+            }
+         },
+         "Devices": {
+            "sht4x": [
+               68,
+               69
+            ],
+            "lps22": [
+               93,
+               94
+            ],
+            "ds3231": [
+               104
+            ]
+         }
+      }
    }
 }
