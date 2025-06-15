@@ -31,7 +31,8 @@ I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
     /*
      * If the OS open() failed set status to NODEV
      */
-    status_ = NODEV;
+    status_ = I2CBUS_STATUS_NODEV;
+    return;
   }
 
   retval = ioctl(i2c_bus, I2C_FUNCS, &i2c_functions_);
@@ -40,8 +41,10 @@ I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
     /*
      * We weren't able to get the functions.
      */
-    status_ = UNKNOWN_FUNCTIONS;
+    status_ = I2CBUS_STATUS_UNKNOWN_FUNCTIONS;
   }
+
+  status_ = I2CBUS_STATUS_OK;
 
   return;
 };
@@ -49,6 +52,11 @@ I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
 string I2cBus::busName() {
 
   return bus_device_name_;
+}
+
+I2cBusStatus I2cBus::status() {
+
+  return status_;
 }
 
 int I2cBus::transferDataToRegisters(uint8_t slave_address, uint8_t reg,

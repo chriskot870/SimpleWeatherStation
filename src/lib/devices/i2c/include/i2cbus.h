@@ -20,7 +20,10 @@ using std::string;
 
 namespace qw_devices {
 
-enum I2cBusStatus { OK, NODEV, UNKNOWN_FUNCTIONS, UNDEFINED };
+enum I2cBusStatus { I2CBUS_STATUS_OK,
+                    I2CBUS_STATUS_NODEV,
+                    I2CBUS_STATUS_UNKNOWN_FUNCTIONS,
+                    I2CBUS_STATUS_UNDEFINED };
 
 /*
  * I2C device name prefix.
@@ -70,6 +73,8 @@ class I2cBus {
    */
   string busName();
 
+  I2cBusStatus status();
+
  private:
   static mutex i2cbus_lock;
 
@@ -77,7 +82,7 @@ class I2cBus {
 
   unsigned long i2c_functions_ = 0;
 
-  I2cBusStatus status_;
+  I2cBusStatus status_ = I2CBUS_STATUS_OK;
 };
 
 }  // Namespace qw_devices
