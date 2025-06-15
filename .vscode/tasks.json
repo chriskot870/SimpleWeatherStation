@@ -14,18 +14,6 @@
       "type": "shell",
       "command": "cmake/stop_gdbserver.sh cmake/gdbserver.config",
       "group": "none",
-    },
-    {
-      "label": "StartGDBwu_set_access",
-      "type": "shell",
-      "command": "cmake/start_gdbserver.sh cmake/gdbwu_set_access.config",
-      "group": "none",
-    },
-    {
-      "label": "StopGDBwu_set_access",
-      "type": "shell",
-      "command": "cmake/stop_gdbserver.sh cmake/gdbwu_set_access.config",
-      "group": "none",
     }
   ]
 }
