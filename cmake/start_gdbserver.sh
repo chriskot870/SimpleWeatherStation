@@ -38,7 +38,7 @@ fi
 ssh $target_user@$target_ip test -f $target_command
 if [ $? -eq 0 ]
 then
-   echo Getting target cksum
+   echo Getting target executable cksum
    target_executable_cksum=`ssh $target_user@$target_ip "cksum $target_command 2>/dev/null" | awk '{print($1)}'`
 else
   target_executable_cksum="0"
@@ -68,7 +68,7 @@ fi
 ssh $target_user@$target_ip test -f $target_config
 if [ $? -eq 0 ]
 then
-   echo Getting target cksum
+   echo Getting target config cksum
    target_config_cksum=`ssh $target_user@$target_ip "cksum $target_config 2>/dev/null" | awk '{print($1)}'`
 else
   target_config_cksum="0"
