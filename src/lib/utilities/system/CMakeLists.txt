@@ -17,3 +17,5 @@ target_compile_options(system_utilities PUBLIC -std=c++23)
 target_link_libraries(system_utilities PUBLIC
   systemd
 )
+
+add_subdirectory(systemd)

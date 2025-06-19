@@ -68,6 +68,7 @@ target_link_libraries(systemdqwweather PRIVATE
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     weatherstation
     systemdqwweather
+    systemd_objects
     i2cdevices
     weatherunderground
     temperature_units

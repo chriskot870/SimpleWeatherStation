@@ -13,6 +13,8 @@
 #include "weather_station.h"
 #include "weather_station_config.h"
 #include "systemd_quietwind_weather.h"
+#include "sd_unit_obj.h"
+#include "sd_service_unit_obj.h"
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
@@ -76,7 +78,17 @@ int main(int argc, char* argv[]) {
     * If we have started from systemd then we always use
     * LOGGER_MODE_JOURNAL.
     */
-  in_systemd = isASystemdProcess();
+  SdUnitObj sd_qw_unit(systemd_destination,
+                       systemd_quietwind_service_path,
+                       systemd_unit_interface);
+  SdServiceUnitObj sd_qw_service_unit(systemd_destination,
+                       systemd_quietwind_service_path,
+                       systemd_service_interface);
+
+  if (sd_qw_unit.getSubState() == "running" && sd_qw_service_unit.getMainPID() == getpid()) {
+    in_systemd = true;
+  }
+  // in_systemd = isASystemdProcess();
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
     logger.log(LOG_INFO, "Logging in Journal Mode");
@@ -165,12 +177,20 @@ int main(int argc, char* argv[]) {
   error = lps22.init();
   if (error != 0) {
     logger.log(LOG_ERR, "Initialization of lps22");
+    if (in_systemd == true) {
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
     exit(1);
   }
 
   x_whoami = lps22.whoami();
   if (x_whoami.has_value() != true) {
     logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
+    if (in_systemd == true) {
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
     exit(1);
   }
   logger.log(LOG_INFO,
@@ -184,11 +204,19 @@ int main(int argc, char* argv[]) {
   error = sht4x.softReset();
   if (error != 0) {
     logger.log(LOG_ERR, "CHT4X reset failed");
+    if (in_systemd == true) {
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
     exit(1);
   }
   x_serial_number = sht4x.getSerialNumber();
   if (x_serial_number.has_value() == false) {
     logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
+    if (in_systemd == true) {
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
     exit(1);
   }
   logger.log(LOG_ERR,
