@@ -235,9 +235,10 @@ int main(int argc, char* argv[]) {
 
   logger.log(LOG_INFO, "Starting");
 
-  WeatherUnderground* wu = new WeatherUnderground(
-      json_config["WeatherUnderground"]["pwu_name"].asString(),
-      json_config["WeatherUnderground"]["pwu_password"].asString());
+  string pwu_name = json_config["WeatherUnderground"]["pwu_name"].asString();
+  string pwu_password = json_config["WeatherUnderground"]["pwu_password"].asString();
+
+  WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
   int reporting_loop_interval =
       min(max(ws_report_interval_min, json_config["WeatherUndergroubnd"]["report_interval"].asInt()),
           ws_report_interval_max);
@@ -253,83 +254,92 @@ int main(int argc, char* argv[]) {
   fds[0].events = POLLIN;
 
   while (true) {
-    /*
-     * get the current time
-     */
-    auto now_time = system_clock::now();
-    logger.log(LOG_INFO, format("{:%F %T}", now_time));
-
-    /*
-     * Gather up all the raw data
-     */
-    auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
-
-    auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
-
-    auto x_lps22_temp = lps22.getTemperatureMeasurement();
-
-    auto x_lps22_pressure = lps22.getPressureMeasurement();
-
-    /*
-     * Put the raw data into the wu data
-     */
-    wu->setVarData("action", "updateraw");
-    //time_point<utc_clock> utc_time = utc_clock::now();
-    wu->setVarData("dateutc", "now");
-    /*
-     * Weather Underground wants fahrenheit
-     */
-    if (x_sht4x_temp.has_value()) {
+    if (pwu_name == "" || pwu_password == "") {
       /*
-       * The SHT4x is supposed to be more accurate so use it
+       * If there is no Weather Underground username and password
+       * then don't gather any data.
        */
-      qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
-      wu->setVarData("tempf", tempf.value());
-      qw_units::Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
-      wu->setVarData("temp2f", temp2f.value());
-    }
+      logger.log(LOG_INFO, "Invalid Weather Underground Authentication");
+    } else {
+      /*
+       * Gather the data. 
+       * get the current time.
+       */
+      auto now_time = system_clock::now();
+      logger.log(LOG_INFO, format("{:%F %T}", now_time));
 
-    if (x_sht4x_humidity.has_value()) {
-      qw_units::RelativeHumidity humidity =
+      /*
+       * Gather up all the raw data
+       */
+      auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
+
+      auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
+
+      auto x_lps22_temp = lps22.getTemperatureMeasurement();
+
+      auto x_lps22_pressure = lps22.getPressureMeasurement();
+
+      /*
+       * Put the raw data into the wu data
+       */
+      wu->setVarData("action", "updateraw");
+      //time_point<utc_clock> utc_time = utc_clock::now();
+      wu->setVarData("dateutc", "now");
+      /*
+       * Weather Underground wants fahrenheit
+       */
+      if (x_sht4x_temp.has_value()) {
+        /*
+         * The SHT4x is supposed to be more accurate so use it
+         */
+        qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
+        wu->setVarData("tempf", tempf.value());
+        qw_units::Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
+        wu->setVarData("temp2f", temp2f.value());
+      }
+
+      if (x_sht4x_humidity.has_value()) {
+        qw_units::RelativeHumidity humidity =
           x_sht4x_humidity.value().relativeHumidityValue();
-      wu->setVarData("humidity", humidity.value());
-    }
+        wu->setVarData("humidity", humidity.value());
+      }
 
-    /*
-     * If there are valid temperature and relative humidity then add a dewpoint
-     */
-    if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-      qw_units::Celsius tempc = x_sht4x_temp.value().celsiusValue();
-      qw_units::RelativeHumidity humidity =
+      /*
+       * If there are valid temperature and relative humidity then add a dewpoint
+       */
+      if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
+        qw_units::Celsius tempc = x_sht4x_temp.value().celsiusValue();
+        qw_units::RelativeHumidity humidity =
           x_sht4x_humidity.value().relativeHumidityValue();
-      Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
-      Fahrenheit dewptf = dewptc;
-      wu->setVarData("dewptf", dewptf.value());
-    }
+        Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
+        Fahrenheit dewptf = dewptc;
+        wu->setVarData("dewptf", dewptf.value());
+      }
 
-    /*
-     * Weather Underground wants inches mercury
-     */
-    if (x_lps22_pressure.has_value()) {
-      qw_units::InchesMercury pressure =
+      /*
+       * Weather Underground wants inches mercury
+       */
+      if (x_lps22_pressure.has_value()) {
+        qw_units::InchesMercury pressure =
           x_lps22_pressure.value().inchesMercuryValue();
-      wu->setVarData("baromin", pressure.value());
+        wu->setVarData("baromin", pressure.value());
+      }
+
+      /*
+       * debug to check out the string
+       */
+      string http_request = wu->buildHttpRequest();
+      logger.log(LOG_INFO, http_request);
+
+      auto errval = wu->sendData();
+      if (errval.has_value() == false) {
+        logger.log(LOG_ERR, "COMM Error");
+      }
+
+      string response = wu->getHttpResponse();
+
+      logger.log(LOG_INFO, response);
     }
-
-    /*
-     * debug to check out the string
-     */
-    string http_request = wu->buildHttpRequest();
-    logger.log(LOG_INFO, http_request);
-
-    auto errval = wu->sendData();
-    if (errval.has_value() == false) {
-      logger.log(LOG_ERR, "COMM Error");
-    }
-
-    string response = wu->getHttpResponse();
-
-    logger.log(LOG_INFO, response);
 
     wu->reset();
 
@@ -348,13 +358,12 @@ int main(int argc, char* argv[]) {
        */
       Json::Value json_config;
       ws_config.getRoot(json_config);
-      WeatherUnderground* wu = new WeatherUnderground(
-          json_config["WeatherUnderground"]["pwu_name"].asString(),
-          json_config["WeatherUnderground"]["pwu_password"].asString());
+      pwu_name = json_config["WeatherUnderground"]["pwu_name"].asString();
+      pwu_password = json_config["WeatherUnderground"]["pwu_password"].asString();
+      wu = new WeatherUnderground(pwu_name, pwu_password);
       reporting_loop_interval = min(
           max(ws_report_interval_min, json_config["ReportInterval"].asInt()),
           ws_report_interval_max);
     }
   }
-
 }
