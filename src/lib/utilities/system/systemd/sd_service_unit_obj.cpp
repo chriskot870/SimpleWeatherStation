@@ -17,7 +17,7 @@ expected<uint64_t, SdBusError> SdServiceUnitObj::getMainPID() {
    SdBusError return_error;
    int r;
    string signature = "u"; // The signature for MainPID property is "u"
-   uint64_t *output_pid;
+   uint32_t pid;
 
    /*
     * Open the system bus
@@ -65,9 +65,9 @@ expected<uint64_t, SdBusError> SdServiceUnitObj::getMainPID() {
   sd_bus_unref(bus);
 
   /*
-   * Convert the message to a string
+   * Convert the message to a 32 bit integer
    */
-  r = sd_bus_message_read(m, signature.c_str(), &output_pid);
+  r = sd_bus_message_read(m, signature.c_str(), &pid);
   sd_bus_message_unref(m);
   if (r < 0) {
     return_error.type = SD_BUS_MESSAGE_ERROR;
@@ -80,9 +80,6 @@ expected<uint64_t, SdBusError> SdServiceUnitObj::getMainPID() {
     return_error.need_free = true;
     return unexpected(return_error);
   }
-  uint64_t pid = *output_pid;
-
-  free(output_pid);
 
   /*
    * return the pid result

@@ -63,16 +63,11 @@ int main(int argc, char* argv[]) {
   string time_string;
   std::expected<uint8_t, int> x_whoami;
   std::expected<uint32_t, int> x_serial_number;
+  std::expected<string, SdBusError> service_state;
+  std::expected<uint32_t, SdBusError> service_pid;
   int error;
   int c;
   bool in_systemd = false;
-
-  logger.setMode(LOGGER_MODE_JOURNAL);
-  logger.log(LOG_INFO, "Logging in Journal Mode");
-  while(1) {
-    sleep(10);
-    logger.log(LOG_INFO, "Quietwind Weather Service looping");
-  }
 
   /*
     * If we have started from systemd then we always use
@@ -85,10 +80,22 @@ int main(int argc, char* argv[]) {
                        systemd_quietwind_service_path,
                        systemd_service_interface);
 
-  if (sd_qw_unit.getSubState() == "running" && sd_qw_service_unit.getMainPID() == getpid()) {
+  service_state = sd_qw_unit.getSubState();
+  if (service_state.has_value() != true) {
+    logger.log(LOG_ERR, "Can't get substate of quietwind weather service");
+    exit(1);
+  }
+
+  service_pid = sd_qw_service_unit.getMainPID();
+  if (service_pid.has_value() != true) {
+    logger.log(LOG_ERR, "Can't get main pid of quietwind weather service");
+    exit(1);
+  }
+
+  if (service_state == "running" && service_pid == getpid()) {
     in_systemd = true;
   }
-  // in_systemd = isASystemdProcess();
+  
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
     logger.log(LOG_INFO, "Logging in Journal Mode");
@@ -176,8 +183,9 @@ int main(int argc, char* argv[]) {
 
   error = lps22.init();
   if (error != 0) {
-    logger.log(LOG_ERR, "Initialization of lps22");
+    logger.log(LOG_ERR, "Initialization of lps22hb Failed");
     if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -188,6 +196,7 @@ int main(int argc, char* argv[]) {
   if (x_whoami.has_value() != true) {
     logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
     if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -205,6 +214,7 @@ int main(int argc, char* argv[]) {
   if (error != 0) {
     logger.log(LOG_ERR, "CHT4X reset failed");
     if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -214,6 +224,7 @@ int main(int argc, char* argv[]) {
   if (x_serial_number.has_value() == false) {
     logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
     if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -345,4 +356,5 @@ int main(int argc, char* argv[]) {
           ws_report_interval_max);
     }
   }
+
 }

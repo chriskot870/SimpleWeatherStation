@@ -88,7 +88,7 @@ expected<string, SdBusError> SdManager::StartUnit(string name, string mode) {
   }
   string output(job);
 
-  free(job);
+  //free(job);
   /*
    * return the string result
    */
@@ -176,7 +176,7 @@ expected<string, SdBusError> SdManager::StopUnit(string name, string mode) {
   }
   string output(job);
 
-  free(job);
+  //free(job);
 
   /*
    * return the string result

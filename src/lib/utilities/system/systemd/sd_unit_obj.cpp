@@ -93,7 +93,6 @@ expected<string, SdBusError>  SdUnitObj::Start(string mode) {
   }
   string output(job);
 
-  free(job);
   /*
    * return the string result
    */
@@ -179,7 +178,6 @@ expected<string, SdBusError> SdUnitObj::Stop(string mode) {
   }
   string output(job);
 
-  free(job);
   /*
    * return the string result
    */
@@ -258,7 +256,6 @@ expected<string, SdBusError> SdUnitObj::getSubState() {
   }
   string output = output_chr;
 
-  free(output_chr);
   /*
    * return the string result
    */
