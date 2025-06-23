@@ -41,11 +41,24 @@ if [ ! -c $device_bus ]; then
     else
       #
       # I2c_arm is not set to off nor is there a commented out line so just add
-      # a line for it
-      # (I am not sure if it can go to the end of the file or not. That might
-      #  put it under category [all] which may be a problem. I am not sure)
-      echo "dtparam=i2c_arm=on" >> $firmware_config_file
+      # a line for it after the [all] section
+      sed -i '/^.*[all]/a dtparam=i2c_arm=on' $firmware_config_file
     fi
+  fi
+fi
+
+#
+# Check for the ds3231 RTC device
+#
+if [ ! -c "/dev/rtc0" ]; then
+  # The RTC0 device doesn't exist so we have to add it to /boot/firmware/config.txt
+  # and then do a reboot before weather station can run
+  need_reboot="true"
+
+  if ! grep -q '^\s*dtoverlay=i2c-rtc,ds3231' $firmware_config_file; then
+    # Didn't find an entry so add it
+    # We add it after the i2c_arm line since we know it should be there
+    sed -i '/^dtparam=i2c_arm/a dtoverlay=i2c-rtc,ds3231' $firmware_config_file
   fi
 fi
 
