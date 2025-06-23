@@ -176,6 +176,15 @@ int main(int argc, char* argv[]) {
   ws_config.getRoot(json_config);
 
   I2cBus i2c_bus = I2cBus(json_config["I2cBus"]["weather_devices"].asString());
+  if (i2c_bus.status() !=  qw_devices::I2CBUS_STATUS_OK) {
+    logger.log(LOG_ERR, "Initialization of I2C bus failed");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 

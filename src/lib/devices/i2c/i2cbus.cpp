@@ -42,6 +42,7 @@ I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
      * We weren't able to get the functions.
      */
     status_ = I2CBUS_STATUS_UNKNOWN_FUNCTIONS;
+    return;
   }
 
   status_ = I2CBUS_STATUS_OK;
