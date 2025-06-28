@@ -1,0 +1,10 @@
+[Unit]
+Description=QuietWind Weather Station
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/local/qw/bin/WeatherStation
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

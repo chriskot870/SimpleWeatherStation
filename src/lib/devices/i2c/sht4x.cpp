@@ -1,223 +1,356 @@
 /*
- * This contains the driver for the SHT4x series. Specifically the SHT45
+ * Copyright 2024 Chris Kottaridis
  */
 
-#include <linux/i2c-dev.h>
-#include <i2c/smbus.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <chrono>
-#include <cstring>
-#include <algorithm>
+/*
+ * This contains the driver for the SHT4x series. Specifically the SHT45
+ */
+#include "include/sht4x.h"
 
-#include "sht4x.h"
+namespace qw_devices {
+
+mutex I2cSht4x::sht4x_devices_lock;
+map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> I2cSht4x::sht4x_devices;
+
+I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
+    : i2cbus_(i2cbus), slave_address_(slave_address) {
+
+  /*
+   * Check that the i2c bus name is a valid name
+   */
+  if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),
+                               i2c_devicename_prefix) != 0) {
+    return;
+  }
+  /*
+   * Check that slave addresses are valid
+   */
+  auto item = find(sht4x_slave_address_options.begin(),
+                   sht4x_slave_address_options.end(), slave_address_);
+  if (item == sht4x_slave_address_options.end()) {
+    return;
+  }
+
+  /*
+   * If the names are valid, Create the device
+   */
+  device_.bus_name_ = i2cbus.busName();
+  device_.slave_address_ = slave_address;
+
+  /*
+   * If the device is already on the list then some other instance has
+   * validated it and we don't need to add it to the list
+   */
+  lock_guard<mutex> guard_devices(sht4x_devices_lock);
+  if (sht4x_devices.contains(device_) == true) {
+    /*
+     * Some previous instance has added the device to the devices list
+     */
+    device_data_ = sht4x_devices[device_];
+    return;
+  }
+
+  /*
+   * Create a DeviceData and use it to see if serial number succeeds
+   * If serial number succeeds we count it OK. We don't know what
+   * the value should be for each device so we assume if we don't
+   * get an error it is an SHT4x device
+   * 
+   * TODO: I should be using make_shared but it doesn't compile.
+   */
+  device_data_ = shared_ptr<Sht4xDeviceData>(new Sht4xDeviceData());
+
+  expected<uint8_t, int> x_return = getSerialNumber();
+  if (x_return.has_value() == false) {
+    /*
+     * I can't get the whoami so reset device_data_ to nullptr
+     * to indicate the device doesn't seem to be at the bus and slave
+     * address provided.
+     * This causes all other routines to call an ENODEV error
+     */
+    device_data_.reset();
+    // delete device_data_;
+    // device_data_ = nullptr;
+    return;
+  }
+
+  sht4x_devices[device_] = device_data_;
+
+  return;
+}
 
 uint8_t I2cSht4x::deviceAddress() {
-
-    return kSht4xI2cAddress;
+  return slave_address_;
 }
 
-bool I2cSht4x::getSerialNumber(Sht4xSerialNumber_t *serial_number) {
-    int32_t retval;
-    int i2c_bus;
-    uint8_t command = kSht4xCommandReadSerialNumber;
+expected<uint32_t, int> I2cSht4x::getSerialNumber() {
+  int32_t retval;
+  int i2c_bus;
+  uint8_t command = kSht4xCommandReadSerialNumber;
 
-   /*
-    * The serial number shouldn't change so we only have to get it once.
-    * Check to see if all elements of the private serial number are 0.
-    * If so then it means we haven't read the serial number before.
-    * So, read it now.
-    */
+  /*
+   * Serial is two 16 bit values with a CRC after each one. So we need to read 6 bytes
+   */
+  uint8_t read_buffer[kSht4xSerialReturnLength] = {0, 0, 0, 0, 0, 0};
 
-    for( auto i : serial_number_) {
-        if ( i != 0) {
-            memcpy(serial_number, serial_number_, sizeof(Sht4xSerialNumber_t));
-            return true;
-        }
-    }
+  /*
+   * The serial number shouldn't change so we only have to get it once.
+   * Check to see if all elements of the private serial number are 0.
+   * If so then it means we haven't read the serial number before.
+   * So, read it now.
+   */
 
-    /*
-     * If I get here then I need to fetch the serial number
-     */
-    i2c_bus = open("/dev/i2c-1", O_RDWR);
-    if ( i2c_bus != 0) {
-        return false;
-    }
+  if (serial_number_ != 0) {
+    return serial_number_;
+  }
 
-    /*
-     * Select the slave address
-     */
-    if (ioctl(i2c_bus, I2C_SLAVE, kSht4xI2cAddress)) {
-        close(i2c_bus);
-        return false;
-    }
+  if (device_data_ == nullptr) {
+    return unexpected(ENODEV);
+  }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
 
-    i2c_smbus_read_i2c_block_data(i2c_bus, kSht4xCommandReset,sizeof(Sht4xSerialNumber_t),  serial_number_);
+  /*
+   * Write the serial number command to the device
+   */
+  retval = i2cbus_.writeCommand(slave_address_, &command, sizeof(command));
 
-    close(i2c_bus);
+  /*
+   * I seem to need a delay here so use the high reliability time
+   */
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
-    memcpy(serial_number, serial_number_, sizeof(Sht4xSerialNumber_t));
+  /*
+   * Now get the result of the command
+   */
+  retval = i2cbus_.readCommandResult(slave_address_, read_buffer,
+                                     sizeof(read_buffer));
+  /*
+   * I am not sure I need this extra or not.
+   * This could be just tpu value but for now give me plenty of delay
+   */
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
-    return true;
+  /*
+   * read_buffer high order bytes are in offsets 0 and 1. Offset 2 is the
+   * CRC for offset 0 and 1. Offsets 3 and 4 are the lower order bytes
+   * followed by a CRC of offset 3 and 4 in offset 5.
+   */
+  serial_number_ = (read_buffer[0] << 24) + (read_buffer[1] << 16) +
+                   (read_buffer[3] << 8) + read_buffer[4];
+
+  return serial_number_;
 }
 
-void I2cSht4x::softReset() {
-    int32_t retval;
-    int i2c_bus;
+int I2cSht4x::softReset() {
+  int32_t retval;
+  uint8_t command = kSht4xCommandReset;
 
-    /*
-     * If I get here then I need to fetch the serial number
-     */
-    i2c_bus = open("/dev/i2c-1", O_RDWR);
-    if ( i2c_bus != 0) {
-        return;
-    }
+  if (device_data_ == nullptr) {
+    return ENODEV;
+  }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
 
-    /*
-     * Select the slave address
-     */
-    if (ioctl(i2c_bus, I2C_SLAVE, kSht4xI2cAddress)) {
-        close(i2c_bus);
-        return;
-    }
+  /*
+   * Write the command to the devices
+   */
+  retval = i2cbus_.writeCommand(slave_address_, &command, sizeof(command));
+  /*
+   * Give it time to do the reset
+   */
+  usleep(sht4x_min_delays[SHT4X_TIMING_SOFT_RESET]);
 
-    /*
-     * Send the reset command
-     */
-    retval = i2c_smbus_write_quick(i2c_bus, kSht4xCommandReset);
-
-    close(i2c_bus);
-
-    return;
+  return 0;
 }
 
-float I2cSht4x::getTemperature(TemperatureUnit_t unit) {
-    float temperature;
+expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
+  int error;
+  float temperature;
 
-    if (measurementExpired() == true) {
-        getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+  if (device_data_ == nullptr) {
+    return unexpected(ENODEV);
+  }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
+
+  if (measurementExpired(device_data_->temperature_measurement_steady_time_,
+                         temperature_measurement_interval_) == true) {
+    error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+    if (error != 0) {
+      return unexpected(error);
     }
+  }
 
-    switch(unit) {
-        case TEMPERATURE_UNIT_FAHRENHEIT :
-            temperature = (kSht4xTemperatureFahrenheitSlope * (float)temperature_measurement_) - kSht4xTemperatureFahrenheitOffset;
-            break;
-        case TEMPERATURE_UNIT_CELSIUS :
-            temperature = (kSht4xTemperatureCelsiusSlope * (float)temperature_measurement_) - kSht4xTemperatureCelsiusOffset;
-            break;
-        case TEMPERATURE_UNIT_KELVIN :
-            temperature = (kSht4xTemperatureKelvinSlope * (float)temperature_measurement_) - kSht4xTemperatureKelvinOffset;
-            break;
-    }
+  /*
+   * The temprature in Celsius
+   */
+  temperature = ((kSht4xTemperatureCelsiusMultiplier *
+                  static_cast<float>(device_data_->temperature_measurement_)) /
+                 kSht4xTemperatureCelsisusDivisor) -
+                kSht4xTemperatureCelsiusOffset;
 
-    return temperature;
+  Celsius tempc(temperature);
+
+  TemperatureMeasurement measurement(
+      tempc, kSht4xTemperatureAccuracy,
+      device_data_->temperature_measurement_system_time_);
+
+  return measurement;
 }
 
-timeslice I2cSht4x::getMeasurementInterval() {
+milliseconds I2cSht4x::getMeasurementInterval(Sht4xReading_t reading) {
+  milliseconds interval(0);
+  /*
+   * Return the interval allowed
+   */
+  switch (reading) {
+    case SHT4X_TEMPERATURE:
+      interval = temperature_measurement_interval_;
+      break;
+    case SHT4X_HUMIDITY:
+      interval = humidity_measurement_interval_;
+      break;
+  }
 
-    return measurement_time_;
+  return interval;
 }
 
-void I2cSht4x::setMeasurementInterval(timeslice interval) {
+int I2cSht4x::setMeasurementInterval(milliseconds interval,
+                                     Sht4xReading_t reading) {
+  milliseconds measurement_interval;
 
-    measurement_time_ = interval;
+  measurement_interval = max(interval, kSht44xMinimumMeasurementInterval);
 
-    return;
+  switch (reading) {
+    case SHT4X_TEMPERATURE:
+      temperature_measurement_interval_ = measurement_interval;
+      break;
+    case SHT4X_HUMIDITY:
+      humidity_measurement_interval_ = measurement_interval;
+      break;
+  }
+
+  return 0;
 }
 
-float I2cSht4x::getRelativeHumidity() {
-    float relative_humidity;
+expected<RelativeHumidityMeasurement, int>
+I2cSht4x::getRelativeHumidityMeasurement() {
+  float relative_humidity;
+  int error;
 
-    if (measurementExpired() == true) {
-        getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+  if (device_data_ == nullptr) {
+    return unexpected(ENODEV);
+  }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
+
+  if (measurementExpired(device_data_->humidity_measurement_steady_time_,
+                         humidity_measurement_interval_) == true) {
+    error = getMeasurement(SHT4X_MEASUREMENT_PRECISION_HIGH);
+    if (error != 0) {
+      return unexpected(error);
     }
+  }
 
-    relative_humidity = (kSht4xRelativeHumiditySlope * (float)relative_humidity_measurement_) - kSht4xRelativeHumidityOffset;
+  relative_humidity =
+      ((kSht4xRelativeHumidityMultiplier *
+        static_cast<float>(device_data_->humidity_measurement_)) /
+       kSht4xRelativeHumidityDivisor) -
+      kSht4xRelativeHumidityOffset;
 
-    /*
-     * SHT4x document says:
-     * cropping of the RH signal to the range of 0 %RH … 100 %RH is advised.
-     */
-    if (relative_humidity < 0.0) {
-        return 0.0;
-    }
-    if (relative_humidity > 100.0) {
-        return 100.0;
-    }
+  /*
+   * SHT4x document says:
+   * cropping of the RH signal to the range of 0 %RH … 100 %RH is advised.
+   */
+  relative_humidity =
+      min(kSht4xHumidityMax, max(kSht4xHumidityMin, relative_humidity));
 
-    return relative_humidity;
+  RelativeHumidity rhdata(relative_humidity);
+
+  RelativeHumidityMeasurement measurement(
+      rhdata, kSht44xHumidityAccuracy,
+      device_data_->humidity_measurement_system_time_);
+
+  return measurement;
 }
 
 /*
  * Private Methods
  */
-void I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
-    int retval;
-    int i2c_bus;
-    uint8_t command;
-    uint8_t measurement[] = {0, 0, 0, 0, 0, 0};
+int I2cSht4x::getMeasurement(Sht4xMeasurmentMode mode) {
+  int retval;
+  int i2c_bus;
+  struct i2c_msg fetch_serial_com;
+  struct i2c_rdwr_ioctl_data xfer;
+  uint8_t command = sht4x_measurement_command_map[mode];
 
-    command = sht3x_measurement_command_map[mode];
+  if (device_data_ == nullptr) {
+    return ENODEV;
+  }
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
 
-    i2c_bus = open("/dev/i2c-1", O_RDWR);
-    if ( i2c_bus != 0) {
-        return;
-    }
+  /*
+   * The data is transferred in the following format
+   * Offsets: 0,1 16 bits of temperature
+   *          2   8 bits of CRC for temperature
+   *          3,4 16 bits of humidity
+   *          5   8 bits of CRC for humidity
+   */
+  uint8_t read_buffer[kSht4xResponseLength] = {0, 0, 0, 0, 0, 0};
 
-    /*
-     * Select the slave address
-     */
-    if (ioctl(i2c_bus, I2C_SLAVE, kSht4xI2cAddress)) {
-        close(i2c_bus);
-        return;
-    }
-    i2c_smbus_read_i2c_block_data(i2c_bus, command, sizeof(measurement), measurement);
+  /*
+   * Increment the counter that monitors how often this routine gets called
+   */
+  device_data_->read_total_++;
+  measurement_count_++;
 
-    /*
-     * One read returns both the temperature and the relative humidity
-     * So, we have to break out each value and store them in the private variables
-     */
-    /*
-    short *temp_ptr, temp;
-    temp_ptr = (short *)&measurement[3];
-    temp = *temp_ptr;
-    */
-    temperature_measurement_ = (measurement[kSht4xDataTemperatureMsbOffset] << 8) | measurement[kSht4xDataTemperatureLsbOffset];
-    /*
-    short *hum_ptr, hum;
-    hum_ptr = (short *)&measurement[0];
-    hum = *hum_ptr;
-     */
-    relative_humidity_measurement_ = (measurement[kSht4xDataRelativeHumidityMsbOffset] << 8) | measurement[kSht4xDataRelativeHumidityLsbOffset];
+  i2cbus_.writeCommand(slave_address_, &command, sizeof(command));
 
-    last_read_ = std::chrono::steady_clock::now();
+  /*
+   * Give it time to make the measurement
+   */
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
 
-    return;
+  /*
+   * Now read the result
+   */
+  i2cbus_.readCommandResult(slave_address_, read_buffer, sizeof(read_buffer));
+
+  /*
+   * I am not sure I need this extra or not.
+   * This could be just tpu value but for now give me plenty of delay
+   */
+  usleep(sht4x_min_delays[SHT4X_TIMING_MEASUREMENT_HIGH_REPEATABILITY]);
+
+  /*
+   * We need figure out how to check the CRC's
+   */
+  device_data_->temperature_measurement_ =
+      (read_buffer[0] << 8) + read_buffer[1];
+  device_data_->temperature_measurement_system_time_ = system_clock::now();
+  device_data_->temperature_measurement_steady_time_ = steady_clock::now();
+
+  device_data_->humidity_measurement_ = (read_buffer[3] << 8) + read_buffer[4];
+  device_data_->humidity_measurement_system_time_ = system_clock::now();
+  device_data_->humidity_measurement_steady_time_ = steady_clock::now();
+
+  return 0;
 }
 
-bool I2cSht4x::measurementExpired() {
+bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time,
+                                  milliseconds interval) {
+  /*
+   * check if the current measurement has expired
+   */
+  if (measurement_count_ == 0) {
+    return true;
+  }
+  time_point<steady_clock> now = steady_clock::now();
 
-    /*
-     * check if the current measurement has expired
-     * If time of measurement is zero then no measurement has been
-     * taken so count it as expired.
-     * Make the zero check early so if it is true we don't need to bother calling
-     * any functions to get the current time.
-     */
-    /*
-    if (time_of_measurement_ms_ == 0) {
-        return true;
-    }
-    */
+  auto time_diff = duration_cast<milliseconds>(now - last_read_time);
 
-   auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_read_);
+  if (time_diff > interval) {
+    return true;
+  }
 
-    if (elapsed_time > measurement_time_) {
-        return true;
-    }
-
-    return false;
+  return false;
 }
 
+}  // namespace qw_devices

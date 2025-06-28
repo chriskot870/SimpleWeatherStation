@@ -1,0 +1,36 @@
+{
+   "WeatherUndegroundFile": "/usr/local/qw/etc/ws_wu_config.json",
+   "Software": {
+      "Version": {
+         "Major": 0,
+         "Minor": 1,
+         "Patchlevel": 0
+      }
+   },
+   "Hardware": {
+      "Model": "1000",
+      "I2c": {
+         "Bus": {
+            "name": "/dev/i2c-1",
+            "device_addresses": {
+               "sht4x": 68,
+               "lps22": 93,
+               "ds3231": 104
+            }
+         },
+         "Devices": {
+            "sht4x": [
+               68,
+               69
+            ],
+            "lps22": [
+               93,
+               94
+            ],
+            "ds3231": [
+               104
+            ]
+         }
+      }
+   }
+}

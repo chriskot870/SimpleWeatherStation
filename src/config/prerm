@@ -1,0 +1,28 @@
+#!/usr/bin/bash
+#
+# This script is run prior to removing the Weather Station Package
+#
+
+# If the service is running or enabled stop it and disable it
+#
+qw_service="quietwind.weather.service"
+
+systemctl -q is-active $qw_service
+if [ $? -eq 0 ]; then
+  systemctl -q stop $qw_service
+fi
+
+systemctl -q is-enabled $qw_service
+if [ $? -eq 0 ]; then
+  systemctl -q disable $qw_service
+fi
+
+#
+# Now reload the daemons
+#
+systemctl daemon-reload
+
+#
+# It is now safe to remove the files in the package
+#
+exit 0

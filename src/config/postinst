@@ -1,0 +1,97 @@
+#!/usr/bin/bash
+#
+# This script is run after the installation of Weather Station.
+# We to to stop the systemd service if it is running or enabled
+#
+
+qw_service="quietwind.weather.service"
+qw_install_prefix="/usr/local/qw"
+qw_weather_config="etc/ws_config.json"
+qw_weather_config_path="$qw_install_prefix/$qw_weather_config"
+firmware_config_file="/boot/firmware/config.txt"
+need_reboot="false"
+
+#
+# Make sure the I2c bus used by the weather sensors exists
+#
+device_bus=`jq -r '.I2cBus.weather_devices' < $qw_weather_config_path`
+if [ ! -c $device_bus ]; then
+  # The I2C bus doesn't exist so we have to add it to /boot/firmware/config.txt
+  # and then do a reboot before weather station can run
+  need_reboot="true"
+
+  #
+  # Check if there is a line that sets the i2c_arm parameter
+  #
+  if ! grep -q "^\s*dtparam=i2c_arm=on" $firmware_config_file; then
+    
+    # We have to add the dtparam=i2c_arm=on line to the config.txt file
+    # Check if there is a commented out line
+    if grep -q "^.*#.*dtparam=i2c_arm" $firmware_config_file; then
+      #
+      # There is a line for i2c_arm, but it is commented out.
+      # Change the line to remove comment and set to on
+      #
+      sed -i 's/^.*#.*dtparam=i2c_arm.*/dtparam=i2c_arm=on/' $firmware_config_file
+    elif grep -q "^.*dtparam=i2c_arm=off" $firmware_config_file; then
+      #
+      # arm_i2c is specifically set to off. Change the line to set to on
+      #
+      sed -i 's/^.*dtparam=i2c_arm=off.*/dtparam=i2c_arm=on/' $firmware_config_file
+    else
+      #
+      # I2c_arm is not set to off nor is there a commented out line so just add
+      # a line for it after the [all] section
+      sed -i '/^.*[all]/a dtparam=i2c_arm=on' $firmware_config_file
+    fi
+  fi
+fi
+
+#
+# Check for the ds3231 RTC device
+#
+if [ ! -c "/dev/rtc0" ]; then
+  # The RTC0 device doesn't exist so we have to add it to /boot/firmware/config.txt
+  # and then do a reboot before weather station can run
+  need_reboot="true"
+
+  if ! grep -q '^\s*dtoverlay=i2c-rtc,ds3231' $firmware_config_file; then
+    # Didn't find an entry so add it
+    # We add it after the i2c_arm line since we know it should be there
+    sed -i '/^dtparam=i2c_arm/a dtoverlay=i2c-rtc,ds3231' $firmware_config_file
+  fi
+fi
+
+systemctl daemon-reload
+
+#
+# Wether we need to reboot or not Check if it is enabled. If not enable it
+#
+systemctl -q is-enabled $qw_service
+if [ $? -ne 0 ]; then
+  systemctl -q enable $qw_service
+fi
+
+#
+# If we don't need to reboot to get the I2C bus device go
+# ahead and restart the service.
+#
+if [ $need_reboot = "false" ]; then
+  #
+  # If it is currently running pick up the new version
+  # restart will stop and start a new one if one is running or
+  # start a new one if not
+  # 
+  systemctl -q restart $qw_service
+else
+  #
+  # We need to indicate that a reboot is needed
+  #
+  touch /run/reboot-required
+  # If the package isn't already in the reboot-required.pkgs file then add it
+  if [ ! -f /run/reboot-required.pkgs ] || ! grep -q "qw-weatherstation" /run/reboot-required.pkgs; then
+    echo "qw-weatherstation" >> /run/reboot-required.pkgs
+  fi
+fi
+
+exit 0

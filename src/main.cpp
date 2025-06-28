@@ -1,47 +1,412 @@
 /*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+/*
  * The main program to show the data.
  * Right now it's pretty simple
  */
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <unistd.h>
 
-using namespace std;
+#include "locking_file.h"
+#include "logger.h"
+#include "systemd.h"
+#include "weather_station.h"
+#include "weather_station_config.h"
+#include "weatherunderground_config.h"
+#include "systemd_quietwind_weather.h"
+#include "sd_unit_obj.h"
+#include "sd_service_unit_obj.h"
 
-constexpr char sht4x_path[] = "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2";
-constexpr char sht4x_temperature_path[] = "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2/temp1_input";
-constexpr char sht4x_humidity_path[] = "/sys/bus/i2c/drivers/sht4x/1-0044/hwmon/hwmon2/humidity1_input";
+#include "include/lps22.h"
+#include "include/sht4x.h"
 
-int main() {
-    ifstream tempfh, humidityfh;
-    string temperature;
-    string humidity;
-    float ctemp, hum, ftemp;
+#include "fmt/chrono.h"
+#include "fmt/format.h"
+#include "include/weather_underground.h"
 
-    cout << "Starting" << endl;
-    while(true) {
-    	tempfh.open(string(sht4x_temperature_path), fstream::in);
-    	if (tempfh.is_open()) {
-            getline(tempfh, temperature);
-            ctemp = atof(&temperature[0])/1000;
-            ftemp = ((9*ctemp)/5)+32;
-            printf("%5.2fF %5.2fC\n", ftemp, ctemp);
-            tempfh.close();
-        } else {
-            cout << "sht4x temperature unavailable\n";
+#include "celsius.h"
+#include "fahrenheit.h"
+#include "inches_mercury.h"
+#include "kelvin.h"
+#include "millibar.h"
+#include "relative_humidity.h"
+
+#include "dewpoint.h"
+
+using fmt::format;
+using qw_devices::I2cBus;
+using qw_devices::I2cSht4x;
+using qw_devices::kLps22hbI2cPrimaryAddress;
+using qw_devices::kSht4xI2cPrimaryAddress;
+using qw_devices::Lps22;
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::InchesMercury;
+using qw_units::Kelvin;
+using qw_units::Millibar;
+using std::cout;
+using std::endl;
+using std::get;
+using std::holds_alternative;
+using std::ifstream;
+using std::ofstream;
+using std::string;
+using std::chrono::system_clock;
+using std::chrono::time_point;
+using std::chrono::utc_clock;
+
+extern Logger logger;
+
+int main(int argc, char* argv[]) {
+  string temperature;
+  string humidity;
+  float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
+  string time_string;
+  std::expected<uint8_t, int> x_whoami;
+  std::expected<uint32_t, int> x_serial_number;
+  std::expected<string, SdBusError> service_state;
+  std::expected<uint32_t, SdBusError> service_pid;
+  int error;
+  int c;
+  bool in_systemd = false;
+
+  /*
+    * If we have started from systemd then we always use
+    * LOGGER_MODE_JOURNAL.
+    */
+  SdUnitObj sd_qw_unit(systemd_destination,
+                       systemd_quietwind_service_path,
+                       systemd_unit_interface);
+  SdServiceUnitObj sd_qw_service_unit(systemd_destination,
+                       systemd_quietwind_service_path,
+                       systemd_service_interface);
+
+  service_state = sd_qw_unit.getSubState();
+  if (service_state.has_value() != true) {
+    logger.log(LOG_ERR, "Can't get substate of quietwind weather service");
+    exit(1);
+  }
+
+  service_pid = sd_qw_service_unit.getMainPID();
+  if (service_pid.has_value() != true) {
+    logger.log(LOG_ERR, "Can't get main pid of quietwind weather service");
+    exit(1);
+  }
+
+  if (service_state == "running" && service_pid == getpid()) {
+    in_systemd = true;
+  }
+  
+  if (in_systemd == true) {
+    logger.setMode(LOGGER_MODE_JOURNAL);
+    logger.log(LOG_INFO, "Logging in Journal Mode");
+  }
+  /*
+   * Determine the logging mode from parameters
+   */
+  while ((c = getopt(argc, argv, "l:")) != -1) {
+    switch (c) {
+      case 'l':
+        /*
+         * If we are running from systemd then the
+         * mode will already have been set to LOGGER_MODE_JOURNAL.
+         * We ignore any command line option.
+         */
+        if (in_systemd == true) {
+          break;
         }
-
-        humidityfh.open(string(sht4x_humidity_path), fstream::in);
-        if (humidityfh.is_open()) {
-            getline(humidityfh, humidity);
-            hum = atof(&humidity[0])/1000;
-            printf("%5.2f%%\n", hum);
-            humidityfh.close();
+        string value = optarg;
+        size_t pos;
+        /*
+         * Check if it begins with file and has a colon
+         */
+        if (((pos = value.find(":")) != string::npos) &&
+            (value.substr(0, args_log_mode_file.length()) ==
+             args_log_mode_file)) {
+          /*
+           * It has a colon so see if it is just "file:"
+           */
+          if (value == (args_log_mode_file + ":")) {
+            logger.setMode(LOGGER_MODE_FILE);
+            logger.log(LOG_INFO, "Logging in File Mode to cout");
+            break;
+          } else {
+            /*
+             * We know it has "file:<stuff>".
+             * So erase the "file:" and we are left with the path
+             */
+            value.erase(0, pos + 1);
+            std::filesystem::path fpath = value;
+            if (std::filesystem::exists(fpath) == false) {
+              std::filesystem::create_directories(fpath.parent_path());
+              std::ofstream log_stream(fpath.string());
+              if (log_stream.is_open() == true) {
+                log_stream.close();
+              }
+            }
+            logger.setMode(LOGGER_MODE_FILE, fpath);
+            logger.log(LOG_INFO, format("Logging to file: {}", fpath.c_str()));
+            break;
+          }
         } else {
-            cout << "sht4x humidity unavailable\n";
+          /*
+           * No colon so check if it is exactly "file"
+           */
+          if (value == args_log_mode_file) {
+            logger.setMode(LOGGER_MODE_FILE);
+            logger.log(LOG_INFO, "Logging in File Mode to cout");
+            break;
+          }
         }
-        cout << endl;
-        sleep(10);
+        if (value == "none") {
+          logger.setMode(LOGGER_MODE_NOLOGGING);
+          logger.log(LOG_INFO, "No Logging");
+          break;
+        }
     }
+  }
+
+  /*
+   * Load the configuration file
+   */
+  WeatherStationConfig ws_config(weather_station_config);
+  Json::Value json_config;
+  ws_config.getRoot(json_config);
+  
+
+  string software_version = json_config["Software"]["Version"]["Major"].asString() + "." +
+                            json_config["Software"]["Version"]["Minor"].asString() + "." +
+                            json_config["Software"]["Version"]["Patchlevel"].asString();
+
+  logger.log(LOG_INFO, format("Software version {}", software_version));
+  logger.log(LOG_INFO, "Checking Hardware");
+  logger.log(LOG_INFO, format("Model: {}",json_config["Hardware"]["Model"].asString()));
+
+  I2cBus i2c_bus = I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
+  if (i2c_bus.status() !=  qw_devices::I2CBUS_STATUS_OK) {
+    logger.log(LOG_ERR, "Initialization of I2C bus failed");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+
+  Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
+
+  error = lps22.init();
+  if (error != 0) {
+    logger.log(LOG_ERR, "Initialization of lps22hb Failed");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+
+  x_whoami = lps22.whoami();
+  if (x_whoami.has_value() != true) {
+    logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+  logger.log(LOG_INFO,
+             format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
+
+  /*
+   * The sht4x device is connected to I2c bus 1 at the primary address
+   */
+  I2cSht4x sht4x(i2c_bus, kSht4xI2cPrimaryAddress);
+
+  error = sht4x.softReset();
+  if (error != 0) {
+    logger.log(LOG_ERR, "CHT4X reset failed");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+  x_serial_number = sht4x.getSerialNumber();
+  if (x_serial_number.has_value() == false) {
+    logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+  logger.log(LOG_ERR,
+             format("SHT44 Serial Number: {}", x_serial_number.value()));
+
+  logger.log(LOG_INFO, "Starting");
+
+  /*
+   * Get the Weather Underground configuration
+   */
+  WeatherUndergroundConfig wu_config(json_config["WeatherUndegroundFile"].asString());
+  if (wu_config.exists() == false) {
+    logger.log(LOG_INFO, "Can't get Weather Underground configuration info");
+    exit(1);
+  }
+  
+  Json::Value wu_json_config;
+  if (wu_config.getRoot(wu_json_config) == false) {
+    logger.log(LOG_INFO,
+      format("Unable to parse Weather Underground config file: {}", json_config["WeatherUndegroundFile"].asString()));
+      exit(1);
+  }
+  
+  if (wu_json_config.isMember("pwu_name") == false || wu_json_config.isMember("pwu_password") == false) {
+    logger.log(LOG_INFO, "Improperly formatted Weather Underground config file");
+
+  }
+  string pwu_name = wu_json_config["pwu_name"].asString();
+  string pwu_password = wu_json_config["pwu_password"].asString();
+
+  WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
+  int reporting_loop_interval = wu_default_report_interval;
+  if (wu_json_config.isMember("report_interval") == true) {
+    reporting_loop_interval =
+      min(max(wu_report_interval_min, wu_json_config["report_interval"].asInt()),
+          wu_report_interval_max);
+  }
+  /*
+   * Setup inotify to get notified when config file changes during poll
+   */
+  int inotify_fd = inotify_init();
+  int watch_fd =
+      inotify_add_watch(inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(), IN_MODIFY);
+  pollfd fds[1];
+  fds[0].fd = inotify_fd;
+  fds[0].events = POLLIN;
+
+  while (true) {
+    if (pwu_name == "" || pwu_password == "") {
+      /*
+       * If there is no Weather Underground username and password
+       * then don't gather any data.
+       */
+      logger.log(LOG_INFO, "Invalid Weather Underground Authentication");
+    } else {
+      /*
+       * Gather the data. 
+       * get the current time.
+       */
+      auto now_time = system_clock::now();
+      logger.log(LOG_INFO, format("{:%F %T}", now_time));
+
+      /*
+       * Gather up all the raw data
+       */
+      auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
+
+      auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
+
+      auto x_lps22_temp = lps22.getTemperatureMeasurement();
+
+      auto x_lps22_pressure = lps22.getPressureMeasurement();
+
+      /*
+       * Put the raw data into the wu data
+       */
+      wu->setVarData("action", "updateraw");
+      //time_point<utc_clock> utc_time = utc_clock::now();
+      wu->setVarData("dateutc", "now");
+      /*
+       * Weather Underground wants fahrenheit
+       */
+      if (x_sht4x_temp.has_value()) {
+        /*
+         * The SHT4x is supposed to be more accurate so use it
+         */
+        qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
+        wu->setVarData("tempf", tempf.value());
+        qw_units::Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
+        wu->setVarData("temp2f", temp2f.value());
+      }
+
+      if (x_sht4x_humidity.has_value()) {
+        qw_units::RelativeHumidity humidity =
+          x_sht4x_humidity.value().relativeHumidityValue();
+        wu->setVarData("humidity", humidity.value());
+      }
+
+      /*
+       * If there are valid temperature and relative humidity then add a dewpoint
+       */
+      if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
+        qw_units::Celsius tempc = x_sht4x_temp.value().celsiusValue();
+        qw_units::RelativeHumidity humidity =
+          x_sht4x_humidity.value().relativeHumidityValue();
+        Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
+        Fahrenheit dewptf = dewptc;
+        wu->setVarData("dewptf", dewptf.value());
+      }
+
+      /*
+       * Weather Underground wants inches mercury
+       */
+      if (x_lps22_pressure.has_value()) {
+        qw_units::InchesMercury pressure =
+          x_lps22_pressure.value().inchesMercuryValue();
+        wu->setVarData("baromin", pressure.value());
+      }
+
+      /*
+       * debug to check out the string
+       */
+      string http_request = wu->buildHttpRequest();
+      logger.log(LOG_INFO, http_request);
+
+      auto errval = wu->sendData();
+      if (errval.has_value() == false) {
+        logger.log(LOG_ERR, "COMM Error");
+      }
+
+      string response = wu->getHttpResponse();
+
+      logger.log(LOG_INFO, response);
+    }
+
+    wu->reset();
+
+    int poll_cnt = poll(fds, 1, reporting_loop_interval);
+    /*
+     * If poll_cnt is zero it means the configuration file was
+     * not updated and we can just cycle through and gather
+     * another set of data.
+     */
+    if (poll_cnt != 0 || (pwu_name == "" || pwu_password == "")) {
+      delete wu;
+      /*
+       * If we got here it means the configuration file was
+       * changed. Or the authentication was invalid. So, we have to
+       * get a new username and password and then gather more data.
+       */
+      if ((wu_config.getRoot(wu_json_config) == false) ||
+          (wu_json_config.isMember("pwu_name") == false) ||
+          (wu_json_config.isMember("pwu_password") == false)) {
+        logger.log(LOG_INFO, "Unable to parse Weather Underground config file");
+      } else {
+        pwu_name = wu_json_config["pwu_name"].asString();
+        pwu_password = wu_json_config["pwu_password"].asString();
+        wu = new WeatherUnderground(pwu_name, pwu_password);
+      }
+      reporting_loop_interval = wu_default_report_interval;
+      if (wu_json_config.isMember("report_interval") == true) {
+        reporting_loop_interval = min(
+          max(wu_report_interval_min, json_config["report_interval"].asInt()),
+          wu_report_interval_max);
+      }
+    }
+  }
 }
