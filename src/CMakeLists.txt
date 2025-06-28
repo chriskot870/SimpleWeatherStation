@@ -27,6 +27,7 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 #
 add_library(weatherstation STATIC
   weather_station_config.cpp
+  weatherunderground_config.cpp
 )
 
 # What are weatherstation library compile options
@@ -87,6 +88,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 # 
 install(TARGETS WeatherStation DESTINATION bin)
 install(FILES config/ws_config.json DESTINATION etc)
+install(FILES config/ws_wu_config.json DESTINATION etc)
 install(FILES config/quietwind.weather.service DESTINATION /lib/systemd/system)
 
 #

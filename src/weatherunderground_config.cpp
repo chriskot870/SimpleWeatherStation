@@ -1,5 +1,5 @@
-
 #include "weather_station.h"
+#include "weatherunderground_config.h"
 
 extern Logger logger;
 
@@ -8,17 +8,17 @@ using std::ofstream;
 using std::string;
 using std::unique_ptr;
 
-WeatherStationConfig::WeatherStationConfig(const string& config_file)
+WeatherUndergroundConfig::WeatherUndergroundConfig(const string& config_file)
     : config_file_(config_file) {}
 
-void WeatherStationConfig::setConfigFile(string config_file) {
+void WeatherUndergroundConfig::setConfigFile(string config_file) {
 
   config_file_ = config_file;
 
   return;
 }
 
-bool WeatherStationConfig::exists() {
+bool WeatherUndergroundConfig::exists() {
 
   std::filesystem::path fpath = config_file_;
   if (std::filesystem::exists(fpath) == false) {
@@ -28,7 +28,23 @@ bool WeatherStationConfig::exists() {
   return true;
 }
 
-bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
+bool WeatherUndergroundConfig::initialize() {
+
+  Json::Value initial_data;
+  Json::Reader initial_config_reader;
+
+  if (initial_config_reader.parse(wu_default_config, initial_data) == false) {
+    logger.log(LOG_ERR,
+               "Failed to parse config Weather Undergroubd config file.");
+    return false;
+  }
+
+  bool val = putRoot(initial_data);
+
+  return val;
+}
+
+bool WeatherUndergroundConfig::getRoot(Json::Value& ws_json_config) {
 
   Json::Reader json_config_reader;
   string lock_file = getLockFileName(config_file_);
@@ -39,12 +55,12 @@ bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
   ifstream config_file_stream(config_file_);
   if (config_file_stream.is_open() == false) {
     logger.log(LOG_ERR, "Failed to open the WU config file.");
-    exit(1);
+    return false;
   }
 
   if (json_config_reader.parse(config_file_stream, ws_json_config) == false) {
     logger.log(LOG_ERR,
-               "Failed to parse config Weather Undergroubd gonfig file.");
+               "Failed to parse config Weather Undergroubd config file.");
     return false;
   }
   config_file_stream.close();
@@ -53,7 +69,7 @@ bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
   return true;
 }
 
-bool WeatherStationConfig::putRoot(Json::Value data) {
+bool WeatherUndergroundConfig::putRoot(Json::Value data) {
 
   string lock_file = getLockFileName(config_file_);
   LockingFile config_guard(lock_file);
@@ -91,7 +107,7 @@ bool WeatherStationConfig::putRoot(Json::Value data) {
   return true;
 }
 
-string WeatherStationConfig::getLockFileName(string file) {
+string WeatherUndergroundConfig::getLockFileName(string file) {
 
   std::filesystem::path file_path = file;
 

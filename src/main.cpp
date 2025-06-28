@@ -12,6 +12,7 @@
 #include "systemd.h"
 #include "weather_station.h"
 #include "weather_station_config.h"
+#include "weatherunderground_config.h"
 #include "systemd_quietwind_weather.h"
 #include "sd_unit_obj.h"
 #include "sd_service_unit_obj.h"
@@ -166,16 +167,22 @@ int main(int argc, char* argv[]) {
   }
 
   /*
-   * Check the configuration file and initialize values from it
+   * Load the configuration file
    */
   WeatherStationConfig ws_config(weather_station_config);
-  if (ws_config.exists() == false) {
-    ws_config.initialize();
-  }
   Json::Value json_config;
   ws_config.getRoot(json_config);
+  
 
-  I2cBus i2c_bus = I2cBus(json_config["I2cBus"]["weather_devices"].asString());
+  string software_version = json_config["Software"]["Version"]["Major"].asString() + "." +
+                            json_config["Software"]["Version"]["Minor"].asString() + "." +
+                            json_config["Software"]["Version"]["Patchlevel"].asString();
+
+  logger.log(LOG_INFO, format("Software version {}", software_version));
+  logger.log(LOG_INFO, "Checking Hardware");
+  logger.log(LOG_INFO, format("Model: {}",json_config["Hardware"]["Model"].asString()));
+
+  I2cBus i2c_bus = I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
   if (i2c_bus.status() !=  qw_devices::I2CBUS_STATUS_OK) {
     logger.log(LOG_ERR, "Initialization of I2C bus failed");
     if (in_systemd == true) {
@@ -187,8 +194,6 @@ int main(int argc, char* argv[]) {
   }
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
-
-  logger.log(LOG_INFO, "Checking Hardware");
 
   error = lps22.init();
   if (error != 0) {
@@ -244,20 +249,42 @@ int main(int argc, char* argv[]) {
 
   logger.log(LOG_INFO, "Starting");
 
-  string pwu_name = json_config["WeatherUnderground"]["pwu_name"].asString();
-  string pwu_password = json_config["WeatherUnderground"]["pwu_password"].asString();
+  /*
+   * Get the Weather Underground configuration
+   */
+  WeatherUndergroundConfig wu_config(json_config["WeatherUndegroundFile"].asString());
+  if (wu_config.exists() == false) {
+    logger.log(LOG_INFO, "Can't get Weather Underground configuration info");
+    exit(1);
+  }
+  
+  Json::Value wu_json_config;
+  if (wu_config.getRoot(wu_json_config) == false) {
+    logger.log(LOG_INFO,
+      format("Unable to parse Weather Underground config file: {}", json_config["WeatherUndegroundFile"].asString()));
+      exit(1);
+  }
+  
+  if (wu_json_config.isMember("pwu_name") == false || wu_json_config.isMember("pwu_password") == false) {
+    logger.log(LOG_INFO, "Improperly formatted Weather Underground config file");
+
+  }
+  string pwu_name = wu_json_config["pwu_name"].asString();
+  string pwu_password = wu_json_config["pwu_password"].asString();
 
   WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
-  int reporting_loop_interval =
-      min(max(ws_report_interval_min, json_config["WeatherUndergroubnd"]["report_interval"].asInt()),
-          ws_report_interval_max);
-
+  int reporting_loop_interval = wu_default_report_interval;
+  if (wu_json_config.isMember("report_interval") == true) {
+    reporting_loop_interval =
+      min(max(wu_report_interval_min, wu_json_config["report_interval"].asInt()),
+          wu_report_interval_max);
+  }
   /*
    * Setup inotify to get notified when config file changes during poll
    */
   int inotify_fd = inotify_init();
   int watch_fd =
-      inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
+      inotify_add_watch(inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(), IN_MODIFY);
   pollfd fds[1];
   fds[0].fd = inotify_fd;
   fds[0].events = POLLIN;
@@ -358,21 +385,28 @@ int main(int argc, char* argv[]) {
      * not updated and we can just cycle through and gather
      * another set of data.
      */
-    if (poll_cnt != 0) {
+    if (poll_cnt != 0 || (pwu_name == "" || pwu_password == "")) {
       delete wu;
       /*
        * If we got here it means the configuration file was
-       * changed. So, we have to get a new username and
-       * password and then gather more data.
+       * changed. Or the authentication was invalid. So, we have to
+       * get a new username and password and then gather more data.
        */
-      Json::Value json_config;
-      ws_config.getRoot(json_config);
-      pwu_name = json_config["WeatherUnderground"]["pwu_name"].asString();
-      pwu_password = json_config["WeatherUnderground"]["pwu_password"].asString();
-      wu = new WeatherUnderground(pwu_name, pwu_password);
-      reporting_loop_interval = min(
-          max(ws_report_interval_min, json_config["ReportInterval"].asInt()),
-          ws_report_interval_max);
+      if ((wu_config.getRoot(wu_json_config) == false) ||
+          (wu_json_config.isMember("pwu_name") == false) ||
+          (wu_json_config.isMember("pwu_password") == false)) {
+        logger.log(LOG_INFO, "Unable to parse Weather Underground config file");
+      } else {
+        pwu_name = wu_json_config["pwu_name"].asString();
+        pwu_password = wu_json_config["pwu_password"].asString();
+        wu = new WeatherUnderground(pwu_name, pwu_password);
+      }
+      reporting_loop_interval = wu_default_report_interval;
+      if (wu_json_config.isMember("report_interval") == true) {
+        reporting_loop_interval = min(
+          max(wu_report_interval_min, json_config["report_interval"].asInt()),
+          wu_report_interval_max);
+      }
     }
   }
 }

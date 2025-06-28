@@ -19,7 +19,7 @@
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb-multiarch",
             "miDebuggerArgs": "",
-            "miDebuggerServerAddress": "192.168.50.234:4711",
+            "miDebuggerServerAddress": "192.168.50.6:4711",
             //"debugServerPath" : "/usr/bin/gdbserver",
             //"debugServerArgs" : "",
             "targetArchitecture": "arm64",

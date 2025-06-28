@@ -40,4 +40,7 @@ const string args_log_mode_journal = "journal";
 const string args_log_mode_file = "file";
 const string args_log_mode_nologging = "none";
 
+const string lock_directory = "/run/lock/";
+const string lock_file_suffix = ".lock";
+
 #endif  // SRC_INCLUDE_WEATHER_STATION_H

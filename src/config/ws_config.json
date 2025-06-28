@@ -1,10 +1,14 @@
 {
-   "WeatherUndeground": {
-      "pwu_name": "KTXROANO168",
-      "pwu_password": "HW0SG8q3",
-      "report_interval": 300000
+   "WeatherUndegroundFile": "/usr/local/qw/etc/ws_wu_config.json",
+   "Software": {
+      "Version": {
+         "Major": 0,
+         "Minor": 1,
+         "Patchlevel": 0
+      }
    },
    "Hardware": {
+      "Model": "1000",
       "I2c": {
          "Bus": {
             "name": "/dev/i2c-1",

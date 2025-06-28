@@ -18,13 +18,21 @@ then
 fi
 
 #
-# Make sure the config file is available
+# Make sure the config files are available
 #
 build_config_cksum=`cksum $build_config 2>/dev/null | awk '{print($1)}'`
     
 if [ -z  $build_config_cksum ]
 then
-    echo No build config file
+    echo No build ws config file
+    exit 1
+fi
+
+build_wu_config_cksum=`cksum $build_config 2>/dev/null | awk '{print($1)}'`
+    
+if [ -z  $build_wu_config_cksum ]
+then
+    echo No build wu config file
     exit 1
 fi
 
@@ -59,7 +67,7 @@ else
 fi
 
 #
-# We need to copy the config over to the target so that
+# We need to copy the ws config over to the target so that
 # the executable can access it. We check if the file exists on the
 # target. If it does then we get the checksum. Otherwise, we
 # set the checksum to zero so it won't match the newly built
@@ -80,12 +88,32 @@ fi
 if [ $build_config_cksum != $target_config_cksum ]
 then
     #
-    # If the cksums don't match copy the new build config to the target
+    # If the cksums don't match copy the new config to the target
     #
     echo Copying new configuration to target
     scp $build_config $target_user@$target_ip:$target_config 1>/dev/null 2>&1
 else
     echo Using existing configuration on target
+fi
+
+ssh $target_user@$target_ip test -f $target_wu_config
+if [ $? -eq 0 ]
+then
+   echo Getting target config cksum
+   target_wu_config_cksum=`ssh $target_user@$target_ip "cksum $target_wu_config 2>/dev/null" | awk '{print($1)}'`
+else
+  target_wu_config_cksum="0"
+fi
+
+if [ $build_wu_config_cksum != $target_wu_config_cksum ]
+then
+    #
+    # If the cksums don't match copy the new wu config to the target
+    #
+    echo Copying new wu configuration to target
+    scp $build_wu_config $target_user@$target_ip:$target_wu_config 1>/dev/null 2>&1
+else
+    echo Using existing wu configuration on target
 fi
 
 #
