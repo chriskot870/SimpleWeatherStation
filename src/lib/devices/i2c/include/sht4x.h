@@ -157,7 +157,7 @@ typedef enum {
 } Sht4xMeasurmentMode;
 
 /*
- * The order here has to match the enum above so that you get the right value inthe array
+ * The order here has to match the enum above so that you get the right value in the array
  */
 const uint8_t sht4x_measurement_command_map[] = {
     kSht4xCommandHighPrecisionMeasurement,
