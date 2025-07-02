@@ -281,7 +281,7 @@ int Lps22::getMeasurement() {
     return ENODEV;
   }
   lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
-                                                     * device lock will be unlcoked when
+                                                     * device lock will be unlocked when
                                                      * guard's destruct routine gets called
                                                      */
   /*
