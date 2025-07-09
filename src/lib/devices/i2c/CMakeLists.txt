@@ -7,6 +7,7 @@ add_library(i2cdevices STATIC
   i2cbus.cpp
   sht4x.cpp
   lps22.cpp
+  ads1015.cpp
 )
 
 # add_compile_options(-std=c++23) to use expected class

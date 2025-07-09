@@ -23,7 +23,7 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
     return;
   }
   /*
-   * Check that slave addresses are valid
+   * Check that slave address is valid
    */
   auto item = find(sht4x_slave_address_options.begin(),
                    sht4x_slave_address_options.end(), slave_address_);
@@ -63,7 +63,7 @@ I2cSht4x::I2cSht4x(I2cBus i2cbus, uint8_t slave_address)
   expected<uint8_t, int> x_return = getSerialNumber();
   if (x_return.has_value() == false) {
     /*
-     * I can't get the whoami so reset device_data_ to nullptr
+     * I can't get the serial number so reset device_data_ to nullptr
      * to indicate the device doesn't seem to be at the bus and slave
      * address provided.
      * This causes all other routines to call an ENODEV error

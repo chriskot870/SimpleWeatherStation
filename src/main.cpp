@@ -19,6 +19,7 @@
 
 #include "include/lps22.h"
 #include "include/sht4x.h"
+#include "include/ads1015.h"
 
 #include "fmt/chrono.h"
 #include "fmt/format.h"
@@ -36,9 +37,12 @@
 using fmt::format;
 using qw_devices::I2cBus;
 using qw_devices::I2cSht4x;
-using qw_devices::kLps22hbI2cPrimaryAddress;
 using qw_devices::kSht4xI2cPrimaryAddress;
 using qw_devices::Lps22;
+using qw_devices::kLps22hbI2cPrimaryAddress;
+using qw_devices::I2cAds1015;
+using qw_devices::kAds1015I2cPrimaryAddress;
+using qw_devices::Ads1015Config;
 using qw_units::Celsius;
 using qw_units::Fahrenheit;
 using qw_units::InchesMercury;
@@ -69,6 +73,7 @@ int main(int argc, char* argv[]) {
   int error;
   int c;
   bool in_systemd = false;
+  Ads1015Config value;
 
   /*
     * If we have started from systemd then we always use
@@ -247,6 +252,41 @@ int main(int argc, char* argv[]) {
   logger.log(LOG_ERR,
              format("SHT44 Serial Number: {}", x_serial_number.value()));
 
+  /*
+   * Add the ads device
+   */
+  I2cAds1015 ads1015(i2c_bus, kAds1015I2cPrimaryAddress);
+  /*
+   * Check if we can get the configuration register
+   */
+  expected<Ads1015Config, int> ads_result = ads1015.inspectConfigRegister();
+  if (ads_result.has_value() == false) {
+    logger.log(LOG_ERR, "Getting ADS1015 Configuration Register");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+  logger.log(LOG_INFO, "Ads 1015 Successfully read configuration register");
+  value = ads_result.value();
+  logger.log(LOG_INFO, format("\tOs: {}\n\tMux: {}\n\tPga: {}\n\tMode: {}\n\tDr: {}\n\tCompMode: {}\n\tCompPol: {}\n\tCompLatch: {}\n\tCompQueue: {}\n",
+                      static_cast<uint8_t>(value.fields.os),
+                      static_cast<uint8_t>(value.fields.mux),
+                      static_cast<uint8_t>(value.fields.pga),
+                      static_cast<uint8_t>(value.fields.mode),
+                      static_cast<uint8_t>(value.fields.dr),
+                      static_cast<uint8_t>(value.fields.comp_mode),
+                      static_cast<uint8_t>(value.fields.comp_pol),
+                      static_cast<uint8_t>(value.fields.comp_latch),
+                      static_cast<uint8_t>(value.fields.comp_queue)
+                    ));
+
+
+  /*
+   * Starting to gather data
+   */
   logger.log(LOG_INFO, "Starting");
 
   /*
