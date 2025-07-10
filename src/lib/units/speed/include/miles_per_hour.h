@@ -1,3 +1,10 @@
+/*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+#ifndef LIB_UNITS_SPEED_MILES_PER_HOUR_H_
+#define LIB_UNITS_SPEED_MILES_PER_HOUR_H_
+
 
 #include "speed.h"
 #include "kilometers_per_hour.h"
@@ -83,3 +90,5 @@ class MilesPerHour {
 };
 
 }  //qw_units Namespace
+
+#endif  // LIB_UNITS_SPEED_MILES_PER_HOUR_H_

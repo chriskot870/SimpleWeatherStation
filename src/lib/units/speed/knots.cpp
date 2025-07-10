@@ -2,6 +2,10 @@
 
 namespace qw_units {
 
+  class MilesPerHour;
+  class KilometersPerHour;
+  class MetersPerSecond;
+
 /*
  * Constructor routines
  */
@@ -193,7 +197,7 @@ const Knots Knots::operator-(const Knots& other) const {
 
 /*
  * Intrinsic casting to other speed units
- *
+ */
 Knots::operator KilometersPerHour() const {
 
   KilometersPerHour kph;
@@ -220,5 +224,5 @@ Knots::operator MilesPerHour() const {
 
   return mph;
 }
- */
+
 }  // qw_units Namespace

@@ -2,6 +2,10 @@
 
 namespace qw_units {
 
+  class KilometersPerHour;
+  class MetersPerSecond;
+  class Knots;
+
 /*
  * Constructor routines
  */

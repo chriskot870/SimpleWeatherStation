@@ -1,10 +1,16 @@
-#include "speed.h"
+/*
+ * Copyright 2024 Chris Kottaridis
+ */
+
+#ifndef LIB_UNITS_SPEED_KNOTS_H_
+#define LIB_UNITS_SPEED_KNOTS_H_
+
 #include "miles_per_hour.h"
 #include "kilometers_per_hour.h"
 #include "meters_per_second.h"
+#include "speed.h"
 
 namespace qw_units {
-class Knots {
 
   /*
    * Need to predeclare these classes
@@ -14,12 +20,13 @@ class Knots {
   class KilometersPerHour;
   class MetersPerSecond;
 
- public:
+class Knots {
 
   friend MilesPerHour;
   friend KilometersPerHour;
   friend MetersPerSecond;
 
+ public:
   Knots();
 
   Knots(float temp);
@@ -58,6 +65,15 @@ class Knots {
 
   const Knots operator-(const Knots& other) const;
 
+  /*
+   * Supports implicit casting
+   * hence the need for the predeclaration
+   */
+  operator MilesPerHour() const;
+
+  operator KilometersPerHour() const;
+
+  operator MetersPerSecond() const;
 
  private:
   int64_t base_value_;
@@ -72,3 +88,5 @@ class Knots {
 };
 
 }  //qw_units Namespace
+
+#endif  // LIB_UNITS_SPEED_KNOTS_H_

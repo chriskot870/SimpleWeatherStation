@@ -75,6 +75,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     temperature_units
     pressure_units
     humidity_units
+    speed_units
     weather_utilities
     system_utilities
     fmt
