@@ -24,7 +24,7 @@ InchesMercury::InchesMercury(float temp, string fmt_value) {
 }
 
 /*
- * Data manipulation routiens
+ * Data manipulation routines
  */
 float InchesMercury::value() {
 

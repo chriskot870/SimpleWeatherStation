@@ -283,7 +283,6 @@ int main(int argc, char* argv[]) {
                       static_cast<uint8_t>(value.fields.comp_queue)
                     ));
 
-
   /*
    * Starting to gather data
    */
