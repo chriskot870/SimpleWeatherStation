@@ -16,6 +16,8 @@ Knots::Knots(float knt) : base_value_(KnotsToBase(knt)) {}
 Knots::Knots(float knt, string fmt_value) :
   base_value_(KnotsToBase(knt)), fmt_value_(fmt_value) {}
 
+Knots::Knots(int64_t base_value) : base_value_(base_value) {}
+
 /*
  * Data manipulation routines
  */
@@ -200,27 +202,21 @@ const Knots Knots::operator-(const Knots& other) const {
  */
 Knots::operator KilometersPerHour() const {
 
-  KilometersPerHour kph;
-
-  kph.base_value_ = base_value_;
+  KilometersPerHour kph(base_value_);
 
   return kph;
 }
 
 Knots::operator MetersPerSecond() const {
 
-  MetersPerSecond mps;
-
-  mps.base_value_ = base_value_;
+  MetersPerSecond mps(base_value_);
 
   return mps;
 }
 
 Knots::operator MilesPerHour() const {
 
-  MilesPerHour mph;
-
-  mph.base_value_ = base_value_;
+  MilesPerHour mph(base_value_);
 
   return mph;
 }

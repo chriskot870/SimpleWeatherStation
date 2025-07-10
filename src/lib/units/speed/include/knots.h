@@ -76,6 +76,8 @@ class Knots {
   operator MetersPerSecond() const;
 
  private:
+  Knots(int64_t base_value);
+
   int64_t base_value_;
 
   string fmt_value_ = speed_default_format;

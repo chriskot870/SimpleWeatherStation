@@ -16,6 +16,8 @@ MilesPerHour::MilesPerHour(float mph) : base_value_(MilesPerHourToBase(mph)) {}
 MilesPerHour::MilesPerHour(float mph, string fmt_value) :
   base_value_(MilesPerHourToBase(mph)), fmt_value_(fmt_value) {}
 
+MilesPerHour::MilesPerHour(int64_t base_value) : base_value_(base_value) {}
+
 /*
  * Data manipulation routines
  */
@@ -196,27 +198,21 @@ const MilesPerHour MilesPerHour::operator-(const MilesPerHour& other) const {
 
 MilesPerHour::operator KilometersPerHour() const {
 
-  KilometersPerHour kph;
-
-  kph.base_value_ = base_value_;
+  KilometersPerHour kph(base_value_);
 
   return kph;
 }
 
 MilesPerHour::operator MetersPerSecond() const {
 
-  MetersPerSecond mps;
-
-  mps.base_value_ = base_value_;
+  MetersPerSecond mps(base_value_);
 
   return mps;
 }
 
 MilesPerHour::operator Knots() const {
 
-  Knots knots;
-
-  knots.base_value_ = base_value_;
+  Knots knots(base_value_);
 
   return knots;
 }
