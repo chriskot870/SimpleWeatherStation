@@ -17,9 +17,10 @@
 #include "sd_unit_obj.h"
 #include "sd_service_unit_obj.h"
 
-#include "include/lps22.h"
-#include "include/sht4x.h"
-#include "include/ads1015.h"
+#include "lps22.h"
+#include "sht4x.h"
+#include "ads1015.h"
+#include "anomometer_adafruit.h"
 
 #include "fmt/chrono.h"
 #include "fmt/format.h"
@@ -42,7 +43,9 @@ using qw_devices::Lps22;
 using qw_devices::kLps22hbI2cPrimaryAddress;
 using qw_devices::I2cAds1015;
 using qw_devices::kAds1015I2cPrimaryAddress;
+using qw_devices::ADS1015_MUX_AIN0_GND;
 using qw_devices::Ads1015Config;
+using qw_devices::AnomometerAdafruit;
 using qw_units::Celsius;
 using qw_units::Fahrenheit;
 using qw_units::InchesMercury;
@@ -282,6 +285,22 @@ int main(int argc, char* argv[]) {
                       static_cast<uint8_t>(value.fields.comp_latch),
                       static_cast<uint8_t>(value.fields.comp_queue)
                     ));
+
+  AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
+  expected<MilesPerHour, int> speed = anomometer.speed();
+  if (speed.has_value() == false) {
+    logger.log(LOG_ERR, "Unable to read anomometer speed");
+    if (in_systemd == true) {
+      sleep(10); // Give the daemon a chance to register the log message
+      sd_qw_unit.Stop("replace");
+      pause();
+    }
+    exit(1);
+  }
+
+  MilesPerHour mph = speed.value();
+
+  logger.log(LOG_INFO, format("MPH: {}", mph.toString()));
 
   /*
    * Starting to gather data

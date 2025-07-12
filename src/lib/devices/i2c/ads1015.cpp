@@ -212,7 +212,6 @@ namespace qw_devices {
       return unexpected(ENODEV);
     }
 
-   
     /*
      * Take care of endianness
      */
@@ -241,8 +240,8 @@ namespace qw_devices {
     /*
      * We send high byte first
      */
-    config_data[0] = (config.register_value & 0xFF) >> 8;
-    config_data[1] = config.register_value & 0xFF;
+    config_data[0] = (config.register_value & 0xFF00) >> 8;
+    config_data[1] = config.register_value & 0x00FF;
 
     error = i2cbus_.transferDataToRegisters(slave_address_,
                                                 kAds1015ConfigRegister,
@@ -263,7 +262,7 @@ namespace qw_devices {
     int16_t conversion_reg;
 
     error = i2cbus_.transferDataFromRegisters(slave_address_,
-                                                kAds1015ConfigRegister,
+                                                kAds1015ConversionRegister,
                                                 data,
                                                 sizeof(data));
 
@@ -285,7 +284,7 @@ namespace qw_devices {
     return conversion_reg;
   }
 
-  expected<int16_t, int>  I2cAds1015::doConversion(Ads1015MuxType mux) {
+  expected<int16_t, int>  I2cAds1015::getReading(Ads1015MuxType mux) {
     int error;
     int16_t data;
     Ads1015Config config;
@@ -303,6 +302,7 @@ namespace qw_devices {
      */
     config.register_value = (ADS1015_OS_START_COMPLETE << kAds1015OsShift) |
               configuration_.register_value;
+
     /*
      * Start the conversion by setting the start bit in the configuration register
      */
@@ -313,24 +313,24 @@ namespace qw_devices {
     /*
      * May need a loop here checking config Os register to see if conversion has completed
      */
+    
     do {
       config_result = readConfigRegister();
       if (config_result.has_value() == false) {
         return unexpected(EIO);
       }
-      /*
-       * Keep looping whils it is busy doing an ADC conversion.
-       * May want a timeout loop count here for safety purposes.
-       */
-    } while ((config_result.value().fields.os & ADS1015_OS_NO_EFFECT_BUSY) == ADS1015_OS_NO_EFFECT_BUSY);
-
+      //
+       // Keep looping while it is busy doing an ADC conversion.
+       // May want a timeout loop count here for safety purposes.
+       //
+    } while ((config_result.value().fields.os) != ADS1015_OS_START_COMPLETE);
     /*
      * Now gather the conversion data
      */
     result = readConversionRegister();
-      if (result.has_value() == false) {
-        return unexpected(EIO);
-      }
+    if (result.has_value() == false) {
+      return unexpected(EIO);
+    }
 
     /*
      * This is a twelve bit two's complement in 16 bits. The bottom 4 bits

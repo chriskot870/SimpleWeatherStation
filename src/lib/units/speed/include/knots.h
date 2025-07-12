@@ -76,17 +76,18 @@ class Knots {
   operator MetersPerSecond() const;
 
  private:
-  Knots(int64_t base_value);
-
   int64_t base_value_;
 
   string fmt_value_ = speed_default_format;
+  
+  Knots(int64_t base_value);
 
   int KnotsToBase(float temp);
 
   float BaseToKnots(int base);
 
   void setBaseValue(int base_value);
+
 };
 
 }  //qw_units Namespace

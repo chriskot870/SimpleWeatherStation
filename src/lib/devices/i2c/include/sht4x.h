@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-#include "include/i2cbus.h"
+#include "i2cbus.h"
 
 /*
  * This device has temperature and relative humidity sensors so add the units
@@ -47,7 +47,7 @@
 /*
  * This is an i2c bus device so add the i2cbus.h
  */
-#include "include/i2cbus.h"
+#include "i2cbus.h"
 
 using qw_units::Celsius;
 using qw_units::Fahrenheit;

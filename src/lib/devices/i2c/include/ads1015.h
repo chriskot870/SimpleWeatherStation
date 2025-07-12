@@ -20,7 +20,7 @@
 #include <map>
 #include <expected>
 
-#include "include/i2cbus.h"
+#include "i2cbus.h"
 
 using std::atomic_bool;
 using std::expected;
@@ -75,6 +75,15 @@ constexpr uint8_t kAds1015ConversionRegister = 0;
 constexpr uint8_t kAds1015ConfigRegister = 1;
 constexpr uint8_t kAds1015LowThreshold = 2;
 constexpr uint8_t kAds1015highThreshold = 3;
+
+/*
+ * In single-ended mode the maximum value is 2**11.
+ * In single-ended mode the range is 0 - 3.3 Volts.
+ * Therefore there are kAds1015MaxRange/kAds1015MaxVoltage counts per voltage
+ */
+constexpr uint16_t kAds1015MaxRange = 2048;  // Single Ended Max value
+constexpr float kAds1015MaxVoltage = 3.3;  // Highest Value of Voltage
+constexpr float kAds1015CountPerVolts = (kAds1015MaxRange/kAds1015MaxVoltage);  // Each Voltage is this many counts
 
 /*
  * Config register values
@@ -307,7 +316,7 @@ class I2cAds1015 {
 
   void setDefaultConfiguration();
 
-  expected<int16_t, int> doConversion(Ads1015MuxType mux);
+  expected<int16_t, int> getReading(Ads1015MuxType mux);
 
   expected<Ads1015Config, int> inspectConfigRegister();
 
