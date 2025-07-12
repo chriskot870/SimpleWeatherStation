@@ -2,21 +2,23 @@
 
 namespace qw_units {
 
-  class MilesPerHour;
-  class MetersPerSecond;
-  class Knots;
+class MilesPerHour;
+class MetersPerSecond;
+class Knots;
 
 /*
  * Constructor routines
  */
 KilometersPerHour::KilometersPerHour() {}
 
-KilometersPerHour::KilometersPerHour(float kph) : base_value_(KilometersPerHourToBase(kph)) {}
+KilometersPerHour::KilometersPerHour(float kph)
+    : base_value_(KilometersPerHourToBase(kph)) {}
 
-KilometersPerHour::KilometersPerHour(float kph, string fmt_value) :
-  base_value_(KilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
+KilometersPerHour::KilometersPerHour(float kph, string fmt_value)
+    : base_value_(KilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
 
-KilometersPerHour::KilometersPerHour(int64_t base_value) : base_value_(base_value) {}
+KilometersPerHour::KilometersPerHour(int64_t base_value)
+    : base_value_(base_value) {}
 
 /*
  * Data manipulation routines
@@ -82,7 +84,7 @@ void KilometersPerHour::setFormat(string fmt_value) {
  * Used by conversion routines for implicit casting
  */
 void KilometersPerHour::setBaseValue(int base_value) {
-  
+
   base_value_ = base_value;
 
   return;
@@ -95,7 +97,7 @@ bool KilometersPerHour::operator==(const KilometersPerHour& other) const {
   return value;
 }
 
-bool KilometersPerHour::operator!=(const  KilometersPerHour& other) const {
+bool KilometersPerHour::operator!=(const KilometersPerHour& other) const {
 
   bool value = (base_value_ != other.base_value_);
 
@@ -130,7 +132,8 @@ bool KilometersPerHour::operator>=(const KilometersPerHour& other) const {
   return value;
 }
 
-strong_ordering KilometersPerHour::operator<=> (const KilometersPerHour& other) const {
+strong_ordering KilometersPerHour::operator<=>
+    (const KilometersPerHour& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -144,7 +147,8 @@ strong_ordering KilometersPerHour::operator<=> (const KilometersPerHour& other) 
 /*
  * Assignment operators
  */
-KilometersPerHour& KilometersPerHour::operator=(const KilometersPerHour& other) {
+KilometersPerHour& KilometersPerHour::operator=(
+    const KilometersPerHour& other) {
 
   /*
    * Guard against self assignement
@@ -162,14 +166,16 @@ KilometersPerHour& KilometersPerHour::operator=(const KilometersPerHour& other) 
   return *this;
 }
 
-KilometersPerHour& KilometersPerHour::operator+=(const KilometersPerHour& other) {
+KilometersPerHour& KilometersPerHour::operator+=(
+    const KilometersPerHour& other) {
 
   base_value_ += other.base_value_;
 
   return *this;
 }
 
-KilometersPerHour& KilometersPerHour::operator-=(const KilometersPerHour& other) {
+KilometersPerHour& KilometersPerHour::operator-=(
+    const KilometersPerHour& other) {
 
   base_value_ -= other.base_value_;
 
@@ -179,7 +185,8 @@ KilometersPerHour& KilometersPerHour::operator-=(const KilometersPerHour& other)
 /*
  * Arithmetic operations
  */
-const KilometersPerHour KilometersPerHour::operator+(const KilometersPerHour& other) const {
+const KilometersPerHour KilometersPerHour::operator+(
+    const KilometersPerHour& other) const {
 
   KilometersPerHour result = *this;
 
@@ -188,7 +195,8 @@ const KilometersPerHour KilometersPerHour::operator+(const KilometersPerHour& ot
   return result;
 }
 
-const KilometersPerHour KilometersPerHour::operator-(const KilometersPerHour& other) const {
+const KilometersPerHour KilometersPerHour::operator-(
+    const KilometersPerHour& other) const {
 
   KilometersPerHour result = *this;
 
@@ -221,4 +229,4 @@ KilometersPerHour::operator Knots() const {
   return knots;
 }
 
-}  // qw_units Namespace
+}  // namespace qw_units

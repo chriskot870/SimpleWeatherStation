@@ -2,9 +2,9 @@
 
 namespace qw_units {
 
-  class KilometersPerHour;
-  class MetersPerSecond;
-  class Knots;
+class KilometersPerHour;
+class MetersPerSecond;
+class Knots;
 
 /*
  * Constructor routines
@@ -13,8 +13,8 @@ MilesPerHour::MilesPerHour() {}
 
 MilesPerHour::MilesPerHour(float mph) : base_value_(MilesPerHourToBase(mph)) {}
 
-MilesPerHour::MilesPerHour(float mph, string fmt_value) :
-  base_value_(MilesPerHourToBase(mph)), fmt_value_(fmt_value) {}
+MilesPerHour::MilesPerHour(float mph, string fmt_value)
+    : base_value_(MilesPerHourToBase(mph)), fmt_value_(fmt_value) {}
 
 MilesPerHour::MilesPerHour(int64_t base_value) : base_value_(base_value) {}
 
@@ -77,7 +77,7 @@ void MilesPerHour::setFormat(string fmt_value) {
  * Used by conversion routines for implicit casting
  */
 void MilesPerHour::setBaseValue(int base_value) {
-  
+
   base_value_ = base_value;
 
   return;
@@ -90,7 +90,7 @@ bool MilesPerHour::operator==(const MilesPerHour& other) const {
   return value;
 }
 
-bool MilesPerHour::operator!=(const  MilesPerHour& other) const {
+bool MilesPerHour::operator!=(const MilesPerHour& other) const {
 
   bool value = (base_value_ != other.base_value_);
 
@@ -217,4 +217,4 @@ MilesPerHour::operator Knots() const {
   return knots;
 }
 
-}  // qw_units Namespace
+}  // namespace qw_units

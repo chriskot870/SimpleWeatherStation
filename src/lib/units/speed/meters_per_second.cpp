@@ -2,21 +2,23 @@
 
 namespace qw_units {
 
-  class MilesPerHour;
-  class KilometersPerHour;
-  class Knots;
+class MilesPerHour;
+class KilometersPerHour;
+class Knots;
 
 /*
  * Constructor routines
  */
 MetersPerSecond::MetersPerSecond() {}
 
-MetersPerSecond::MetersPerSecond(float mps) : base_value_(MetersPerSecondToBase(mps)) {}
+MetersPerSecond::MetersPerSecond(float mps)
+    : base_value_(MetersPerSecondToBase(mps)) {}
 
-MetersPerSecond::MetersPerSecond(float mps, string fmt_value) :
-  base_value_(MetersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
+MetersPerSecond::MetersPerSecond(float mps, string fmt_value)
+    : base_value_(MetersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
 
-MetersPerSecond::MetersPerSecond(int64_t base_value) : base_value_(base_value) {}
+MetersPerSecond::MetersPerSecond(int64_t base_value)
+    : base_value_(base_value) {}
 
 /*
  * Data manipulation routines
@@ -83,7 +85,7 @@ void MetersPerSecond::setFormat(string fmt_value) {
  * Used by conversion routines for implicit casting
  */
 void MetersPerSecond::setBaseValue(int base_value) {
-  
+
   base_value_ = base_value;
 
   return;
@@ -96,7 +98,7 @@ bool MetersPerSecond::operator==(const MetersPerSecond& other) const {
   return value;
 }
 
-bool MetersPerSecond::operator!=(const  MetersPerSecond& other) const {
+bool MetersPerSecond::operator!=(const MetersPerSecond& other) const {
 
   bool value = (base_value_ != other.base_value_);
 
@@ -131,7 +133,8 @@ bool MetersPerSecond::operator>=(const MetersPerSecond& other) const {
   return value;
 }
 
-strong_ordering MetersPerSecond::operator<=> (const MetersPerSecond& other) const {
+strong_ordering MetersPerSecond::operator<=>
+    (const MetersPerSecond& other) const {
 
   /*
    * The <=> returns a std::strong_ordering type.
@@ -180,7 +183,8 @@ MetersPerSecond& MetersPerSecond::operator-=(const MetersPerSecond& other) {
 /*
  * Arithmetic operations
  */
-const MetersPerSecond MetersPerSecond::operator+(const MetersPerSecond& other) const {
+const MetersPerSecond MetersPerSecond::operator+(
+    const MetersPerSecond& other) const {
 
   MetersPerSecond result = *this;
 
@@ -189,7 +193,8 @@ const MetersPerSecond MetersPerSecond::operator+(const MetersPerSecond& other) c
   return result;
 }
 
-const MetersPerSecond MetersPerSecond::operator-(const MetersPerSecond& other) const {
+const MetersPerSecond MetersPerSecond::operator-(
+    const MetersPerSecond& other) const {
 
   MetersPerSecond result = *this;
 
@@ -222,4 +227,4 @@ MetersPerSecond::operator Knots() const {
   return knots;
 }
 
-}  // qw_units Namespace
+}  // namespace qw_units

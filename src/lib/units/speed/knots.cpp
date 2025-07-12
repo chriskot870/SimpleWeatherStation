@@ -2,9 +2,9 @@
 
 namespace qw_units {
 
-  class MilesPerHour;
-  class KilometersPerHour;
-  class MetersPerSecond;
+class MilesPerHour;
+class KilometersPerHour;
+class MetersPerSecond;
 
 /*
  * Constructor routines
@@ -13,8 +13,8 @@ Knots::Knots() {}
 
 Knots::Knots(float knt) : base_value_(KnotsToBase(knt)) {}
 
-Knots::Knots(float knt, string fmt_value) :
-  base_value_(KnotsToBase(knt)), fmt_value_(fmt_value) {}
+Knots::Knots(float knt, string fmt_value)
+    : base_value_(KnotsToBase(knt)), fmt_value_(fmt_value) {}
 
 Knots::Knots(int64_t base_value) : base_value_(base_value) {}
 
@@ -82,7 +82,7 @@ void Knots::setFormat(string fmt_value) {
  * Used by conversion routines for implicit casting
  */
 void Knots::setBaseValue(int base_value) {
-  
+
   base_value_ = base_value;
 
   return;
@@ -95,7 +95,7 @@ bool Knots::operator==(const Knots& other) const {
   return value;
 }
 
-bool Knots::operator!=(const  Knots& other) const {
+bool Knots::operator!=(const Knots& other) const {
 
   bool value = (base_value_ != other.base_value_);
 
@@ -221,4 +221,4 @@ Knots::operator MilesPerHour() const {
   return mph;
 }
 
-}  // qw_units Namespace
+}  // namespace qw_units
