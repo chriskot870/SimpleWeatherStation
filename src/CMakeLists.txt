@@ -27,7 +27,7 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 #
 add_library(weatherstation STATIC
   weather_station_config.cpp
-  weatherunderground_config.cpp
+  weather_underground_config.cpp
 )
 
 # What are weatherstation library compile options

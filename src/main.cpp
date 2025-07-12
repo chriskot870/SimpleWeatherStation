@@ -12,8 +12,7 @@
 #include "systemd.h"
 #include "weather_station.h"
 #include "weather_station_config.h"
-#include "weatherunderground_config.h"
-#include "systemd_quietwind_weather.h"
+#include "weather_underground_config.h"
 #include "sd_unit_obj.h"
 #include "sd_service_unit_obj.h"
 

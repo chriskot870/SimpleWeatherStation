@@ -1,5 +1,5 @@
 
-#include "weather_station.h"
+#include "weather_station_config.h"
 
 extern Logger logger;
 

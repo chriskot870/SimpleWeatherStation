@@ -1,5 +1,7 @@
-#ifndef SRC_INCLUDE_WEATHERUNDERGROUND_CONFIG_H_
-#define SRC_INCLUDE_WEATHERUNDERGROUND_CONFIG_H_
+#ifndef SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
+#define SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
+
+#include "weather_station.h"
 
 using std::string;
 
@@ -8,7 +10,7 @@ constexpr int wu_report_interval_min = 2500;  // 2.5 seconds in milliseconds
 constexpr int wu_report_interval_max =
     ((60 * 60) * 1000);  // 1 hour in milliseconds
 /*
- * The ReportInterval is in milliseconds. 300000 = 5 miuntes
+ * The ReportInterval is in milliseconds. 300000 = 5 minutes
  */
 const string wu_default_config = R"({
     "WeatherUnderground": {
@@ -39,4 +41,4 @@ class WeatherUndergroundConfig {
   string config_file_;
 };
 
-#endif  // SRC_INCLUDE_WEATHERUNDERGROUND_CONFIG_H_
+#endif  // SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_

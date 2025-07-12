@@ -3,14 +3,12 @@
 
 #include "logger.h"
 #include "systemd.h"
-#include "weather_station.h"
 #include "weather_station_config.h"
-#include "systemd_quietwind_weather.h"
 
+using fmt::format;
 using std::expected;
 using std::unexpected;
 using std::variant;
-using fmt::format;
 
 extern Logger logger;
 /*
@@ -19,14 +17,12 @@ extern Logger logger;
  * in these routines.
  */
 const SdBus system_bus(SD_BUS_TYPE_SYSTEM);  // We want the system bus
-const SdBusService systemd_service(  // we want to talk to systemd service
-      "org.freedesktop.systemd1",
-      system_bus);  
+const SdBusService systemd_service(  // We want to talk to systemd service
+    "org.freedesktop.systemd1", system_bus);
 // We want to talk to quietwind.weather.service Object within systemd
 const SdBusObject sdbus_qw_weather_object(
-      "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice",
-      systemd_service);
-
+    "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice",
+    systemd_service);
 
 expected<string, bool> quietwindWeatherServiceState() {
 
@@ -50,15 +46,14 @@ expected<string, bool> quietwindWeatherServiceState() {
   value = qw_ws_substate.getValue();
   if (value.has_value() == false) {
     logger.log(LOG_ERR,
-              format("Getting quietwind.weather.service SubState Failed"));
+               format("Getting quietwind.weather.service SubState Failed"));
     return unexpected(false);
   }
   /*
    * Make sure it has a string
    */
   if (std::holds_alternative<string>(value.value()) == false) {
-    logger.log(LOG_ERR,
-              format("Request for SubState did not return a string"));
+    logger.log(LOG_ERR, format("Request for SubState did not return a string"));
     return unexpected(false);
   }
 
@@ -103,7 +98,7 @@ expected<pid_t, bool> quietwindWeatherServiceMainPID() {
    * from the Numeric Result.
    */
   SdBusNumericResult val = std::get<SdBusNumericResult>(value.value());
-  
+
   return val.u;
 }
 
@@ -115,8 +110,9 @@ bool isASystemdProcess() {
 
   state = quietwindWeatherServiceState();
 
-  if (state.has_value() == false);
+  if (state.has_value() == false) {
     return false;
+  }
 
   if (state.value() != "running") {
     return false;
@@ -125,12 +121,13 @@ bool isASystemdProcess() {
   my_pid = getpid();
 
   main_pid = quietwindWeatherServiceMainPID();
-  if (main_pid.has_value() == false);
+  if (main_pid.has_value() == false) {
     return false;
+  }
 
   if (main_pid.value() != my_pid) {
     return false;
   }
 
-  return true; 
+  return true;
 }

@@ -31,8 +31,6 @@
 #include "logger.h"
 #include "systemd.h"
 
-#include "weather_station_config.h"
-
 using std::map;
 using std::string;
 
