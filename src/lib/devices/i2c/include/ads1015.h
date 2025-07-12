@@ -12,13 +12,13 @@
 #define SRC_LIB_DEVICES_I2C_INCLUDE_ADS1015_H_
 
 #include <errno.h>
-#include <memory>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <algorithm>
-#include <vector>
-#include <map>
 #include <expected>
+#include <map>
+#include <memory>
+#include <vector>
 
 #include "i2cbus.h"
 
@@ -27,7 +27,6 @@ using std::expected;
 using std::find;
 using std::lock_guard;
 using std::make_shared;
-using std::vector;
 using std::map;
 using std::max;
 using std::min;
@@ -36,6 +35,7 @@ using std::recursive_mutex;
 using std::shared_ptr;
 using std::string;
 using std::unexpected;
+using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;
@@ -58,10 +58,9 @@ constexpr uint8_t kAds1015I2cSecondaryAddress = 0x49;
 constexpr uint8_t kAds1015I2cThirdAddress = 0x4A;
 constexpr uint8_t kAds1015I2cFourthAddress = 0x4B;
 
-const vector<uint8_t> ads1015_slave_address_options = {kAds1015I2cPrimaryAddress,
-                                            kAds1015I2cSecondaryAddress,
-                                            kAds1015I2cThirdAddress,
-                                            kAds1015I2cFourthAddress};
+const vector<uint8_t> ads1015_slave_address_options = {
+    kAds1015I2cPrimaryAddress, kAds1015I2cSecondaryAddress,
+    kAds1015I2cThirdAddress, kAds1015I2cFourthAddress};
 
 /*
  * There are 4 registers accesible by the I2C bus
@@ -82,8 +81,10 @@ constexpr uint8_t kAds1015highThreshold = 3;
  * Therefore there are kAds1015MaxRange/kAds1015MaxVoltage counts per voltage
  */
 constexpr uint16_t kAds1015MaxRange = 2048;  // Single Ended Max value
-constexpr float kAds1015MaxVoltage = 3.3;  // Highest Value of Voltage
-constexpr float kAds1015CountPerVolts = (kAds1015MaxRange/kAds1015MaxVoltage);  // Each Voltage is this many counts
+constexpr float kAds1015MaxVoltage = 3.3;    // Highest Value of Voltage
+constexpr float kAds1015CountPerVolts =
+    (kAds1015MaxRange /
+     kAds1015MaxVoltage);  // Each Voltage is this many counts
 
 /*
  * Config register values
@@ -95,7 +96,7 @@ constexpr uint8_t kAds1015OsMask = 1;
 constexpr uint8_t kAds1015OsShift = 15;
 typedef enum {
   ADS1015_OS_NO_EFFECT_BUSY,  // 0 On write no effect, on read performing conversion
-  ADS1015_OS_START_COMPLETE   // 1 On write, Start conversion, on read not converting
+  ADS1015_OS_START_COMPLETE  // 1 On write, Start conversion, on read not converting
 } Ads1015OsType;
 
 /*
@@ -122,11 +123,11 @@ typedef enum {
 constexpr uint8_t kAds1015PgaMask = 0x7;
 constexpr uint8_t kAds1015PgaShift = 9;
 typedef enum {
-  ADS1015_PGA_6144V,  // 000 : FS = ±6.144V
-  ADS1015_PGA_4096V,  // 001 : FS = ±4.096V
-  ADS1015_PGA_2048V,  // 010 : FS = ±2.048V (Default)
-  ADS1015_PGA_1024V,  // 011 : FS = ±1.024V
-  ADS1015_PGA_0512V,  // 100 : FS = ±0.512V
+  ADS1015_PGA_6144V,   // 000 : FS = ±6.144V
+  ADS1015_PGA_4096V,   // 001 : FS = ±4.096V
+  ADS1015_PGA_2048V,   // 010 : FS = ±2.048V (Default)
+  ADS1015_PGA_1024V,   // 011 : FS = ±1.024V
+  ADS1015_PGA_0512V,   // 100 : FS = ±0.512V
   ADS1015_PGA_0256V1,  // 101 : FS = ±0.256V
   ADS1015_PGA_0256V2,  // 110 : FS = ±0.256V
   ADS1015_PGA_0256V3,  // 111 : FS = ±0.256V
@@ -138,22 +139,22 @@ typedef enum {
 constexpr uint8_t kAds1015ModeMask = 1;
 constexpr uint8_t kAds1015ModeShift = 8;
 typedef enum {
-    ADS1015_MODE_CONTINUOUS,  // 0 continuous mode
-    ADS1015_MODE_SINGLE_SHOT  // 1 Power-down single-shot (Default)
+  ADS1015_MODE_CONTINUOUS,  // 0 continuous mode
+  ADS1015_MODE_SINGLE_SHOT  // 1 Power-down single-shot (Default)
 } Ads1015ModeType;
 
- /*
+/*
   * Data Rate bits
   */
 constexpr uint8_t kAds1015DrMask = 0x7;
 constexpr uint8_t kAds1015DrShift = 5;
 typedef enum {
-  ADS1015_DR_128_SPS,  // 000 : 128SPS 
-  ADS1015_DR_250_SPS,  // 001 : 250SPS
-  ADS1015_DR_490_SPS,  // 010 : 490SPS
-  ADS1015_DR_920_SPS,  // 011 : 920SPS
-  ADS1015_DR_1600_SPS,  // 100 : 1600SPS (Default)
-  ADS1015_DR_2400_SPS,  // 101 : 2400SPS
+  ADS1015_DR_128_SPS,     // 000 : 128SPS
+  ADS1015_DR_250_SPS,     // 001 : 250SPS
+  ADS1015_DR_490_SPS,     // 010 : 490SPS
+  ADS1015_DR_920_SPS,     // 011 : 920SPS
+  ADS1015_DR_1600_SPS,    // 100 : 1600SPS (Default)
+  ADS1015_DR_2400_SPS,    // 101 : 2400SPS
   ADS1015_DR_3300_SPS_1,  // 110 : 3300SPS
   ADS1015_DR_3300_SPS_2,  // 111 : 3300SPS
 } Ads1015DrType;
@@ -195,24 +196,24 @@ typedef enum {
 constexpr uint8_t kAds1015CompQueueMask = 2;
 constexpr uint8_t kAds1015CompQueueShift = 0;
 typedef enum {
-  ADS1015_COMP_QUEUE_ASSERT_AFTER_ONE,  // 00 : Assert after one conversion
-  ADS1015_COMP_QUEUE_ASSERT_AFTER_TWO,  // 01 : Assert after two conversions
+  ADS1015_COMP_QUEUE_ASSERT_AFTER_ONE,   // 00 : Assert after one conversion
+  ADS1015_COMP_QUEUE_ASSERT_AFTER_TWO,   // 01 : Assert after two conversions
   ADS1015_COMP_QUEUE_ASSERT_AFTER_FOUR,  // 10 : Assert after four conversions
-  ADS1015_COMP_QUEUE_DISABLED           // 1 : Disable comparator (Default)
+  ADS1015_COMP_QUEUE_DISABLED            // 1 : Disable comparator (Default)
 } Ads1015CompQueueType;
 
 union Ads1015Config {
-  uint16_t register_value; // To address the register as one uint16_t
-  struct {  // To address each filed of the register
-    Ads1015CompQueueType comp_queue: 2;   // Bits[1:0] 
-    Ads1015CompLatchType comp_latch: 1;   // Bit[2]
-    Ads1015CompPolarityType comp_pol: 1;  // Bit[3]
-    Ads1015CompModeType comp_mode: 1;     // Bit[4]
-    Ads1015DrType dr: 3;                  // Bis[7:5]
-    Ads1015ModeType mode: 1;              // Bit[8]
-    Ads1015PgaType pga: 3;                // Bits[11:9]
-    Ads1015MuxType mux: 3;                // Bits[14:12]
-    Ads1015OsType os : 1;                 // Bit[15]
+  uint16_t register_value;  // To address the register as one uint16_t
+  struct {                  // To address each filed of the register
+    Ads1015CompQueueType comp_queue : 2;   // Bits[1:0]
+    Ads1015CompLatchType comp_latch : 1;   // Bit[2]
+    Ads1015CompPolarityType comp_pol : 1;  // Bit[3]
+    Ads1015CompModeType comp_mode : 1;     // Bit[4]
+    Ads1015DrType dr : 3;                  // Bis[7:5]
+    Ads1015ModeType mode : 1;              // Bit[8]
+    Ads1015PgaType pga : 3;                // Bits[11:9]
+    Ads1015MuxType mux : 3;                // Bits[14:12]
+    Ads1015OsType os : 1;                  // Bit[15]
   } fields;
 };
 
@@ -271,9 +272,8 @@ class Ads1015DeviceData {
   uint64_t read_total_ = 0;
   atomic_bool initialized = false;
 
-  uint64_t mux_reads[kAds1015MuxMax] = {0,0,0,0,0,0,0,0};
+  uint64_t mux_reads[kAds1015MuxMax] = {0, 0, 0, 0, 0, 0, 0, 0};
   Ads1015DataPoint data_[kAds1015MuxMax];
-
 };
 
 class I2cAds1015 {
@@ -321,19 +321,18 @@ class I2cAds1015 {
   expected<Ads1015Config, int> inspectConfigRegister();
 
  private:
-
   expected<Ads1015Config, int> readConfigRegister();
 
   expected<bool, int> writeConfigRegister(Ads1015Config config);
 
-  expected<int16_t, int>readConversionRegister();
+  expected<int16_t, int> readConversionRegister();
 
   static mutex ads1015_devices_lock;
-  static map<Ads1015DeviceLocation, shared_ptr<Ads1015DeviceData>> ads1015_devices;
+  static map<Ads1015DeviceLocation, shared_ptr<Ads1015DeviceData>>
+      ads1015_devices;
 
   Ads1015DeviceLocation device_;
   shared_ptr<Ads1015DeviceData> device_data_ = nullptr;
-
 
   // The slave address of the device. The sht45 can be either 0x44 or 0x45.
   uint8_t slave_address_;
@@ -352,4 +351,4 @@ class I2cAds1015 {
 };
 
 }  // namespace qw_devices
-#endif  // 
+#endif  //

@@ -20,10 +20,12 @@ using std::string;
 
 namespace qw_devices {
 
-enum I2cBusStatus { I2CBUS_STATUS_OK,
-                    I2CBUS_STATUS_NODEV,
-                    I2CBUS_STATUS_UNKNOWN_FUNCTIONS,
-                    I2CBUS_STATUS_UNDEFINED };
+enum I2cBusStatus {
+  I2CBUS_STATUS_OK,
+  I2CBUS_STATUS_NODEV,
+  I2CBUS_STATUS_UNKNOWN_FUNCTIONS,
+  I2CBUS_STATUS_UNDEFINED
+};
 
 /*
  * I2C device name prefix.
