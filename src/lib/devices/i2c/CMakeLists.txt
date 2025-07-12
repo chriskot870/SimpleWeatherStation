@@ -21,5 +21,4 @@ target_link_libraries(i2cdevices PUBLIC
   temperature_units
   pressure_units
   humidity_units
-  fmt
 )
