@@ -3,8 +3,9 @@
  */
 
 /*
- * This contains the LPS22HB information. See data sheet
- * https://cdn-shop.adafruit.com/product-files/5665/5665_Datasheet_SHT4x.pdf
+ * This contains the LPS22HB information.
+ * See data sheet that can be downloaded from
+ * https://www.st.com/en/mems-and-sensors/lps22hb.html
  *
  */
 
