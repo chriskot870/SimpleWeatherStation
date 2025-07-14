@@ -30,6 +30,10 @@
 
 namespace qw_units {
 
+using fmt::format;
+using std::string;
+using std::strong_ordering;
+
 class MilesPerHour;
 class MetersPerSecond;
 class Knots;

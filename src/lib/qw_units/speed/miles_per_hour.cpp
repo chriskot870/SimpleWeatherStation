@@ -28,6 +28,9 @@
 
 #include "miles_per_hour.h"
 
+using std::string;
+using std::strong_ordering;
+
 namespace qw_units {
 
 class KilometersPerHour;

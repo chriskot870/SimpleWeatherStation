@@ -31,8 +31,6 @@
 
 #include "weather_station.h"
 
-using std::string;
-
 constexpr int wu_default_report_interval = 300000;
 constexpr int wu_report_interval_min = 2500;  // 2.5 seconds in milliseconds
 constexpr int wu_report_interval_max =
@@ -40,7 +38,7 @@ constexpr int wu_report_interval_max =
 /*
  * The ReportInterval is in milliseconds. 300000 = 5 minutes
  */
-const string wu_default_config = R"({
+const std::string wu_default_config = R"({
     "WeatherUnderground": {
         "pwu_name": "KTXROANO168",
         "pwu_password": "HW0SG8q3"
@@ -64,9 +62,9 @@ class WeatherUndergroundConfig {
   bool putRoot(Json::Value data);
 
  private:
-  string getLockFileName(string file);
+  std::string getLockFileName(string file);
 
-  string config_file_;
+  std::string config_file_;
 };
 
 #endif  // SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_

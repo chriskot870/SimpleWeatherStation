@@ -28,6 +28,9 @@
 
 #include "inches_mercury.h"
 
+using std::string;
+using std::strong_ordering;
+
 namespace qw_units {
 
 /*

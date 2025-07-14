@@ -31,6 +31,31 @@
  */
 #include "include/sht4x.h"
 
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::Kelvin;
+using qw_units::RelativeHumidity;
+using qw_units::RelativeHumidityMeasurement;
+using qw_units::TemperatureMeasurement;
+using std::atomic_bool;
+using std::expected;
+using std::find;
+using std::lock_guard;
+using std::make_shared;
+using std::map;
+using std::max;
+using std::min;
+using std::mutex;
+using std::recursive_mutex;
+using std::shared_ptr;
+using std::string;
+using std::unexpected;
+using std::vector;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+using std::chrono::system_clock;
+using std::chrono::time_point;
+
 namespace qw_devices {
 
 mutex I2cSht4x::sht4x_devices_lock;

@@ -56,15 +56,15 @@ class MetersPerSecond {
 
   MetersPerSecond(float temp);
 
-  MetersPerSecond(float temp, string fmt_value);
+  MetersPerSecond(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const MetersPerSecond& other) const;
 
@@ -78,7 +78,7 @@ class MetersPerSecond {
 
   bool operator>=(const MetersPerSecond& other) const;
 
-  strong_ordering operator<=> (const MetersPerSecond& other) const;
+  std::strong_ordering operator<=> (const MetersPerSecond& other) const;
 
   MetersPerSecond& operator=(const MetersPerSecond& other);
 
@@ -103,7 +103,7 @@ class MetersPerSecond {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = speed_default_format;
 
   MetersPerSecond(int64_t base_value);
 

@@ -46,25 +46,6 @@
 
 #include "i2cbus.h"
 
-using std::atomic_bool;
-using std::expected;
-using std::find;
-using std::lock_guard;
-using std::make_shared;
-using std::map;
-using std::max;
-using std::min;
-using std::mutex;
-using std::recursive_mutex;
-using std::shared_ptr;
-using std::string;
-using std::unexpected;
-using std::vector;
-using std::chrono::milliseconds;
-using std::chrono::steady_clock;
-using std::chrono::system_clock;
-using std::chrono::time_point;
-
 namespace qw_devices {
 
 /*
@@ -82,7 +63,7 @@ constexpr uint8_t kAds1015I2cSecondaryAddress = 0x49;
 constexpr uint8_t kAds1015I2cThirdAddress = 0x4A;
 constexpr uint8_t kAds1015I2cFourthAddress = 0x4B;
 
-const vector<uint8_t> ads1015_slave_address_options = {
+const std::vector<uint8_t> ads1015_slave_address_options = {
     kAds1015I2cPrimaryAddress, kAds1015I2cSecondaryAddress,
     kAds1015I2cThirdAddress, kAds1015I2cFourthAddress};
 
@@ -243,13 +224,13 @@ union Ads1015Config {
 
 struct Ads1015DataPoint {
   int16_t measurement;
-  time_point<system_clock> system_time;
-  time_point<steady_clock> steady_time;
+  std::chrono::time_point<std::chrono::system_clock> system_time;
+  std::chrono::time_point<std::chrono::steady_clock> steady_time;
 };
 
 class Ads1015DeviceLocation {
  public:
-  string bus_name_;
+  std::string bus_name_;
   uint8_t slave_address_;
 
   /*
@@ -292,9 +273,9 @@ class Ads1015DeviceLocation {
 
 class Ads1015DeviceData {
  public:
-  recursive_mutex lock_ = {};
+  std::recursive_mutex lock_ = {};
   uint64_t read_total_ = 0;
-  atomic_bool initialized = false;
+  std::atomic_bool initialized = false;
 
   uint64_t mux_reads[kAds1015MuxMax] = {0, 0, 0, 0, 0, 0, 0, 0};
   Ads1015DataPoint data_[kAds1015MuxMax];
@@ -340,23 +321,23 @@ class I2cAds1015 {
 
   void setDefaultConfiguration();
 
-  expected<int16_t, int> getReading(Ads1015MuxType mux);
+  std::expected<int16_t, int> getReading(Ads1015MuxType mux);
 
-  expected<Ads1015Config, int> inspectConfigRegister();
+  std::expected<Ads1015Config, int> inspectConfigRegister();
 
  private:
-  expected<Ads1015Config, int> readConfigRegister();
+  std::expected<Ads1015Config, int> readConfigRegister();
 
-  expected<bool, int> writeConfigRegister(Ads1015Config config);
+  std::expected<bool, int> writeConfigRegister(Ads1015Config config);
 
-  expected<int16_t, int> readConversionRegister();
+  std::expected<int16_t, int> readConversionRegister();
 
-  static mutex ads1015_devices_lock;
-  static map<Ads1015DeviceLocation, shared_ptr<Ads1015DeviceData>>
+  static std::mutex ads1015_devices_lock;
+  static std::map<Ads1015DeviceLocation, std::shared_ptr<Ads1015DeviceData>>
       ads1015_devices;
 
   Ads1015DeviceLocation device_;
-  shared_ptr<Ads1015DeviceData> device_data_ = nullptr;
+  std::shared_ptr<Ads1015DeviceData> device_data_ = nullptr;
 
   // The slave address of the device. The sht45 can be either 0x44 or 0x45.
   uint8_t slave_address_;

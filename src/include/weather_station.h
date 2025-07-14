@@ -55,14 +55,11 @@
 #include "logger.h"
 #include "systemd.h"
 
-using std::map;
-using std::string;
+const std::string args_log_mode_journal = "journal";
+const std::string args_log_mode_file = "file";
+const std::string args_log_mode_nologging = "none";
 
-const string args_log_mode_journal = "journal";
-const string args_log_mode_file = "file";
-const string args_log_mode_nologging = "none";
-
-const string lock_directory = "/run/lock/";
-const string lock_file_suffix = ".lock";
+const std::string lock_directory = "/run/lock/";
+const std::string lock_file_suffix = ".lock";
 
 #endif  // SRC_INCLUDE_WEATHER_STATION_H

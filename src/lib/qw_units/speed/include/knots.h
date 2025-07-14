@@ -55,15 +55,15 @@ class Knots {
 
   Knots(float temp);
 
-  Knots(float temp, string fmt_value);
+  Knots(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const Knots& other) const;
 
@@ -77,7 +77,7 @@ class Knots {
 
   bool operator>=(const Knots& other) const;
 
-  strong_ordering operator<=> (const Knots& other) const;
+  std::strong_ordering operator<=> (const Knots& other) const;
 
   Knots& operator=(const Knots& other);
 
@@ -102,7 +102,7 @@ class Knots {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = speed_default_format;
   
   Knots(int64_t base_value);
 

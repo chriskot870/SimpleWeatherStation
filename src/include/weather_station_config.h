@@ -35,9 +35,7 @@
 
 #include "weather_station.h"
 
-using std::string;
-
-const string weather_station_config = "/usr/local/qw/etc/ws_config.json";
+const std::string weather_station_config = "/usr/local/qw/etc/ws_config.json";
 
 class WeatherStationConfig {
  public:

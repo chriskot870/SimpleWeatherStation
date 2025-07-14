@@ -41,6 +41,10 @@
 
 #include "include/i2cbus.h"
 
+using std::lock_guard;
+using std::mutex;
+using std::string;
+
 namespace qw_devices {
 
 mutex I2cBus::i2cbus_lock;

@@ -28,6 +28,10 @@
 
 #include "millibar.h"
 
+using fmt::format;
+using std::string;
+using std::strong_ordering;
+
 namespace qw_units {
 
 /*

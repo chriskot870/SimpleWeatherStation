@@ -38,10 +38,6 @@
 #include <mutex>
 #include <string>
 
-using std::lock_guard;
-using std::mutex;
-using std::string;
-
 namespace qw_devices {
 
 enum I2cBusStatus {
@@ -55,12 +51,12 @@ enum I2cBusStatus {
  * I2C device name prefix.
  * all I2C device names begin with this value
  */
-constexpr string i2c_devicename_prefix = "/dev/i2c-";
+constexpr std::string i2c_devicename_prefix = "/dev/i2c-";
 
 class I2cBus {
 
  public:
-  I2cBus(string bus_name);
+  I2cBus(std::string bus_name);
 
   /*
    * This is for use with devices that use a command/result model. This writes a
@@ -97,14 +93,14 @@ class I2cBus {
   /*
    * This routine returns the device name
    */
-  string busName();
+  std::string busName();
 
   I2cBusStatus status();
 
  private:
-  static mutex i2cbus_lock;
+  static std::mutex i2cbus_lock;
 
-  string bus_device_name_;
+  std::string bus_device_name_;
 
   unsigned long i2c_functions_ = 0;
 

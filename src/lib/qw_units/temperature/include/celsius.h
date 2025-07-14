@@ -39,10 +39,6 @@
 #include "kelvin.h"
 #include "temperature.h"
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 
 /*
@@ -62,7 +58,7 @@ class Celsius {
 
   Celsius(float temp);
 
-  Celsius(float temp, string fmt_value);
+  Celsius(float temp, std::string fmt_value);
 
   bool operator==(const Celsius& other) const;
 
@@ -76,7 +72,7 @@ class Celsius {
 
   bool operator>=(const Celsius& other) const;
 
-  strong_ordering operator<=> (const Celsius& other) const;
+  std::strong_ordering operator<=> (const Celsius& other) const;
 
   Celsius& operator=(const Celsius& other);
 
@@ -99,16 +95,16 @@ class Celsius {
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
  private:
   int64_t base_value_;
 
-  string fmt_value_ = temperature_default_format;
+  std::string fmt_value_ = temperature_default_format;
 
   /*
    * Here we want all the conversion to and from base to the

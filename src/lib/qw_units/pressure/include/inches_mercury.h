@@ -48,15 +48,15 @@ class InchesMercury {
 
   InchesMercury(float temp);
 
-  InchesMercury(float temp, string fmt_value);
+  InchesMercury(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const InchesMercury& other) const;
 
@@ -70,7 +70,7 @@ class InchesMercury {
 
   bool operator>=(const InchesMercury& other) const;
 
-  strong_ordering operator<=> (const InchesMercury& other) const;
+  std::strong_ordering operator<=> (const InchesMercury& other) const;
 
   InchesMercury& operator=(const InchesMercury& other);
 
@@ -91,7 +91,7 @@ class InchesMercury {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = pressure_default_format;
+  std::string fmt_value_ = pressure_default_format;
 
   int InchesMercuryToBase(float temp);
 

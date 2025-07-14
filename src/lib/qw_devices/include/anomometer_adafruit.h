@@ -54,8 +54,8 @@ namespace qw_devices {
 constexpr float kAnonometerAdafruitBaseVolts = .4;
 constexpr float kAnonometerAdafruitCalibrateVoltage = 2.0;
 constexpr float kAnomometerAdafruitCalibrateMph = 72;
-constexpr float kAnomometerAdafruitMphPerCount = kAnomometerAdafruitCalibrateMph/(kAds1015CountPerVolts * (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
-constexpr float kAnomometerAdafruitBaseValue = (kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
+constexpr float kAnomometerAdafruitMphPerCount = kAnomometerAdafruitCalibrateMph/(qw_devices::kAds1015CountPerVolts * (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
+constexpr float kAnomometerAdafruitBaseValue = (qw_devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
 
 /*
  * volts = (volts/count) * count + b
@@ -65,12 +65,12 @@ class AnomometerAdafruit {
  public:
   AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux);
 
-  expected<MilesPerHour, int> speed();
+  std::expected<MilesPerHour, int> speed();
 
  private:
-  I2cAds1015 adc_;
+  qw_devices::I2cAds1015 adc_;
 
-  Ads1015MuxType mux_;
+  qw_devices::Ads1015MuxType mux_;
 
 };
 

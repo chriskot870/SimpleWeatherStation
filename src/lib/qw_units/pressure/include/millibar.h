@@ -37,10 +37,6 @@
 #include "inches_mercury.h"
 #include "pressure.h"
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 /*
  * Need to predeclare these classes
@@ -57,15 +53,15 @@ class Millibar {
 
   Millibar(float temp);
 
-  Millibar(float temp, string fmt_value);
+  Millibar(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const Millibar& other) const;
 
@@ -79,7 +75,7 @@ class Millibar {
 
   bool operator>=(const Millibar& other) const;
 
-  strong_ordering operator<=> (const Millibar& other) const;
+  std::strong_ordering operator<=> (const Millibar& other) const;
 
   Millibar& operator=(const Millibar& other);
 
@@ -99,7 +95,7 @@ class Millibar {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = pressure_default_format;
+  std::string fmt_value_ = pressure_default_format;
 
   int MillibarToBase(float temp);
 

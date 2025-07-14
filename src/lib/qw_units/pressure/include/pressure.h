@@ -34,10 +34,6 @@
 #include <compare>
 #include <string>
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 /*
    * Our pressure base is millicelsius so we want
@@ -47,7 +43,7 @@ namespace qw_units {
 constexpr int pressure_base_conversion_factor = 1000;
 constexpr float inHg_sea_level = 29.92;  // inches mercury at sea level
 constexpr float mb_sea_level = 1013.25;  // millibars at sea level
-constexpr string pressure_default_format = "{0:.2f}";
+constexpr std::string pressure_default_format = "{0:.2f}";
 
 }  // Namespace qw_units
 

@@ -34,10 +34,6 @@
 #include <compare>
 #include <string>
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 /*
  * Our speed is based on .01 mile per hour
@@ -49,7 +45,7 @@ constexpr float kMpsPerMph = 2.24;   // 2.23694 mph per mps
 constexpr float kMphPerMps = (1/kMpsPerMph);  // The inverse of above
 constexpr float kMphPerKnot = 1.15;  // 1.15078 I assume 3 digits is good enough
 constexpr float kKnotPerMph = (1/kMphPerKnot);  // The inverse of above.
-const string speed_default_format = "{0:.2f}";
+const std::string speed_default_format = "{0:.2f}";
 
 }  // Namespace qw_units
 

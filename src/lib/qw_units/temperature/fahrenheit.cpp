@@ -28,6 +28,9 @@
 
 #include "fahrenheit.h"
 
+using std::string;
+using std::strong_ordering;
+
 namespace qw_units {
 
 class Celsius;

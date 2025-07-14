@@ -73,31 +73,6 @@
  */
 #include "i2cbus.h"
 
-using qw_units::Celsius;
-using qw_units::Fahrenheit;
-using qw_units::Kelvin;
-using qw_units::RelativeHumidity;
-using qw_units::RelativeHumidityMeasurement;
-using qw_units::TemperatureMeasurement;
-using std::atomic_bool;
-using std::expected;
-using std::find;
-using std::lock_guard;
-using std::make_shared;
-using std::map;
-using std::max;
-using std::min;
-using std::mutex;
-using std::recursive_mutex;
-using std::shared_ptr;
-using std::string;
-using std::unexpected;
-using std::vector;
-using std::chrono::milliseconds;
-using std::chrono::steady_clock;
-using std::chrono::system_clock;
-using std::chrono::time_point;
-
 namespace qw_devices {
 
 /*
@@ -106,7 +81,7 @@ namespace qw_devices {
 constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
 constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
 
-const vector<uint8_t> sht4x_slave_address_options = {kSht4xI2cPrimaryAddress,
+const std::vector<uint8_t> sht4x_slave_address_options = {kSht4xI2cPrimaryAddress,
                                                      kSht4xI2cSecondaryAddress};
 
 constexpr std::chrono::milliseconds kDefaultMeasurementInterval(
@@ -120,8 +95,8 @@ constexpr float kSht4xHumidityMax = 100;
 /*
  * These were found in the datasheet
  */
-const Celsius kSht4xTemperatureAccuracy(.5);
-const RelativeHumidity kSht44xHumidityAccuracy(.1);
+const qw_units::Celsius kSht4xTemperatureAccuracy(.5);
+const qw_units::RelativeHumidity kSht44xHumidityAccuracy(.1);
 /*
  * Commands
  */
@@ -210,7 +185,7 @@ typedef enum {
 /*
  * These are in microseonds
  */
-static map<Sht4xMaxTimings, int> sht4x_min_delays = {
+static std::map<Sht4xMaxTimings, int> sht4x_min_delays = {
     {SHT4X_TIMING_SOFT_RESET, 1000}, /* tpu 1 millisecond */
     /*
      * For the next 3 the table says including tpu. I take that
@@ -231,7 +206,7 @@ typedef enum { SHT4X_TEMPERATURE, SHT4X_HUMIDITY } Sht4xReading_t;
 
 class Sht4xDeviceLocation {
  public:
-  string bus_name_;
+  std::string bus_name_;
   uint8_t slave_address_;
 
   /*
@@ -274,20 +249,20 @@ class Sht4xDeviceLocation {
 
 class Sht4xDeviceData {
  public:
-  recursive_mutex lock_ = {};
+  std::recursive_mutex lock_ = {};
   uint64_t read_total_ = 0;
-  atomic_bool initialized = false;
+  std::atomic_bool initialized = false;
 
   /*
    * The time we read in the temperature
    */
   uint16_t temperature_measurement_ = 0;
-  time_point<system_clock> temperature_measurement_system_time_;
-  time_point<steady_clock> temperature_measurement_steady_time_;
+  std::chrono::time_point<std::chrono::system_clock> temperature_measurement_system_time_;
+  std::chrono::time_point<std::chrono::steady_clock> temperature_measurement_steady_time_;
 
   uint16_t humidity_measurement_ = 0;
-  time_point<system_clock> humidity_measurement_system_time_;
-  time_point<steady_clock> humidity_measurement_steady_time_;
+  std::chrono::time_point<std::chrono::system_clock> humidity_measurement_system_time_;
+  std::chrono::time_point<std::chrono::steady_clock> humidity_measurement_steady_time_;
 };
 
 class I2cSht4x {
@@ -298,31 +273,31 @@ class I2cSht4x {
 
   int init();
 
-  expected<uint32_t, int> getSerialNumber();
+  std::expected<uint32_t, int> getSerialNumber();
 
   int softReset();
 
-  expected<TemperatureMeasurement, int> getTemperatureMeasurement();
+  std::expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  expected<RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
+  std::expected<qw_units::RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);
 
-  int setMeasurementInterval(milliseconds interval, Sht4xReading_t reading);
+  int setMeasurementInterval(std::chrono::milliseconds interval, Sht4xReading_t reading);
 
   int error_code();
 
-  string error_message();
+  std::string error_message();
 
  private:
   /*
     * Private Data
     */
-  static mutex sht4x_devices_lock;
-  static map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> sht4x_devices;
+  static std::mutex sht4x_devices_lock;
+  static std::map<Sht4xDeviceLocation, std::shared_ptr<Sht4xDeviceData>> sht4x_devices;
 
   Sht4xDeviceLocation device_;
-  shared_ptr<Sht4xDeviceData> device_data_ = nullptr;
+  std::shared_ptr<Sht4xDeviceData> device_data_ = nullptr;
   // Number of measurements made
   uint64_t measurement_count_ = 0;
 
@@ -333,22 +308,22 @@ class I2cSht4x {
   I2cBus i2cbus_;
 
   // interval between making a measurement per reading type
-  milliseconds temperature_measurement_interval_ = kDefaultMeasurementInterval;
-  milliseconds humidity_measurement_interval_ = kDefaultMeasurementInterval;
+  std::chrono::milliseconds temperature_measurement_interval_ = kDefaultMeasurementInterval;
+  std::chrono::milliseconds humidity_measurement_interval_ = kDefaultMeasurementInterval;
 
   // Serial Number
   uint32_t serial_number_ = 0;
 
   int error_code_ = 0;
 
-  string error_message_ = {};
+  std::string error_message_ = {};
   /*
    * Private Functions
    */
   int getMeasurement(Sht4xMeasurmentMode mode);
 
-  bool measurementExpired(time_point<steady_clock> last_read_time,
-                          milliseconds interval);
+  bool measurementExpired(std::chrono::time_point<std::chrono::steady_clock> last_read_time,
+                          std::chrono::milliseconds interval);
 };
 
 }  // Namespace qw_devices

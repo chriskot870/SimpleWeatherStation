@@ -34,14 +34,10 @@
 #include <compare>
 #include <string>
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 
 constexpr int rh_base_conversion_factor = 100;
-constexpr string relative_humidity_default_format = "{0:.1f}";
+constexpr std::string relative_humidity_default_format = "{0:.1f}";
 
 class RelativeHumidity {
  public:
@@ -49,7 +45,7 @@ class RelativeHumidity {
 
   RelativeHumidity(float rh);
 
-  RelativeHumidity(float rh, string fmt_value);
+  RelativeHumidity(float rh, std::string fmt_value);
 
   bool operator==(const RelativeHumidity& other) const;
 
@@ -63,7 +59,7 @@ class RelativeHumidity {
 
   bool operator>=(const RelativeHumidity& other) const;
 
-  strong_ordering operator<=> (const RelativeHumidity& other) const;
+  std::strong_ordering operator<=> (const RelativeHumidity& other) const;
 
   RelativeHumidity& operator=(const RelativeHumidity& other);
 
@@ -77,16 +73,16 @@ class RelativeHumidity {
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
  private:
   int base_value_;
 
-  string fmt_value_ = relative_humidity_default_format;
+  std::string fmt_value_ = relative_humidity_default_format;
 
   void setBaseValue(int base_value);
 };

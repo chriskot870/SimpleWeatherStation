@@ -28,10 +28,12 @@
 
 #include "temperature_measurement.h"
 
+using std::string;
 using std::get;
 using std::holds_alternative;
 using std::variant;
 using std::chrono::system_clock;
+using std::chrono::time_point;
 
 namespace qw_units {
 

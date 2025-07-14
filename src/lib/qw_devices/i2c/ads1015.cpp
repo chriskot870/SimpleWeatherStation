@@ -31,6 +31,25 @@
  */
 #include "include/ads1015.h"
 
+using std::atomic_bool;
+using std::expected;
+using std::find;
+using std::lock_guard;
+using std::make_shared;
+using std::map;
+using std::max;
+using std::min;
+using std::mutex;
+using std::recursive_mutex;
+using std::shared_ptr;
+using std::string;
+using std::unexpected;
+using std::vector;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+using std::chrono::system_clock;
+using std::chrono::time_point;
+
 namespace qw_devices {
 
 mutex I2cAds1015::ads1015_devices_lock;

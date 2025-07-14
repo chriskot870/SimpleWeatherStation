@@ -31,6 +31,29 @@
  */
 #include "include/lps22.h"
 
+using qw_units::Celsius;
+using qw_units::Fahrenheit;
+using qw_units::InchesMercury;
+using qw_units::Kelvin;
+using qw_units::Millibar;
+using qw_units::PressureMeasurement;
+using qw_units::TemperatureMeasurement;
+using std::expected;
+using std::find;
+using std::lock_guard;
+using std::make_shared;
+using std::map;
+using std::mutex;
+using std::recursive_mutex;
+using std::shared_ptr;
+using std::string;
+using std::unexpected;
+using std::vector;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+using std::chrono::system_clock;
+using std::chrono::time_point;
+
 namespace qw_devices {
 
 mutex Lps22::lps22_devices_lock;

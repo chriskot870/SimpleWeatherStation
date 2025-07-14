@@ -39,10 +39,6 @@
 #include "kelvin.h"
 #include "temperature.h"
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 /*
  * Need to predeclare the friend classes
@@ -61,15 +57,15 @@ class Fahrenheit {
 
   Fahrenheit(float temp);
 
-  Fahrenheit(float temp, string fmt_value);
+  Fahrenheit(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   /********************
    * Operator functions
@@ -87,7 +83,7 @@ class Fahrenheit {
 
   bool operator>=(const Fahrenheit& other) const;
 
-  strong_ordering operator<=> (const Fahrenheit& other) const;
+  std::strong_ordering operator<=> (const Fahrenheit& other) const;
 
   Fahrenheit& operator=(const Fahrenheit& other);
 
@@ -106,7 +102,7 @@ class Fahrenheit {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = temperature_default_format;
+  std::string fmt_value_ = temperature_default_format;
 
   int FahrenheitToBase(float temp);
 

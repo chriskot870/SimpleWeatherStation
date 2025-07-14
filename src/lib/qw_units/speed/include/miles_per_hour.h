@@ -29,12 +29,10 @@
 #ifndef LIB_UNITS_SPEED_MILES_PER_HOUR_H_
 #define LIB_UNITS_SPEED_MILES_PER_HOUR_H_
 
-
 #include "speed.h"
 #include "kilometers_per_hour.h"
 #include "meters_per_second.h"
 #include "knots.h"
-
 
 namespace qw_units {
 
@@ -57,15 +55,15 @@ class MilesPerHour {
 
   MilesPerHour(float temp);
 
-  MilesPerHour(float temp, string fmt_value);
+  MilesPerHour(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const MilesPerHour& other) const;
 
@@ -79,7 +77,7 @@ class MilesPerHour {
 
   bool operator>=(const MilesPerHour& other) const;
 
-  strong_ordering operator<=> (const MilesPerHour& other) const;
+  std::strong_ordering operator<=> (const MilesPerHour& other) const;
 
   MilesPerHour& operator=(const MilesPerHour& other);
 
@@ -104,7 +102,7 @@ class MilesPerHour {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = speed_default_format;
   
   MilesPerHour(int64_t base_value);
 

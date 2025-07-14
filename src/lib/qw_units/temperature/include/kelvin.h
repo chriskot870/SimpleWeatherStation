@@ -39,10 +39,6 @@
 #include "fahrenheit.h"
 #include "temperature.h"
 
-using fmt::format;
-using std::string;
-using std::strong_ordering;
-
 namespace qw_units {
 
 /*
@@ -61,15 +57,15 @@ class Kelvin {
 
   Kelvin(float temp);
 
-  Kelvin(float temp, string fmt_value);
+  Kelvin(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const Kelvin& other) const;
 
@@ -83,7 +79,7 @@ class Kelvin {
 
   bool operator>=(const Kelvin& other) const;
 
-  strong_ordering operator<=> (const Kelvin& other) const;
+  std::strong_ordering operator<=> (const Kelvin& other) const;
 
   Kelvin& operator=(const Kelvin& other);
 
@@ -102,7 +98,7 @@ class Kelvin {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = temperature_default_format;
+  std::string fmt_value_ = temperature_default_format;
 
   int KelvinToBase(float temp);
 

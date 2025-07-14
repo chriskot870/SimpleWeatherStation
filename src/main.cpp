@@ -75,6 +75,8 @@ using qw_units::InchesMercury;
 using qw_units::Kelvin;
 using qw_units::Millibar;
 using std::cout;
+using std::max;
+using std::min;
 using std::endl;
 using std::get;
 using std::holds_alternative;

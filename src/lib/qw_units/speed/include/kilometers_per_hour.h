@@ -55,15 +55,15 @@ class KilometersPerHour {
 
   KilometersPerHour(float temp);
 
-  KilometersPerHour(float temp, string fmt_value);
+  KilometersPerHour(float temp, std::string fmt_value);
 
   float value();
 
-  string toString();
+  std::string toString();
 
-  string toString(string format);
+  std::string toString(std::string format);
 
-  void setFormat(string fmt_value);
+  void setFormat(std::string fmt_value);
 
   bool operator==(const KilometersPerHour& other) const;
 
@@ -77,7 +77,7 @@ class KilometersPerHour {
 
   bool operator>=(const KilometersPerHour& other) const;
 
-  strong_ordering operator<=> (const KilometersPerHour& other) const;
+  std::strong_ordering operator<=> (const KilometersPerHour& other) const;
 
   KilometersPerHour& operator=(const KilometersPerHour& other);
 
@@ -102,7 +102,7 @@ class KilometersPerHour {
  private:
   int64_t base_value_;
 
-  string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = speed_default_format;
 
   KilometersPerHour(int64_t base_value);
 

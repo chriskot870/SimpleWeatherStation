@@ -38,25 +38,21 @@
 #include "millibar.h"
 #include "pressure.h"
 
-using std::variant;
-using std::chrono::system_clock;
-using std::chrono::time_point;
-
 namespace qw_units {
 
 class PressureMeasurement {
  public:
   PressureMeasurement();
 
-  PressureMeasurement(variant<Millibar, InchesMercury> value,
-                      variant<Millibar, InchesMercury> accuracy,
-                      time_point<system_clock> time);
+  PressureMeasurement(std::variant<Millibar, InchesMercury> value,
+                      std::variant<Millibar, InchesMercury> accuracy,
+                      std::chrono::time_point<std::chrono::system_clock> time);
 
-  variant<Millibar, InchesMercury> value();
+  std::variant<Millibar, InchesMercury> value();
 
-  variant<Millibar, InchesMercury> accuracy();
+  std::variant<Millibar, InchesMercury> accuracy();
 
-  time_point<system_clock> time();
+  std::chrono::time_point<std::chrono::system_clock> time();
 
   Millibar millibarValue();
 
@@ -67,9 +63,9 @@ class PressureMeasurement {
   InchesMercury inchesMercuryAccuracy();
 
  private:
-  variant<Millibar, InchesMercury> value_;
-  variant<Millibar, InchesMercury> accuracy_;
-  time_point<system_clock> time_;
+  std::variant<Millibar, InchesMercury> value_;
+  std::variant<Millibar, InchesMercury> accuracy_;
+  std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
 }  // Namespace qw_units
