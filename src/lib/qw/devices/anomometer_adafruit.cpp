@@ -26,17 +26,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "anomometer_adafruit.h"
+#include "qw/devices/include/anomometer_adafruit.h"
 
 using std::expected;
 using std::unexpected;
 
-using qw_devices::I2cAds1015;
+/*
+using qw::devices::I2cAds1015;
 using qw_devices::Ads1015MuxType;
 using qw_devices::kAds1015CountPerVolts;
-using qw_units::MilesPerHour;
+*/
+using qw::units::MilesPerHour;
 
-namespace qw_devices {
+namespace qw::devices {
 
   AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux) : adc_(adc), mux_(mux) {}
 

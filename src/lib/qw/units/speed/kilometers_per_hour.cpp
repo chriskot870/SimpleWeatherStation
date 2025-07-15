@@ -26,9 +26,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "kilometers_per_hour.h"
+#include "qw/units/speed/include/kilometers_per_hour.h"
 
-namespace qw_units {
+namespace qw::units {
 
 using fmt::format;
 using std::string;

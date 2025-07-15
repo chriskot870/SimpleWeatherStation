@@ -29,7 +29,7 @@
 /*
  * This contains the driver for the ADS 1015 ADC chip.
  */
-#include "include/ads1015.h"
+#include "qw/devices/i2c/include/ads1015.h"
 
 using std::atomic_bool;
 using std::expected;
@@ -50,7 +50,7 @@ using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-namespace qw_devices {
+namespace qw::devices {
 
 mutex I2cAds1015::ads1015_devices_lock;
 map<Ads1015DeviceLocation, shared_ptr<Ads1015DeviceData>>

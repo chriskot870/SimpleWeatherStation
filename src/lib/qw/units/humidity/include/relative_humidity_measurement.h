@@ -33,9 +33,9 @@
 #define LIB_UNITS_RELATIVE_HUMIDITY_MEASUREMENT_H_
 
 #include <chrono>
-#include "relative_humidity.h"
+#include "qw/units/humidity/include/relative_humidity.h"
 
-namespace qw_units {
+namespace qw::units {
 
 class RelativeHumidityMeasurement {
  public:

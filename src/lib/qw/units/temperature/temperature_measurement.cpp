@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "temperature_measurement.h"
+#include "qw/units/temperature/include/temperature_measurement.h"
 
 using std::string;
 using std::get;
@@ -35,22 +35,25 @@ using std::variant;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-namespace qw_units {
+//using qw::units::Celsius;
+//using qw::units::Fahrenheit;
+
+namespace qw::units {
 
 TemperatureMeasurement::TemperatureMeasurement() {}
 
 TemperatureMeasurement::TemperatureMeasurement(
-    variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> value,
-    variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin> accuracy,
+    variant<Celsius, Fahrenheit, Kelvin> value,
+    variant<Celsius, Fahrenheit, Kelvin> accuracy,
     time_point<system_clock> time)
     : value_(value), accuracy_(accuracy), time_(time) {}
 
-variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin>
+variant<Celsius, Fahrenheit, Kelvin>
 TemperatureMeasurement::value() {
   return value_;
 }
 
-variant<qw_units::Celsius, qw_units::Fahrenheit, qw_units::Kelvin>
+variant<Celsius, Fahrenheit, Kelvin>
 TemperatureMeasurement::accuracy() {
   return accuracy_;
 }
@@ -59,9 +62,9 @@ time_point<system_clock> TemperatureMeasurement::time() {
   return time_;
 }
 
-qw_units::Celsius TemperatureMeasurement::celsiusValue() {
+Celsius TemperatureMeasurement::celsiusValue() {
 
-  qw_units::Celsius tempc;
+  Celsius tempc;
   if (holds_alternative<Celsius>(value_)) {
     tempc = get<Celsius>(value_);
   }
@@ -75,9 +78,9 @@ qw_units::Celsius TemperatureMeasurement::celsiusValue() {
   return tempc;
 }
 
-qw_units::Fahrenheit TemperatureMeasurement::fahrenheitValue() {
+Fahrenheit TemperatureMeasurement::fahrenheitValue() {
 
-  qw_units::Fahrenheit tempf;
+  Fahrenheit tempf;
   if (holds_alternative<Celsius>(value_)) {
     tempf = get<Celsius>(value_);
   }
@@ -91,9 +94,9 @@ qw_units::Fahrenheit TemperatureMeasurement::fahrenheitValue() {
   return tempf;
 }
 
-qw_units::Kelvin TemperatureMeasurement::kelvinValue() {
+Kelvin TemperatureMeasurement::kelvinValue() {
 
-  qw_units::Kelvin tempk;
+  Kelvin tempk;
   if (holds_alternative<Celsius>(value_)) {
     tempk = get<Celsius>(value_);
   }
@@ -107,9 +110,9 @@ qw_units::Kelvin TemperatureMeasurement::kelvinValue() {
   return tempk;
 }
 
-qw_units::Celsius TemperatureMeasurement::celsiusAccuracy() {
+Celsius TemperatureMeasurement::celsiusAccuracy() {
 
-  qw_units::Celsius tempc;
+  Celsius tempc;
   if (holds_alternative<Celsius>(accuracy_)) {
     tempc = get<Celsius>(accuracy_);
   }
@@ -123,9 +126,9 @@ qw_units::Celsius TemperatureMeasurement::celsiusAccuracy() {
   return tempc;
 }
 
-qw_units::Fahrenheit TemperatureMeasurement::fahrenheitAccuracy() {
+Fahrenheit TemperatureMeasurement::fahrenheitAccuracy() {
 
-  qw_units::Fahrenheit tempf;
+  Fahrenheit tempf;
   if (holds_alternative<Celsius>(accuracy_)) {
     tempf = get<Celsius>(accuracy_);
   }
@@ -139,9 +142,9 @@ qw_units::Fahrenheit TemperatureMeasurement::fahrenheitAccuracy() {
   return tempf;
 }
 
-qw_units::Kelvin TemperatureMeasurement::kelvinAccuracy() {
+Kelvin TemperatureMeasurement::kelvinAccuracy() {
 
-  qw_units::Kelvin tempk;
+  Kelvin tempk;
   if (holds_alternative<Celsius>(accuracy_)) {
     tempk = get<Celsius>(accuracy_);
   }

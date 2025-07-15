@@ -7,7 +7,7 @@ add_library(weather_utilities STATIC
 #
 # Add this directory to the list of directories to look for include files
 #
-target_include_directories(weather_utilities PUBLIC , ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(weather_utilities PUBLIC , ${CMAKE_SOURCE_DIR}/src/lib)
 
 #
 # Use the C++23 option

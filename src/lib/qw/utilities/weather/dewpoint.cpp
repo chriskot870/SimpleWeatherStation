@@ -26,10 +26,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dewpoint.h"
+#include "qw/utilities/weather/include/dewpoint.h"
 
-using qw_units::Celsius;
-using qw_units::RelativeHumidity;
+using qw::units::Celsius;
+using qw::units::RelativeHumidity;
 
 namespace qw_utilities {
 

@@ -16,8 +16,7 @@ add_library(weatherdevices STATIC
 target_compile_options(weatherdevices PUBLIC -std=c++23)
 
 target_include_directories(weatherdevices PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/i2c/include
+    ${CMAKE_SOURCE_DIR}/src/lib
 )
 
 target_link_libraries(weatherdevices PUBLIC

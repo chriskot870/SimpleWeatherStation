@@ -8,7 +8,7 @@ add_library(speed_units STATIC
 #
 # Add this directory to the list of directories to look for include files
 #
-target_include_directories(speed_units PUBLIC , ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(speed_units PUBLIC , ${CMAKE_SOURCE_DIR}/src/lib)
 
 
 #

@@ -35,12 +35,12 @@
 #include <chrono>
 #include <variant>
 
-#include "celsius.h"
-#include "fahrenheit.h"
-#include "kelvin.h"
-#include "temperature.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/temperature/include/temperature.h"
 
-namespace qw_units {
+namespace qw::units {
 
 class TemperatureMeasurement {
  public:

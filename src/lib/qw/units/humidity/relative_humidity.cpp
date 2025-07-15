@@ -26,13 +26,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "relative_humidity.h"
+#include "qw/units/humidity/include/relative_humidity.h"
 
 using fmt::format;
 using std::string;
 using std::strong_ordering;
 
-namespace qw_units {
+namespace qw::units {
 
 /*
  * Constructor routines

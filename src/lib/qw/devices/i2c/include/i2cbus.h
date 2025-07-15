@@ -38,7 +38,7 @@
 #include <mutex>
 #include <string>
 
-namespace qw_devices {
+namespace qw::devices {
 
 enum I2cBusStatus {
   I2CBUS_STATUS_OK,

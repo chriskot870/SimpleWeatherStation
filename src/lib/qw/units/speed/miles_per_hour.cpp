@@ -26,12 +26,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "miles_per_hour.h"
+#include "qw/units/speed/include/miles_per_hour.h"
 
 using std::string;
 using std::strong_ordering;
 
-namespace qw_units {
+namespace qw::units {
 
 class KilometersPerHour;
 class MetersPerSecond;

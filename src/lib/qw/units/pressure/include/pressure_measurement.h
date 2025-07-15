@@ -34,11 +34,11 @@
 
 #include <chrono>
 #include <variant>
-#include "inches_mercury.h"
-#include "millibar.h"
-#include "pressure.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/pressure/include/millibar.h"
+#include "qw/units/pressure/include/pressure.h"
 
-namespace qw_units {
+namespace qw::units {
 
 class PressureMeasurement {
  public:

@@ -26,12 +26,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "inches_mercury.h"
+#include "qw/units/pressure/include/inches_mercury.h"
 
 using std::string;
 using std::strong_ordering;
 
-namespace qw_units {
+namespace qw::units {
 
 /*
  * Constructor routines

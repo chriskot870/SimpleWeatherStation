@@ -34,7 +34,7 @@
 #include <compare>
 #include <string>
 
-namespace qw_units {
+namespace qw::units {
 /*
  * Our speed is based on .01 mile per hour
  */

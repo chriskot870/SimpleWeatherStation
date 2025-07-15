@@ -34,7 +34,7 @@
 #include <compare>
 #include <string>
 
-namespace qw_units {
+namespace qw::units {
 /*
    * Our pressure base is millicelsius so we want
    * to apply the pressur_base_conversion_factor

@@ -26,12 +26,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "relative_humidity_measurement.h"
+#include "qw/units/humidity/include/relative_humidity_measurement.h"
 
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-namespace qw_units {
+namespace qw::units {
 
 /*
  * Constructor routines

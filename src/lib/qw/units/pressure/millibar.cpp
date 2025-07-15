@@ -26,13 +26,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "millibar.h"
+#include "qw/units/pressure/include/millibar.h"
 
 using fmt::format;
 using std::string;
 using std::strong_ordering;
 
-namespace qw_units {
+namespace qw::units {
 
 /*
  * Constructor routines

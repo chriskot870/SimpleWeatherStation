@@ -26,12 +26,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "knots.h"
+#include "qw/units/speed/include/knots.h"
 
 using std::string;
 using std::strong_ordering;
 
-namespace qw_units {
+namespace qw::units {
 
 class MilesPerHour;
 class KilometersPerHour;

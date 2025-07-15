@@ -29,15 +29,15 @@
 /*
  * This contains the driver for the LPS22 HB chip.
  */
-#include "include/lps22.h"
+#include "qw/devices/i2c/include/lps22.h"
 
-using qw_units::Celsius;
-using qw_units::Fahrenheit;
-using qw_units::InchesMercury;
-using qw_units::Kelvin;
-using qw_units::Millibar;
-using qw_units::PressureMeasurement;
-using qw_units::TemperatureMeasurement;
+using qw::units::Celsius;
+using qw::units::Fahrenheit;
+using qw::units::InchesMercury;
+using qw::units::Kelvin;
+using qw::units::Millibar;
+using qw::units::PressureMeasurement;
+using qw::units::TemperatureMeasurement;
 using std::expected;
 using std::find;
 using std::lock_guard;
@@ -54,7 +54,7 @@ using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-namespace qw_devices {
+namespace qw::devices {
 
 mutex Lps22::lps22_devices_lock;
 map<Lps22DeviceLocation, shared_ptr<Lps22DeviceData>> Lps22::lps22_devices;

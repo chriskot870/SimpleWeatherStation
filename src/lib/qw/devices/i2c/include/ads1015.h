@@ -44,9 +44,9 @@
 #include <memory>
 #include <vector>
 
-#include "i2cbus.h"
+#include "qw/devices/i2c/include/i2cbus.h"
 
-namespace qw_devices {
+namespace qw::devices {
 
 /*
  * The I2C address is determined by the ADDR PIN.

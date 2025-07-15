@@ -60,20 +60,20 @@
  * This device has temperature and relative humidity sensors so add the units
  * and measurements.
  */
-#include "celsius.h"
-#include "fahrenheit.h"
-#include "kelvin.h"
-#include "relative_humidity.h"
-#include "relative_humidity_measurement.h"
-#include "temperature.h"
-#include "temperature_measurement.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/humidity/include/relative_humidity_measurement.h"
+#include "qw/units/temperature/include/temperature.h"
+#include "qw/units/temperature/include/temperature_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
  */
 #include "i2cbus.h"
 
-namespace qw_devices {
+namespace qw::devices {
 
 /*
  * Fixed address. could be 0x45 you have to check the model from the data sheet
@@ -95,8 +95,8 @@ constexpr float kSht4xHumidityMax = 100;
 /*
  * These were found in the datasheet
  */
-const qw_units::Celsius kSht4xTemperatureAccuracy(.5);
-const qw_units::RelativeHumidity kSht44xHumidityAccuracy(.1);
+const qw::units::Celsius kSht4xTemperatureAccuracy(.5);
+const qw::units::RelativeHumidity kSht44xHumidityAccuracy(.1);
 /*
  * Commands
  */
@@ -277,9 +277,9 @@ class I2cSht4x {
 
   int softReset();
 
-  std::expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
+  std::expected<qw::units::TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  std::expected<qw_units::RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
+  std::expected<qw::units::RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);
 

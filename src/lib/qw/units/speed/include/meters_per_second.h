@@ -29,12 +29,12 @@
 #ifndef LIB_UNITS_SPEED_METERS_PER_SECOND_H_
 #define LIB_UNITS_SPEED_METERS_PER_SECOND_H_
 
-#include "speed.h"
-#include "miles_per_hour.h"
-#include "kilometers_per_hour.h"
-#include "knots.h"
+#include "qw/units/speed/include/speed.h"
+#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/kilometers_per_hour.h"
+#include "qw/units/speed/include/knots.h"
 
-namespace qw_units {
+namespace qw::units {
 
    /*
    * Need to predeclare these classes

@@ -40,22 +40,17 @@
 #ifndef SRC_LIB_DEVICES_WIND_SPEED_SENSOR_ADC_H_
 #define SRC_LIB_DEVICES_WIND_SPEED_SENSOR_ADC_H_
 
-#include "ads1015.h"
-#include "miles_per_hour.h"
-#include "speed.h"
+#include "qw/devices/i2c/include/ads1015.h"
+#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/speed.h"
 
-using qw_devices::I2cAds1015;
-using qw_devices::Ads1015MuxType;
-using qw_devices::kAds1015CountPerVolts;
-using qw_units::MilesPerHour;
-
-namespace qw_devices {
+namespace qw::devices {
 
 constexpr float kAnonometerAdafruitBaseVolts = .4;
 constexpr float kAnonometerAdafruitCalibrateVoltage = 2.0;
 constexpr float kAnomometerAdafruitCalibrateMph = 72;
-constexpr float kAnomometerAdafruitMphPerCount = kAnomometerAdafruitCalibrateMph/(qw_devices::kAds1015CountPerVolts * (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
-constexpr float kAnomometerAdafruitBaseValue = (qw_devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
+constexpr float kAnomometerAdafruitMphPerCount = kAnomometerAdafruitCalibrateMph/(qw::devices::kAds1015CountPerVolts * (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
+constexpr float kAnomometerAdafruitBaseValue = (qw::devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
 
 /*
  * volts = (volts/count) * count + b
@@ -63,14 +58,14 @@ constexpr float kAnomometerAdafruitBaseValue = (qw_devices::kAds1015CountPerVolt
 
 class AnomometerAdafruit {
  public:
-  AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux);
+  AnomometerAdafruit(qw::devices::I2cAds1015 adc, qw::devices::Ads1015MuxType mux);
 
-  std::expected<MilesPerHour, int> speed();
+  std::expected<qw::units::MilesPerHour, int> speed();
 
  private:
-  qw_devices::I2cAds1015 adc_;
+  qw::devices::I2cAds1015 adc_;
 
-  qw_devices::Ads1015MuxType mux_;
+  qw::devices::Ads1015MuxType mux_;
 
 };
 

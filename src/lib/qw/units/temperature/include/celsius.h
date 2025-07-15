@@ -35,11 +35,11 @@
 #include <string>
 #include <variant>
 
-#include "fahrenheit.h"
-#include "kelvin.h"
-#include "temperature.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/temperature/include/temperature.h"
 
-namespace qw_units {
+namespace qw::units {
 
 /*
  * Need to predeclare the friend classes

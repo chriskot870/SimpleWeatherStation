@@ -31,13 +31,13 @@
 
 #include <cmath>
 
-#include "celsius.h"
-#include "relative_humidity.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/humidity/include/relative_humidity.h"
 
 namespace qw_utilities {
 
-using qw_units::Celsius;
-using qw_units::RelativeHumidity;
+using qw::units::Celsius;
+using qw::units::RelativeHumidity;
 
 constexpr float dew_point_b = 17.625;
 const float dew_point_c = 243.04;

@@ -29,10 +29,10 @@
 #ifndef LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
 #define LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
 
-#include "millibar.h"
-#include "pressure.h"
+#include "qw/units/pressure/include/millibar.h"
+#include "qw/units/pressure/include/pressure.h"
 
-namespace qw_units {
+namespace qw::units {
 /*
  * Need to predeclare these classes
  * I found that out the hard way

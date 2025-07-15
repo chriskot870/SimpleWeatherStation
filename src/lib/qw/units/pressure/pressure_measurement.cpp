@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "pressure_measurement.h"
+#include "qw/units/pressure/include/pressure_measurement.h"
 
 using std::get;
 using std::holds_alternative;
@@ -34,7 +34,7 @@ using std::variant;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-namespace qw_units {
+namespace qw::units {
 
 PressureMeasurement::PressureMeasurement() {}
 

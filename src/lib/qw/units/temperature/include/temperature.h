@@ -31,7 +31,7 @@
 
 #include <string>
 
-namespace qw_units {
+namespace qw::units {
 
 /*
  * Our temperature base is millicelsius so we want
@@ -40,7 +40,7 @@ namespace qw_units {
  */
 constexpr int temperature_base_conversion_factor = 1000;
 constexpr float temperature_celsius_kelvin_offset = 273.15;
-constexpr std::string temperature_default_format = "{0:.2f}";
+const std::string temperature_default_format = "{0:.2f}";
 
 }  // Namespace qw_units
 

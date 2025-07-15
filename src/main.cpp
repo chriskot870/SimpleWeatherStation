@@ -40,40 +40,42 @@
 #include "sd_unit_obj.h"
 #include "sd_service_unit_obj.h"
 
-#include "lps22.h"
-#include "sht4x.h"
-#include "ads1015.h"
-#include "anomometer_adafruit.h"
+#include "qw/devices/i2c/include/lps22.h"
+#include "qw/devices/i2c/include/sht4x.h"
+#include "qw/devices/i2c/include/ads1015.h"
+#include "qw/devices/include/anomometer_adafruit.h"
 
 #include "fmt/chrono.h"
 #include "fmt/format.h"
 #include "include/weather_underground.h"
 
-#include "celsius.h"
-#include "fahrenheit.h"
-#include "inches_mercury.h"
-#include "kelvin.h"
-#include "millibar.h"
-#include "relative_humidity.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/pressure/include/millibar.h"
+#include "qw/units/humidity/include/relative_humidity.h"
 
-#include "dewpoint.h"
+#include "qw/utilities/weather/include/dewpoint.h"
 
 using fmt::format;
-using qw_devices::I2cBus;
-using qw_devices::I2cSht4x;
-using qw_devices::kSht4xI2cPrimaryAddress;
-using qw_devices::Lps22;
-using qw_devices::kLps22hbI2cPrimaryAddress;
-using qw_devices::I2cAds1015;
-using qw_devices::kAds1015I2cPrimaryAddress;
-using qw_devices::ADS1015_MUX_AIN0_GND;
-using qw_devices::Ads1015Config;
-using qw_devices::AnomometerAdafruit;
-using qw_units::Celsius;
-using qw_units::Fahrenheit;
-using qw_units::InchesMercury;
-using qw_units::Kelvin;
-using qw_units::Millibar;
+using qw::devices::I2cBus;
+using qw::devices::I2cSht4x;
+using qw::devices::kSht4xI2cPrimaryAddress;
+using qw::devices::Lps22;
+using qw::devices::kLps22hbI2cPrimaryAddress;
+using qw::devices::I2cAds1015;
+using qw::devices::kAds1015I2cPrimaryAddress;
+using qw::devices::ADS1015_MUX_AIN0_GND;
+using qw::devices::Ads1015Config;
+using qw::devices::AnomometerAdafruit;
+using qw::units::Celsius;
+using qw::units::Fahrenheit;
+using qw::units::InchesMercury;
+using qw::units::Kelvin;
+using qw::units::Millibar;
+using qw::units::RelativeHumidity;
+using qw::units::MilesPerHour;
 using std::cout;
 using std::max;
 using std::min;
@@ -216,7 +218,7 @@ int main(int argc, char* argv[]) {
   logger.log(LOG_INFO, format("Model: {}",json_config["Hardware"]["Model"].asString()));
 
   I2cBus i2c_bus = I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
-  if (i2c_bus.status() !=  qw_devices::I2CBUS_STATUS_OK) {
+  if (i2c_bus.status() !=  qw::devices::I2CBUS_STATUS_OK) {
     logger.log(LOG_ERR, "Initialization of I2C bus failed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
@@ -411,14 +413,14 @@ int main(int argc, char* argv[]) {
         /*
          * The SHT4x is supposed to be more accurate so use it
          */
-        qw_units::Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
+        Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
         wu->setVarData("tempf", tempf.value());
-        qw_units::Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
+        Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
         wu->setVarData("temp2f", temp2f.value());
       }
 
       if (x_sht4x_humidity.has_value()) {
-        qw_units::RelativeHumidity humidity =
+        RelativeHumidity humidity =
           x_sht4x_humidity.value().relativeHumidityValue();
         wu->setVarData("humidity", humidity.value());
       }
@@ -427,8 +429,8 @@ int main(int argc, char* argv[]) {
        * If there are valid temperature and relative humidity then add a dewpoint
        */
       if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-        qw_units::Celsius tempc = x_sht4x_temp.value().celsiusValue();
-        qw_units::RelativeHumidity humidity =
+        Celsius tempc = x_sht4x_temp.value().celsiusValue();
+        RelativeHumidity humidity =
           x_sht4x_humidity.value().relativeHumidityValue();
         Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
         Fahrenheit dewptf = dewptc;
@@ -439,7 +441,7 @@ int main(int argc, char* argv[]) {
        * Weather Underground wants inches mercury
        */
       if (x_lps22_pressure.has_value()) {
-        qw_units::InchesMercury pressure =
+        InchesMercury pressure =
           x_lps22_pressure.value().inchesMercuryValue();
         wu->setVarData("baromin", pressure.value());
       }

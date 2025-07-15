@@ -27,12 +27,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- #include "kelvin.h"
+ #include "qw/units/temperature/include/kelvin.h"
 
  using std::string;
  using std::strong_ordering;
 
-namespace qw_units {
+namespace qw::units {
 
 class Celsius;
 class Fahrenheit;

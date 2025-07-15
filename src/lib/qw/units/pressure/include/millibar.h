@@ -34,10 +34,10 @@
 #include <compare>
 #include <string>
 
-#include "inches_mercury.h"
-#include "pressure.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/pressure/include/pressure.h"
 
-namespace qw_units {
+namespace qw::units {
 /*
  * Need to predeclare these classes
  * I found that out the hard way

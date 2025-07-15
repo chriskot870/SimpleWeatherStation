@@ -60,22 +60,22 @@
  * This device provides temperature and pressure data so include the interfaces.
  * The device makes temperature and pressure measurements so add those includes.
  */
-#include "celsius.h"
-#include "fahrenheit.h"
-#include "inches_mercury.h"
-#include "kelvin.h"
-#include "millibar.h"
-#include "pressure.h"
-#include "pressure_measurement.h"
-#include "temperature.h"
-#include "temperature_measurement.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/pressure/include/millibar.h"
+#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/pressure/include/pressure_measurement.h"
+#include "qw/units/temperature/include/temperature.h"
+#include "qw/units/temperature/include/temperature_measurement.h"
 
 /*
  * This is an i2c bus device so add the i2cbus.h
  */
 #include "i2cbus.h"
 
-namespace qw_devices {
+namespace qw::devices {
 
 constexpr uint8_t kLps22ResetWaitCount = 10;
 
@@ -110,8 +110,8 @@ constexpr uint8_t kLps22hbMaxRegistersTransferred =
 /*
  * These are gotten from the data sheet
  */
-const qw_units::Celsius kLps22hbTemperatureAccuracy(.1);
-const qw_units::Millibar kLps22hbPressureAccuracy(.1);
+const qw::units::Celsius kLps22hbTemperatureAccuracy(.1);
+const qw::units::Millibar kLps22hbPressureAccuracy(.1);
 /*
  * Registers
  */
@@ -318,9 +318,9 @@ class Lps22 {
 
   std::expected<uint8_t, int> whoami();
 
-  std::expected<qw_units::TemperatureMeasurement, int> getTemperatureMeasurement();
+  std::expected<qw::units::TemperatureMeasurement, int> getTemperatureMeasurement();
 
-  std::expected<qw_units::PressureMeasurement, int> getPressureMeasurement();
+  std::expected<qw::units::PressureMeasurement, int> getPressureMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 

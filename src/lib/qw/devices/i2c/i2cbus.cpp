@@ -39,13 +39,13 @@
 #include <cstring>
 #include <string>
 
-#include "include/i2cbus.h"
+#include "qw/devices/i2c/include/i2cbus.h"
 
 using std::lock_guard;
 using std::mutex;
 using std::string;
 
-namespace qw_devices {
+namespace qw::devices {
 
 mutex I2cBus::i2cbus_lock;
 

@@ -29,14 +29,14 @@
 /*
  * This contains the driver for the SHT4x series. Specifically the SHT45
  */
-#include "include/sht4x.h"
+#include "qw/devices/i2c/include/sht4x.h"
 
-using qw_units::Celsius;
-using qw_units::Fahrenheit;
-using qw_units::Kelvin;
-using qw_units::RelativeHumidity;
-using qw_units::RelativeHumidityMeasurement;
-using qw_units::TemperatureMeasurement;
+using qw::units::Celsius;
+using qw::units::Fahrenheit;
+using qw::units::Kelvin;
+using qw::units::RelativeHumidity;
+using qw::units::RelativeHumidityMeasurement;
+using qw::units::TemperatureMeasurement;
 using std::atomic_bool;
 using std::expected;
 using std::find;
@@ -56,7 +56,7 @@ using std::chrono::steady_clock;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-namespace qw_devices {
+namespace qw::devices {
 
 mutex I2cSht4x::sht4x_devices_lock;
 map<Sht4xDeviceLocation, shared_ptr<Sht4xDeviceData>> I2cSht4x::sht4x_devices;

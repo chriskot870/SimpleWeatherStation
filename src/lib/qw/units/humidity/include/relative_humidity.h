@@ -34,7 +34,7 @@
 #include <compare>
 #include <string>
 
-namespace qw_units {
+namespace qw::units {
 
 constexpr int rh_base_conversion_factor = 100;
 constexpr std::string relative_humidity_default_format = "{0:.1f}";
