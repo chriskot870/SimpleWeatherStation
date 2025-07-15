@@ -7,7 +7,7 @@ add_library(pressure_units STATIC
 #
 # Add this directory to the list of directories to look for include files
 #
-target_include_directories(pressure_units PUBLIC , ${CMAKE_SOURCE_DIR}/src/lib)
+target_include_directories(pressure_units PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
 
 #
 # Use the C++23 option

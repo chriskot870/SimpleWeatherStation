@@ -15,9 +15,7 @@ add_library(weatherdevices STATIC
 # add_compile_options(-std=c++23) to use expected class
 target_compile_options(weatherdevices PUBLIC -std=c++23)
 
-target_include_directories(weatherdevices PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/lib
-)
+target_include_directories(weatherdevices PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
 
 target_link_libraries(weatherdevices PUBLIC
   speed_units
