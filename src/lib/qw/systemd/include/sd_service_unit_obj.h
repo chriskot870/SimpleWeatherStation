@@ -26,24 +26,31 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_WEATHER_DEWPOINT_H_
-#define LIB_UTILITIES_WEATHER_DEWPOINT_H_
+#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_SERVICE_UNIT_OBJ_H_
+#define LIB_UTILITIES_SYSTEM_SYSTEMD_SD_SERVICE_UNIT_OBJ_H_
 
-#include <cmath>
+#include "qw/systemd/include/systemd.h"
 
-#include "qw/units/temperature/include/celsius.h"
-#include "qw/units/humidity/include/relative_humidity.h"
+namespace qw::systemd {
 
-namespace qw_utilities {
+class SdServiceUnitObj {
+ public:
+  SdServiceUnitObj(std::string destination, std::string path, std::string interface);
 
-using qw::units::Celsius;
-using qw::units::RelativeHumidity;
+  /*
+   * Properties this application needs
+   */
+  std::expected<uint64_t, SdBusError> getMainPID();
 
-constexpr float dew_point_b = 17.625;
-const float dew_point_c = 243.04;
+ private:
+ /*
+  * local variables
+  */
+  std::string destination_;
+  std::string path_;
+  std::string interface_;
+};
 
-Celsius dewPoint(Celsius tempc, RelativeHumidity rh);
+}  // namespace qw::systemd
 
-}  // namespace qw_utilities
-
-#endif  // LIB_UTILITIES_WEATHER_DEWPOINT_H_
+#endif  // LIB_UTILITIES_SYSTEM_SYSTEMD_SD_SERVICE_UNIT_OBJ_H_

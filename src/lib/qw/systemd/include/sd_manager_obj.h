@@ -26,30 +26,30 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
-#define LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
+#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_MANAGER_OBJ_H_
+#define LIB_UTILITIES_SYSTEM_SYSTEMD_SD_MANAGER_OBJ_H_
 
-#include <fcntl.h>
-#include <sys/file.h>
-#include <unistd.h>
-#include <string>
+#include "qw/systemd/include/systemd.h"
 
-using std::string;
+namespace qw::systemd {
 
-class LockingFile {
-
+class SdManager {
  public:
-  LockingFile(string lockfile);
+  SdManager(std::string destination, std::string path, std::string interface);
 
-  bool lock();
+  std::expected<std::string, SdBusError> StartUnit(std::string name, std::string mode);
 
-  void unlock();
-
-  ~LockingFile();
-
+  std::expected<std::string, SdBusError> StopUnit(std::string name, std::string mode);
+  
  private:
-  int fd_ = -1;
-  string lockfile_;
+  /*
+   * local variables
+   */
+  std::string destination_;
+  std::string path_;
+  std::string interface_;
 };
 
-#endif  // LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
+}  // namespace qw::systemd
+
+#endif  // LIB_UTILITIES_SYSTEM_SYSTEMD_SD_MANAGER_OBJ_H_

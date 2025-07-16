@@ -29,14 +29,23 @@
 #include <expected>
 #include <variant>
 
-#include "logger.h"
-#include "systemd.h"
+#include "qw/logger/include/logger.h"
+#include "qw/systemd/include/systemd.h"
 #include "weather_station_config.h"
 
 using fmt::format;
 using std::expected;
 using std::unexpected;
 using std::variant;
+using qw::logger::Logger;
+using qw::systemd::SdBus;
+using qw::systemd::SdBusService;
+using qw::systemd::SdBusObject;
+using qw::systemd::SdBusInterface;
+using qw::systemd::SdBusNumericResult;
+using qw::systemd::SdBusProperty;
+using qw::systemd::SdBusError;
+using qw::systemd::SD_BUS_TYPE_SYSTEM;
 
 extern Logger logger;
 /*

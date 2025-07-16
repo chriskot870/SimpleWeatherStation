@@ -31,14 +31,14 @@
  * Right now it's pretty simple
  */
 
-#include "locking_file.h"
-#include "logger.h"
-#include "systemd.h"
+#include "qw/locking/include/locking_file.h"
+#include "qw/logger/include/logger.h"
+#include "qw/systemd/include/systemd.h"
 #include "weather_station.h"
 #include "weather_station_config.h"
 #include "weather_underground_config.h"
-#include "sd_unit_obj.h"
-#include "sd_service_unit_obj.h"
+#include "qw/systemd/include/sd_unit_obj.h"
+#include "qw/systemd/include/sd_service_unit_obj.h"
 
 #include "qw/devices/i2c/include/lps22.h"
 #include "qw/devices/i2c/include/sht4x.h"
@@ -56,7 +56,7 @@
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/humidity/include/relative_humidity.h"
 
-#include "qw/utilities/weather/include/dewpoint.h"
+#include "qw/weather/include/dewpoint.h"
 
 using fmt::format;
 using qw::devices::I2cBus;
@@ -76,6 +76,18 @@ using qw::units::Kelvin;
 using qw::units::Millibar;
 using qw::units::RelativeHumidity;
 using qw::units::MilesPerHour;
+using qw::logger::Logger;
+using qw::logger::LOGGER_MODE_JOURNAL;
+using qw::logger::LOGGER_MODE_FILE;
+using qw::logger::LOGGER_MODE_NOLOGGING;
+using qw::systemd::SdBusError;
+using qw::systemd::SdUnitObj;
+using qw::systemd::SdServiceUnitObj;
+using qw::systemd::systemd_destination;
+using qw::systemd::systemd_quietwind_service_path;
+using qw::systemd::systemd_unit_interface;
+using qw::systemd::systemd_service_interface;
+using qw::weather::dewPoint;
 using std::cout;
 using std::max;
 using std::min;
@@ -89,7 +101,7 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::chrono::utc_clock;
 
-extern Logger logger;
+Logger logger;
 
 int main(int argc, char* argv[]) {
   string temperature;
@@ -432,7 +444,7 @@ int main(int argc, char* argv[]) {
         Celsius tempc = x_sht4x_temp.value().celsiusValue();
         RelativeHumidity humidity =
           x_sht4x_humidity.value().relativeHumidityValue();
-        Celsius dewptc = qw_utilities::dewPoint(tempc, humidity);
+        Celsius dewptc = dewPoint(tempc, humidity);
         Fahrenheit dewptf = dewptc;
         wu->setVarData("dewptf", dewptf.value());
       }

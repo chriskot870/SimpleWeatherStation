@@ -26,27 +26,50 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_SERVICE_UNIT_OBJ_H_
-#define LIB_UTILITIES_SYSTEM_SYSTEMD_SD_SERVICE_UNIT_OBJ_H_
+#ifndef LIB_UTILITIES_SYSTEM_LOGGER_H_
+#define LIB_UTILITIES_SYSTEM_LOGGER_H_
 
-#include "systemd.h"
+#include <syslog.h>
+#include <systemd/sd-journal.h>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <string>
 
-class SdServiceUnitObj {
- public:
-  SdServiceUnitObj(string destination, string path, string interface);
+using std::string;
 
-  /*
-   * Properties this application needs
-   */
-  expected<uint64_t, SdBusError> getMainPID();
+namespace qw::logger {
 
- private:
- /*
-  * local variables
-  */
-  string destination_;
-  string path_;
-  string interface_;
+enum LoggerMode {
+  LOGGER_MODE_NOLOGGING,
+  LOGGER_MODE_FILE,
+  LOGGER_MODE_JOURNAL,
 };
 
-#endif  // LIB_UTILITIES_SYSTEM_SYSTEMD_SD_SERVICE_UNIT_OBJ_H_
+class Logger {
+ public:
+  Logger();
+
+  void log(int priority, string message);
+
+  void setMode(LoggerMode mode);
+
+  void setMode(LoggerMode mode, std::filesystem::path log_path);
+
+  LoggerMode getMode();
+
+  ~Logger();
+
+ private:
+  LoggerMode mode_ = LOGGER_MODE_NOLOGGING;
+
+  std::ofstream log_stream_;
+
+  std::streambuf* cout_buffer_ = nullptr;
+
+  std::filesystem::path log_path_ = "";
+};
+
+}  // namespace qw::logger
+
+#endif  // LIB_UTILITIES_SYSTEM_LOGGER_H_

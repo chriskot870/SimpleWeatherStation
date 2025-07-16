@@ -26,33 +26,32 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
-#define LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
+#ifndef LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
+#define LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
 
-#include "systemd.h"
+#include <fcntl.h>
+#include <sys/file.h>
+#include <unistd.h>
+#include <string>
 
-class SdUnitObj {
+namespace qw::locking {
+
+class LockingFile {
+
  public:
-  SdUnitObj(string destination, string path, string interface);
-  /*
-   * Methods this application can use
-   */
-  expected<string, SdBusError> Start(string mode);
+  LockingFile(std::string lockfile);
 
-  expected<string, SdBusError> Stop(string mode);
+  bool lock();
 
-  /*
-   * Properties this application needs
-   */
-  expected<string,  SdBusError> getSubState();
+  void unlock();
+
+  ~LockingFile();
 
  private:
- /*
-  * local variables
-  */
-  string destination_;
-  string path_;
-  string interface_;
+  int fd_ = -1;
+  std::string lockfile_;
 };
 
-#endif  // #ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
+}  // namespace qw::locking
+
+#endif  // LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_

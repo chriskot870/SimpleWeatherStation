@@ -26,28 +26,37 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "qw/utilities/weather/include/dewpoint.h"
+#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
+#define LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
 
-using qw::units::Celsius;
-using qw::units::RelativeHumidity;
+#include "qw/systemd/include/systemd.h"
 
-namespace qw_utilities {
+namespace qw::systemd {
 
-Celsius dewPoint(Celsius tempc, RelativeHumidity rh) {
+class SdUnitObj {
+ public:
+  SdUnitObj(std::string destination, std::string path, std::string interface);
+  /*
+   * Methods this application can use
+   */
+  std::expected<std::string, SdBusError> Start(std::string mode);
+
+  std::expected<std::string, SdBusError> Stop(std::string mode);
 
   /*
-   * This calculation was found on this web page:
-   * https://en.wikipedia.org/wiki/Dew_point#Measurement
+   * Properties this application needs
    */
+  std::expected<std::string,  SdBusError> getSubState();
 
-  float val = log(rh.value() / 100) +
-              ((dew_point_b * tempc.value()) / (dew_point_c + tempc.value()));
+ private:
+ /*
+  * local variables
+  */
+  std::string destination_;
+  std::string path_;
+  std::string interface_;
+};
 
-  float td = (dew_point_c * val) / (dew_point_b - val);
+}  // namespace qw::systemd
 
-  Celsius dewptc(td);
-
-  return dewptc;
-}
-
-}  // namespace qw_utilities
+#endif  // #ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_

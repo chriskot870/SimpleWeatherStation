@@ -20,7 +20,10 @@ add_executable(${EXECUTABLE_NAME}
 target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++23)
 #target_compile_options(${EXECUTABLE_NAME} PUBLIC -lfmt)
 
-target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/src/lib
+)
 
 #
 # Add the weather_station library
@@ -35,11 +38,15 @@ add_library(weatherstation STATIC
 target_compile_options(weatherstation PUBLIC -std=c++23)
 
 # What are weatherstation library include paths
-target_include_directories(weatherstation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(weatherstation PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/include
+  ${CMAKE_SOURCE_DIR}/src/lib
+)
 
 # Weather libraries do weatherstation need to link with
 target_link_libraries(weatherstation PRIVATE
-  system_utilities
+  locking
+  logger
 )
 
 #
@@ -54,11 +61,15 @@ add_library(systemdqwweather STATIC
 target_compile_options(systemdqwweather PUBLIC -std=c++23)
 
 # What are weatherstation library include paths
-target_include_directories(systemdqwweather PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(systemdqwweather PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/lib
+  ${CMAKE_SOURCE_DIR}/src/include
+)
 
 # Weather libraries do weatherstation need to link with
 target_link_libraries(systemdqwweather PRIVATE
-  system_utilities
+  logger
+  locking
 )
 
 #
@@ -72,13 +83,14 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     systemd_objects
     i2cdevices
     weatherdevices
+    weather
     weatherunderground
     temperature_units
     pressure_units
     humidity_units
     speed_units
-    weather_utilities
-    system_utilities
+    locking
+    logger
     fmt
     curl
     systemd

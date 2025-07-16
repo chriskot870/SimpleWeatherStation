@@ -26,36 +26,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "locking_file.h"
+#ifndef LIB_UTILITIES_WEATHER_DEWPOINT_H_
+#define LIB_UTILITIES_WEATHER_DEWPOINT_H_
 
-LockingFile::LockingFile(string lockfile) : lockfile_(lockfile) {}
+#include <cmath>
 
-bool LockingFile::lock() {
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/humidity/include/relative_humidity.h"
 
-  fd_ = open(lockfile_.c_str(), O_RDONLY | O_CREAT,
-             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-  if (fd_ == -1) {
-    return false;
-  }
+namespace qw::weather {
 
-  int val = flock(fd_, LOCK_EX);
-  if (val != 0) {
-    return false;
-  }
+using qw::units::Celsius;
+using qw::units::RelativeHumidity;
 
-  return true;
-}
+constexpr float dew_point_b = 17.625;
+const float dew_point_c = 243.04;
 
-void LockingFile::unlock() {
+Celsius dewPoint(Celsius tempc, RelativeHumidity rh);
 
-  if (fd_ != -1) {
-    close(fd_);
-    fd_ = -1;
-  }
-  return;
-}
+}  // namespace qw::weather
 
-LockingFile::~LockingFile() {
-
-  unlock();
-}
+#endif  // LIB_UTILITIES_WEATHER_DEWPOINT_H_

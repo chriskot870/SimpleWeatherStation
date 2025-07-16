@@ -26,46 +26,28 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_LOGGER_H_
-#define LIB_UTILITIES_SYSTEM_LOGGER_H_
+#include "qw//weather/include/dewpoint.h"
 
-#include <syslog.h>
-#include <systemd/sd-journal.h>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <string>
+using qw::units::Celsius;
+using qw::units::RelativeHumidity;
 
-using std::string;
+namespace qw::weather {
 
-enum LoggerMode {
-  LOGGER_MODE_NOLOGGING,
-  LOGGER_MODE_FILE,
-  LOGGER_MODE_JOURNAL,
-};
+Celsius dewPoint(Celsius tempc, RelativeHumidity rh) {
 
-class Logger {
- public:
-  Logger();
+  /*
+   * This calculation was found on this web page:
+   * https://en.wikipedia.org/wiki/Dew_point#Measurement
+   */
 
-  void log(int priority, string message);
+  float val = log(rh.value() / 100) +
+              ((dew_point_b * tempc.value()) / (dew_point_c + tempc.value()));
 
-  void setMode(LoggerMode mode);
+  float td = (dew_point_c * val) / (dew_point_b - val);
 
-  void setMode(LoggerMode mode, std::filesystem::path log_path);
+  Celsius dewptc(td);
 
-  LoggerMode getMode();
+  return dewptc;
+}
 
-  ~Logger();
-
- private:
-  LoggerMode mode_ = LOGGER_MODE_NOLOGGING;
-
-  std::ofstream log_stream_;
-
-  std::streambuf* cout_buffer_ = nullptr;
-
-  std::filesystem::path log_path_ = "";
-};
-
-#endif  // LIB_UTILITIES_SYSTEM_LOGGER_H_
+}  // namespace qw::weather

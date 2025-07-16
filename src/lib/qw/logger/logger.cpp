@@ -26,8 +26,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "logger.h"
+#include "qw/logger/include/logger.h"
 
+namespace qw::logger {
+    
 Logger logger;
 
 using std::string;
@@ -134,3 +136,6 @@ Logger::~Logger() {
 
   return;
 }
+
+}  // namespace qw::logger
+

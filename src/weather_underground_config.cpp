@@ -28,12 +28,14 @@
 
 #include "weather_underground_config.h"
 
-extern Logger logger;
-
 using std::ifstream;
 using std::ofstream;
 using std::string;
 using std::unique_ptr;
+using qw::logger::Logger;
+using qw::locking::LockingFile;
+
+extern Logger logger;
 
 WeatherUndergroundConfig::WeatherUndergroundConfig(const string& config_file)
     : config_file_(config_file) {}

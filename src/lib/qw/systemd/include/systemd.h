@@ -39,15 +39,12 @@
 #include <variant>
 #include <vector>
 
-using std::expected;
-using std::string;
-using std::unexpected;
-using std::variant;
+namespace qw::systemd {
 
-const string systemd_destination = "org.freedesktop.systemd1";
-const string systemd_quietwind_service_path = "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice";
-const string systemd_unit_interface = "org.freedesktop.systemd1.Unit";
-const string systemd_service_interface = "org.freedesktop.systemd1.Service";
+const std::string systemd_destination = "org.freedesktop.systemd1";
+const std::string systemd_quietwind_service_path = "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice";
+const std::string systemd_unit_interface = "org.freedesktop.systemd1.Unit";
+const std::string systemd_service_interface = "org.freedesktop.systemd1.Service";
 
 enum SdBusErrorType {
   SD_BUS_NO_ERROR,
@@ -65,8 +62,8 @@ struct SdBusError {
    */
   SdBusErrorType type = SD_BUS_NO_ERROR;
   int code = 0;
-  string* name = nullptr;
-  string* message = nullptr;
+  std::string* name = nullptr;
+  std::string* message = nullptr;
   bool need_free = false;
   /*
    * If you need to reset things use clear() 
@@ -98,7 +95,7 @@ struct SdBusError {
   ~SdBusError() { free(); }
 };
 
-const std::array<string, 19> systemd_valid_signatures = {
+const std::array<std::string, 19> systemd_valid_signatures = {
     "y",  // 8-bit unsigned integer
     "b",  // boolean value
     "n",  // 16-bit signed integer
@@ -120,5 +117,80 @@ const std::array<string, 19> systemd_valid_signatures = {
     "h"   // Unix file descriptor
 };
 
+union SdBusNumericResult {
+  uint8_t y;
+  bool b;
+  int16_t n;
+  uint16_t q;
+  int32_t i;
+  uint32_t u;
+  int64_t x;
+  uint64_t t;
+  double d;
+};
+
+class SdBus {
+ public:
+  SdBus(SdBusType type);
+
+  SdBusType type_;
+};
+
+class SdBusService {
+ public:
+  SdBusService(std::string name, SdBus bus);
+
+  std::string name_;
+  SdBus bus_;
+};
+
+class SdBusObject {
+ public:
+  SdBusObject(std::string name, const SdBusService& sdbus_service);
+
+  std::string name_;
+  SdBusService sdbus_service_;
+};
+
+class SdBusInterface {
+ public:
+  SdBusInterface(std::string name, const SdBusObject& sdbus_object);
+
+  std::string name_;
+  SdBusObject sdbus_object_;
+};
+
+class SdBusMethod {
+
+ public:
+  SdBusMethod(std::string name, std::string signature, std::string result_value, std::string flags,
+              const SdBusInterface& sdbus_interface);
+
+  std::string name_;
+  std::string signature_;
+  std::string flags_;
+  SdBusInterface sdbus_interface_;
+};
+
+class SdBusProperty {
+ public:
+  SdBusProperty(std::string name, std::string signature, std::string flags,
+                const SdBusInterface& sdbus_interface);
+
+  std::expected<std::variant<SdBusNumericResult, std::string>, SdBusError> getValue();
+
+  std::string name_;
+  std::string signature_;
+  std::string flags_;
+  SdBusInterface sdbus_interface_;
+
+ private:
+  std::expected<std::string, SdBusError> process_char_type_message(sd_bus_message* m);
+
+  std::expected<SdBusNumericResult, SdBusError> process_number_type_message(
+      sd_bus_message* m);
+};
+
+}  // namespace qw::systemd
 
 #endif  // LIB_UTILITIES_SYSTEM_SYSTEMD_INCLUDE_SYSTEMD_H_

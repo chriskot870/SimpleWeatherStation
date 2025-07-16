@@ -26,11 +26,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "sd_unit_obj.h"
+#include "qw/systemd/include/sd_unit_obj.h"
 
 using fmt::format;
+using std::expected;
+using std::string;
 using std::unexpected;
+using std::variant;
 
+namespace qw::systemd {
 /*
  * Constructor
  */
@@ -290,3 +294,6 @@ expected<string, SdBusError> SdUnitObj::getSubState() {
   return output;
 
 }
+
+}  // namespace qw::systemd
+

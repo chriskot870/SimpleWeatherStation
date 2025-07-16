@@ -51,9 +51,9 @@
 #include <string>
 #include <variant>
 
-#include "locking_file.h"
-#include "logger.h"
-#include "systemd.h"
+#include "qw/locking/include/locking_file.h"
+#include "qw/logger/include/logger.h"
+#include "qw/systemd/include/systemd.h"
 
 const std::string args_log_mode_journal = "journal";
 const std::string args_log_mode_file = "file";
