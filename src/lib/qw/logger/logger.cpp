@@ -28,11 +28,9 @@
 
 #include "qw/logger/include/logger.h"
 
-namespace qw::logger {
-    
-Logger logger;
-
 using std::string;
+
+namespace qw::logger {
 
 Logger::Logger() {}
 
