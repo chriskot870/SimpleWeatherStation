@@ -26,27 +26,67 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_SPEED_H_
-#define LIB_UNITS_SPEED_H_
+/*
+ * Any measurement invlolves the reading the accuracy and the time of the reading
+ */
+#ifndef LIB_UNITS_SPEED_MEASUREMENT_H_
+#define LIB_UNITS_SPEED_MEASUREMENT_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
-#include <string>
+#include <chrono>
+#include <variant>
+#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/kilometers_per_hour.h"
+#include "qw/units/speed/include/meters_per_second.h"
+#include "qw/units/speed/include/knots.h"
 
 namespace qw::units {
+
 /*
- * Our speed is based on .001 mile per hour
+ * It is important that the order of this enum is the same as SpeedUnitsVariant
  */
-constexpr int speed_base_conversion_factor = 1000;
-constexpr float kMilesPerKilometer = .621371;
-constexpr float kKilometersPerMile = (1/kMilesPerKilometer);  // The inverse of above
-constexpr float kMpsPerMph = 2.23694;
-constexpr float kMphPerMps = (1/kMpsPerMph);  // The inverse of above
-constexpr float kMphPerKnot = 1.15078;
-constexpr float kKnotPerMph = (1/kMphPerKnot);  // The inverse of above.
-const std::string speed_default_format = "{0:.2f}";
+enum SpeedUnits {
+  SPEED_UNIT_MPH,
+  SPEED_UNIT_KPH,
+  SPEED_UNIT_MPS,
+  SPEED_UNIT_KNOTS
+};
+using SpeedUnitsVariant = std::variant<MilesPerHour, KilometersPerHour, MetersPerSecond, Knots>;
+using SpeedMeasurementTimeStamp = std::chrono::time_point<std::chrono::system_clock>;
+
+class SpeedMeasurement {
+ public:
+  SpeedMeasurement();
+
+  SpeedMeasurement(SpeedUnitsVariant value, SpeedUnitsVariant accuracy, SpeedMeasurementTimeStamp time);
+
+  SpeedUnitsVariant value();
+
+  void valueUnit(MilesPerHour &mph);
+
+  void valueUnit(KilometersPerHour &kph);
+
+  void valueUnit(MetersPerSecond &mps);
+
+  void valueUnit(Knots &knots);
+
+  SpeedUnitsVariant accuracy();
+
+  void accuracyUnit(MilesPerHour &mph);
+
+  void accuracyUnit(KilometersPerHour &kph);
+
+  void accuracyUnit(MetersPerSecond &mps);
+
+  void accuracyUnit(Knots &knots);
+
+  SpeedMeasurementTimeStamp time();
+
+ private:
+  SpeedUnitsVariant value_;
+  SpeedUnitsVariant accuracy_;
+  SpeedMeasurementTimeStamp time_;
+};
 
 }  // Namespace qw_units
 
-#endif  // LIB_UNITS_SPEED_H_
+#endif  // LIB_UNITS_SPEED_MEASUREMENT_H_
