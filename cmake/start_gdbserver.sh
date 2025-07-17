@@ -28,7 +28,7 @@ then
     exit 1
 fi
 
-build_wu_config_cksum=`cksum $build_config 2>/dev/null | awk '{print($1)}'`
+build_wu_config_cksum=`cksum $build_wu_config 2>/dev/null | awk '{print($1)}'`
     
 if [ -z  $build_wu_config_cksum ]
 then
@@ -99,7 +99,7 @@ fi
 ssh $target_user@$target_ip test -f $target_wu_config
 if [ $? -eq 0 ]
 then
-   echo Getting target config cksum
+   echo Getting target wu_config cksum
    target_wu_config_cksum=`ssh $target_user@$target_ip "cksum $target_wu_config 2>/dev/null" | awk '{print($1)}'`
 else
   target_wu_config_cksum="0"
