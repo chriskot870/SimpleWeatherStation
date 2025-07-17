@@ -55,6 +55,7 @@
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/speed/include/speed_measurement.h"
 
 #include "qw/weather/include/dewpoint.h"
 
@@ -76,6 +77,11 @@ using qw::units::Kelvin;
 using qw::units::Millibar;
 using qw::units::RelativeHumidity;
 using qw::units::MilesPerHour;
+using qw::units::KilometersPerHour;
+using qw::units::SpeedMeasurement;
+using qw::units::SpeedUnitsVariant;
+using qw::units::SpeedUnits;
+using qw::units::SpeedMeasurementTimeStamp;
 using qw::logger::Logger;
 using qw::logger::LOGGER_MODE_JOURNAL;
 using qw::logger::LOGGER_MODE_FILE;
@@ -324,10 +330,13 @@ int main(int argc, char* argv[]) {
                       static_cast<uint8_t>(value.fields.comp_latch),
                       static_cast<uint8_t>(value.fields.comp_queue)
                     ));
-
+  
+  /*
+   * Since the ADC is available define an annometer
+   */
   AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
-  expected<MilesPerHour, int> speed = anomometer.speed();
-  if (speed.has_value() == false) {
+  expected<SpeedMeasurement, int> wind_speed_measurement = anomometer.getMeasurement();
+  if (wind_speed_measurement.has_value() == false) {
     logger.log(LOG_ERR, "Unable to read anomometer speed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
@@ -336,10 +345,6 @@ int main(int argc, char* argv[]) {
     }
     exit(1);
   }
-
-  MilesPerHour mph = speed.value();
-
-  logger.log(LOG_INFO, format("MPH: {}", mph.toString()));
 
   /*
    * Starting to gather data
@@ -412,6 +417,8 @@ int main(int argc, char* argv[]) {
 
       auto x_lps22_pressure = lps22.getPressureMeasurement();
 
+      auto x_anomometer = anomometer.getMeasurement();
+
       /*
        * Put the raw data into the wu data
        */
@@ -456,6 +463,15 @@ int main(int argc, char* argv[]) {
         InchesMercury pressure =
           x_lps22_pressure.value().inchesMercuryValue();
         wu->setVarData("baromin", pressure.value());
+      }
+
+      /*
+       * Weather Underground wants speed in mph
+       */
+      if (x_anomometer.has_value()) {
+        MilesPerHour wind_mph;
+        x_anomometer.value().valueUnit(wind_mph);
+        wu->setVarData("windspeedmph", wind_mph.value());
       }
 
       /*

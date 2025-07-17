@@ -43,14 +43,17 @@
 #include "qw/devices/i2c/include/ads1015.h"
 #include "qw/units/speed/include/miles_per_hour.h"
 #include "qw/units/speed/include/speed.h"
+#include "qw/units/speed/include/speed_measurement.h"
 
 namespace qw::devices {
 
 constexpr float kAnonometerAdafruitBaseVolts = .4;
+constexpr float kAnomometerAdafruitConnectedVolts = .3;
 constexpr float kAnonometerAdafruitCalibrateVoltage = 2.0;
 constexpr float kAnomometerAdafruitCalibrateMph = 72;
 constexpr float kAnomometerAdafruitMphPerCount = kAnomometerAdafruitCalibrateMph/(qw::devices::kAds1015CountPerVolts * (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
 constexpr float kAnomometerAdafruitBaseValue = (qw::devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
+constexpr float kAnomometerAdafruitNotConnected = (qw::devices::kAds1015CountPerVolts * kAnomometerAdafruitConnectedVolts);
 
 /*
  * volts = (volts/count) * count + b
@@ -60,7 +63,7 @@ class AnomometerAdafruit {
  public:
   AnomometerAdafruit(qw::devices::I2cAds1015 adc, qw::devices::Ads1015MuxType mux);
 
-  std::expected<qw::units::MilesPerHour, int> speed();
+  std::expected<qw::units::SpeedMeasurement, int> getMeasurement();
 
  private:
   qw::devices::I2cAds1015 adc_;
