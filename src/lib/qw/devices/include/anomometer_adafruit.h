@@ -51,9 +51,14 @@ constexpr float kAnonometerAdafruitBaseVolts = .4;
 constexpr float kAnomometerAdafruitConnectedVolts = .3;
 constexpr float kAnonometerAdafruitCalibrateVoltage = 2.0;
 constexpr float kAnomometerAdafruitCalibrateMph = 72;
-constexpr float kAnomometerAdafruitMphPerCount = kAnomometerAdafruitCalibrateMph/(qw::devices::kAds1015CountPerVolts * (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
-constexpr float kAnomometerAdafruitBaseValue = (qw::devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
-constexpr float kAnomometerAdafruitNotConnected = (qw::devices::kAds1015CountPerVolts * kAnomometerAdafruitConnectedVolts);
+constexpr float kAnomometerAdafruitMphPerCount =
+    kAnomometerAdafruitCalibrateMph /
+    (qw::devices::kAds1015CountPerVolts *
+     (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
+constexpr float kAnomometerAdafruitBaseValue =
+    (qw::devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
+constexpr float kAnomometerAdafruitNotConnected =
+    (qw::devices::kAds1015CountPerVolts * kAnomometerAdafruitConnectedVolts);
 
 /*
  * volts = (volts/count) * count + b
@@ -61,7 +66,8 @@ constexpr float kAnomometerAdafruitNotConnected = (qw::devices::kAds1015CountPer
 
 class AnomometerAdafruit {
  public:
-  AnomometerAdafruit(qw::devices::I2cAds1015 adc, qw::devices::Ads1015MuxType mux);
+  AnomometerAdafruit(qw::devices::I2cAds1015 adc,
+                     qw::devices::Ads1015MuxType mux);
 
   std::expected<qw::units::SpeedMeasurement, int> getMeasurement();
 
@@ -69,9 +75,8 @@ class AnomometerAdafruit {
   qw::devices::I2cAds1015 adc_;
 
   qw::devices::Ads1015MuxType mux_;
-
 };
 
-}
+}  // namespace qw::devices
 
 #endif  // SRC_LIB_DEVICES_WIND_SPEED_SENSOR_ADC_H_

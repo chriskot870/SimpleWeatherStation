@@ -28,55 +28,57 @@
 
 #include "qw/devices/include/anomometer_adafruit.h"
 
+using qw::devices::Ads1015MuxType;
+using qw::devices::I2cAds1015;
+using qw::devices::kAds1015CountPerVolts;
+using qw::units::MilesPerHour;
+using qw::units::SpeedMeasurement;
+using qw::units::SpeedMeasurementTimeStamp;
+using qw::units::SpeedUnitsVariant;
 using std::expected;
 using std::unexpected;
 using std::chrono::system_clock;
-using qw::devices::I2cAds1015;
-using qw::devices::Ads1015MuxType;
-using qw::devices::kAds1015CountPerVolts;
-using qw::units::MilesPerHour;
-using qw::units::SpeedUnitsVariant;
-using qw::units::SpeedMeasurement;
-using qw::units::SpeedMeasurementTimeStamp;
 
 namespace qw::devices {
 
-  AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux) : adc_(adc), mux_(mux) {}
+AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux)
+    : adc_(adc), mux_(mux) {}
 
-  expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
-    
-    expected<int16_t, int> reading = adc_.getReading(mux_);
-    if (reading.has_value() == false) {
-      return unexpected(EIO);
-    }
+expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
 
-    /*
+  expected<int16_t, int> reading = adc_.getReading(mux_);
+  if (reading.has_value() == false) {
+    return unexpected(EIO);
+  }
+
+  /*
      * Convert the reading to a speed
      */
 
-     float mph = 0.0;
-     float count = reading.value();
+  float mph = 0.0;
+  float count = reading.value();
 
-     /*
+  /*
       * There should be a .4 volt if the anomometer is connected.
       * If it is far below that then there is no anomometer device.
       */
 
-     if (count < kAnomometerAdafruitNotConnected) {
-       return unexpected(ENODEV);
-     }
-
-     if (count > kAnomometerAdafruitBaseValue ) {
-        mph = (count - kAnomometerAdafruitBaseValue) * kAnomometerAdafruitMphPerCount;
-     }
-
-    MilesPerHour speed(mph);
-    MilesPerHour accuracy(float(.5));  // Assume accuracy is .5 mph
-    SpeedMeasurementTimeStamp current_time = system_clock::now();
-
-    SpeedMeasurement measured_speed(speed, accuracy, current_time);
-
-    return measured_speed;
+  if (count < kAnomometerAdafruitNotConnected) {
+    return unexpected(ENODEV);
   }
 
-}  // qw_devices namespace
+  if (count > kAnomometerAdafruitBaseValue) {
+    mph =
+        (count - kAnomometerAdafruitBaseValue) * kAnomometerAdafruitMphPerCount;
+  }
+
+  MilesPerHour speed(mph);
+  MilesPerHour accuracy(float(.5));  // Assume accuracy is .5 mph
+  SpeedMeasurementTimeStamp current_time = system_clock::now();
+
+  SpeedMeasurement measured_speed(speed, accuracy, current_time);
+
+  return measured_speed;
+}
+
+}  // namespace qw::devices

@@ -240,4 +240,4 @@ Millibar::operator InchesMercury() const {
   return inhg;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

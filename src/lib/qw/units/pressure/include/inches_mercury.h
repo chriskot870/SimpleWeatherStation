@@ -100,6 +100,6 @@ class InchesMercury {
   void setBaseValue(int base_value);
 };
 
-}  // Namespace qw_units
+}  // namespace qw::units
 
 #endif  // LIB_UNITS_PRESSURE_INCHES_MERCURY_H_

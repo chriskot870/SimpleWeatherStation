@@ -136,4 +136,3 @@ Logger::~Logger() {
 }
 
 }  // namespace qw::logger
-

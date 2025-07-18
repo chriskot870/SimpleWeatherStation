@@ -75,4 +75,4 @@ RelativeHumidity RelativeHumidityMeasurement::relativeHumidityValue() {
 RelativeHumidity RelativeHumidityMeasurement::relativeHumidityAccuracy() {
   return accuracy_;
 }
-}  // Namespace qw_units
+}  // namespace qw::units

@@ -206,4 +206,4 @@ const RelativeHumidity RelativeHumidity::operator-(
   return result;
 }
 
-}  // namespace qw_units
+}  // namespace qw::units
