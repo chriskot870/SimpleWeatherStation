@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_PRESSURE_H_
-#define LIB_UNITS_PRESSURE_H_
+#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_H_
+#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_H_
 
 #include <fmt/format.h>
 #include <math.h>
@@ -45,6 +45,6 @@ constexpr float inHg_sea_level = 29.92;  // inches mercury at sea level
 constexpr float mb_sea_level = 1013.25;  // millibars at sea level
 constexpr std::string pressure_default_format = "{0:.2f}";
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_PRESSURE_H_
+#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_H_

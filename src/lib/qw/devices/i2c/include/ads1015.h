@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef SRC_LIB_DEVICES_I2C_INCLUDE_ADS1015_H_
-#define SRC_LIB_DEVICES_I2C_INCLUDE_ADS1015_H_
+#ifndef SRC_LIB_QW_DEVICES_I2C_INCLUDE_ADS1015_H_
+#define SRC_LIB_QW_DEVICES_I2C_INCLUDE_ADS1015_H_
 
 #include <errno.h>
 #include <algorithm>
@@ -355,5 +355,5 @@ class I2cAds1015 {
   Ads1015Config configuration_;
 };
 
-}  // namespace qw_devices
-#endif  //
+}  // namespace qw::devices
+#endif  // SRC_LIB_QW_DEVICES_I2C_INCLUDE_ADS1015_H_

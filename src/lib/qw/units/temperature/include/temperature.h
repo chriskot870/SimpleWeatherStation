@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_TEMPERATURE_H_
-#define LIB_UNITS_TEMPERATURE_H_
+#ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
+#define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 
 #include <string>
 
@@ -42,6 +42,6 @@ constexpr int temperature_base_conversion_factor = 1000;
 constexpr float temperature_celsius_kelvin_offset = 273.15;
 const std::string temperature_default_format = "{0:.2f}";
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_TEMPERATURE_H_
+#endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_

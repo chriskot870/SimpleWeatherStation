@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_SPEED_H_
-#define LIB_UNITS_SPEED_H_
+#ifndef SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
+#define SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
 
 #include <fmt/format.h>
 #include <math.h>
@@ -47,6 +47,6 @@ constexpr float kMphPerKnot = 1.15078;
 constexpr float kKnotPerMph = (1/kMphPerKnot);  // The inverse of above.
 const std::string speed_default_format = "{0:.2f}";
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_SPEED_H_
+#endif  // SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_

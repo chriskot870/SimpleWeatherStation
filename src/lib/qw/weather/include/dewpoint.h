@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_WEATHER_DEWPOINT_H_
-#define LIB_UTILITIES_WEATHER_DEWPOINT_H_
+#ifndef SRC_LIB_QW_WEATHER_INCLUDE_DEWPOINT_H_
+#define SRC_LIB_QW_WEATHER_INCLUDE_DEWPOINT_H_
 
 #include <cmath>
 
@@ -46,4 +46,4 @@ Celsius dewPoint(Celsius tempc, RelativeHumidity rh);
 
 }  // namespace qw::weather
 
-#endif  // LIB_UTILITIES_WEATHER_DEWPOINT_H_
+#endif  // SRC_LIB_QW_WEATHER_INCLUDE_DEWPOINT_H_

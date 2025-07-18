@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_HUMIDITY_RELATIVE_HUMIDITY_H_
-#define LIB_UNITS_HUMIDITY_RELATIVE_HUMIDITY_H_
+#ifndef SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_H_
+#define SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_H_
 
 #include <fmt/format.h>
 #include <math.h>
@@ -87,6 +87,6 @@ class RelativeHumidity {
   void setBaseValue(int base_value);
 };
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_HUMIDITY_RELATIVE_HUMIDITY_H_
+#endif  // SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_H_

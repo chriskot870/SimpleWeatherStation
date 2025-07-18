@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
-#define LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
 
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/pressure.h"
@@ -102,4 +102,4 @@ class InchesMercury {
 
 }  // namespace qw::units
 
-#endif  // LIB_UNITS_PRESSURE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_

@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_LOGGER_H_
-#define LIB_UTILITIES_SYSTEM_LOGGER_H_
+#ifndef SRC_LIB_QW_LOGGER_LOGGER_H_
+#define SRC_LIB_QW_LOGGER_LOGGER_H_
 
 #include <syslog.h>
 #include <systemd/sd-journal.h>
@@ -72,4 +72,4 @@ class Logger {
 
 }  // namespace qw::logger
 
-#endif  // LIB_UTILITIES_SYSTEM_LOGGER_H_
+#endif  // SRC_LIB_QW_LOGGER_LOGGER_H_

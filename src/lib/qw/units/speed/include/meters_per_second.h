@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_SPEED_METERS_PER_SECOND_H_
-#define LIB_UNITS_SPEED_METERS_PER_SECOND_H_
+#ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_
+#define SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_
 
 #include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/miles_per_hour.h"
@@ -114,6 +114,6 @@ class MetersPerSecond {
   void setBaseValue(int base_value);
 };
 
-}  //qw_units Namespace
+}  //qw::units Namespace
 
-#endif  // LIB_UNITS_SPEED_METERS_PER_SECOND_H_
+#endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_

@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_SPEED_KILOMETERS_PER_HOUR_H_
-#define LIB_UNITS_SPEED_KILOMETERS_PER_HOUR_H_
+#ifndef SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
+#define SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
 
 #include "qw/units/speed/include/miles_per_hour.h"
 #include "qw/units/speed/include/meters_per_second.h"
@@ -113,6 +113,6 @@ class KilometersPerHour {
   void setBaseValue(int base_value);
 };
 
-}  //qw_units Namespace
+}  // qw::units Namespace
 
-#endif  // LIB_UNITS_SPEED_KILOMETERS_PER_HOUR_H_
+#endif  // SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_

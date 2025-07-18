@@ -37,8 +37,8 @@
  * and error.
  */
 
-#ifndef SRC_LIB_DEVICES_WIND_SPEED_SENSOR_ADC_H_
-#define SRC_LIB_DEVICES_WIND_SPEED_SENSOR_ADC_H_
+#ifndef SRC_LIB_DEVICES_QW_ANOMOMETER_ADAFRUIT_H_
+#define SRC_LIB_DEVICES_QW_ANOMOMETER_ADAFRUIT_H_
 
 #include "qw/devices/i2c/include/ads1015.h"
 #include "qw/units/speed/include/miles_per_hour.h"
@@ -79,4 +79,4 @@ class AnomometerAdafruit {
 
 }  // namespace qw::devices
 
-#endif  // SRC_LIB_DEVICES_WIND_SPEED_SENSOR_ADC_H_
+#endif  // SRC_LIB_QW_DEVICES_ANOMOMETER_ADAFRUIT_H_

@@ -30,8 +30,8 @@
  * This contains the transfer commands to devices on the i2c bus
  */
 
-#ifndef SRC_LIB_DEVICES_I2C_INCLUDE_I2CBUS_H_
-#define SRC_LIB_DEVICES_I2C_INCLUDE_I2CBUS_H_
+#ifndef SRC_LIB_QW_DEVICES_I2C_INCLUDE_I2CBUS_H_
+#define SRC_LIB_QW_DEVICES_I2C_INCLUDE_I2CBUS_H_
 
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
@@ -107,6 +107,6 @@ class I2cBus {
   I2cBusStatus status_ = I2CBUS_STATUS_OK;
 };
 
-}  // Namespace qw_devices
+}  // Namespace qw::devices
 
-#endif  // SRC_LIB_DEVICES_I2C_INCLUDE_I2CBUS_H_
+#endif  // SRC_LIB_QW_DEVICES_I2C_INCLUDE_I2CBUS_H_

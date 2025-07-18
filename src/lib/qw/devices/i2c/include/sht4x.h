@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
-#define SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
+#ifndef SRC_LIB_QW_DEVICES_I2C_INCLUDE_SHT4X_H_
+#define SRC_LIB_QW_DEVICES_I2C_INCLUDE_SHT4X_H_
 
 #include <errno.h>
 #include <fcntl.h>
@@ -326,6 +326,6 @@ class I2cSht4x {
                           std::chrono::milliseconds interval);
 };
 
-}  // Namespace qw_devices
+}  // Namespace qw::devices
 
-#endif  // SRC_LIB_DEVICES_I2C_INCLUDE_SHT4X_H_
+#endif  // SRC_LIB_QW_DEVICES_I2C_INCLUDE_SHT4X_H_

@@ -29,8 +29,8 @@
 /*
  * Any measurement invlolves the reading the accuracy and the time of the reading
  */
-#ifndef LIB_UNITS_RELATIVE_HUMIDITY_MEASUREMENT_H_
-#define LIB_UNITS_RELATIVE_HUMIDITY_MEASUREMENT_H_
+#ifndef SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_MEASUREMENT_H_
+#define SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_MEASUREMENT_H_
 
 #include <chrono>
 #include "qw/units/humidity/include/relative_humidity.h"
@@ -60,6 +60,6 @@ class RelativeHumidityMeasurement {
   std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_RELATIVE_HUMIDITY_MEASUREMENT_H_
+#endif  // SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_MEASUREMENT_H_

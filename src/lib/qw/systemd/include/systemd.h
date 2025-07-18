@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_INCLUDE_SYSTEMD_H_
-#define LIB_UTILITIES_SYSTEM_SYSTEMD_INCLUDE_SYSTEMD_H_
+#ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SYSTEMD_H_
+#define SRC_LIB_QW_SYSTEMD_INCLUDE_SYSTEMD_H_
 
 #include <fmt/format.h>
 #include <systemd/sd-bus.h>
@@ -193,4 +193,4 @@ class SdBusProperty {
 
 }  // namespace qw::systemd
 
-#endif  // LIB_UTILITIES_SYSTEM_SYSTEMD_INCLUDE_SYSTEMD_H_
+#endif  // SRC_LIB_QW_SYSTEMD_INCLUDE_SYSTEMD_H_

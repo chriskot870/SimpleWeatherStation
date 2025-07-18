@@ -29,8 +29,8 @@
 /*
  * Any measurement invlolves the reading the accuracy and the time of the reading
  */
-#ifndef LIB_UNITS_TEMPERATURE_MEASUREMENT_H_
-#define LIB_UNITS_TEMPERATURE_MEASUREMENT_H_
+#ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_MEASUREMENT_H_
+#define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_MEASUREMENT_H_
 
 #include <chrono>
 #include <variant>
@@ -74,6 +74,6 @@ class TemperatureMeasurement {
   std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_TEMPERATURE_MEASUREMENT_H_
+#endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_MEASUREMENT_H_

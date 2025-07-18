@@ -30,8 +30,8 @@
  * This contains class to interact with weather underground
  */
 
-#ifndef SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
-#define SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
+#ifndef SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
+#define SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 
 #include <curl/curl.h>
 #include <fmt/chrono.h>
@@ -167,4 +167,4 @@ class WeatherUnderground {
   expected<WuFieldProperties, int> getFieldProperties(string field);
 };
 
-#endif  // SRC_LIB_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H
+#endif  // SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_

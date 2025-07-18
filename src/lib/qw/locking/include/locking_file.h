@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
-#define LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
+#ifndef SRC_LIB_QW_LOCKING_LOCKING_FILE_H_
+#define SRC_LIB_QW_LOCKING_LOCKING_FILE_H_
 
 #include <fcntl.h>
 #include <sys/file.h>
@@ -54,4 +54,4 @@ class LockingFile {
 
 }  // namespace qw::locking
 
-#endif  // LIB_UTILITIES_SYSTEM_LOCKINGFILE_H_
+#endif  // SRC_LIB_QW_LOCKING_LOCKING_FILE_H_

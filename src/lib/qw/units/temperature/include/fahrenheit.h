@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
-#define LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
+#ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_FAHRENHEIT_H_
+#define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_FAHRENHEIT_H_
 
 #include <fmt/format.h>
 #include <math.h>
@@ -111,6 +111,6 @@ class Fahrenheit {
   void setBaseValue(int base_value);
 };
 
-}  // Namespace qw_units
+}  // Namespace qw::units
 
-#endif  // LIB_UNITS_TEMPERATURE_FAHRENHEIT_H_
+#endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_FAHRENHEIT_H_

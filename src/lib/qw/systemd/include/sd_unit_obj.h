@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
-#define LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
+#ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_UNIT_OBJ_H_
+#define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_UNIT_OBJ_H_
 
 #include "qw/systemd/include/systemd.h"
 
@@ -59,4 +59,4 @@ class SdUnitObj {
 
 }  // namespace qw::systemd
 
-#endif  // #ifndef LIB_UTILITIES_SYSTEM_SYSTEMD_SD_UNIT_OBJ_H_
+#endif  // SRC_LIB_QW_SYSTEMD_INCLUDE_SD_UNIT_OBJ_H_
