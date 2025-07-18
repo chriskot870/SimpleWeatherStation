@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "qw/systemd/include/sd_service_unit_obj.h"
+#include "qw/systemd/include/sd_service_unit.h"
 
 using fmt::format;
 using std::expected;
@@ -37,14 +37,14 @@ using std::variant;
 
 namespace qw::systemd {
 
-SdServiceUnitObj::SdServiceUnitObj(string destination, string path, string interface) :
+SdServiceUnit::SdServiceUnit(string destination, string path, string interface) :
   destination_(destination), path_(path), interface_(interface) {
 }
 
 /*
  * Properties needed by this application
  */
-expected<uint64_t, SdBusError> SdServiceUnitObj::getMainPID() {
+expected<uint64_t, SdBusError> SdServiceUnit::getMainPID() {
   sd_bus_error error = SD_BUS_ERROR_NULL;
    sd_bus_message *m = NULL;
    sd_bus* bus = NULL;

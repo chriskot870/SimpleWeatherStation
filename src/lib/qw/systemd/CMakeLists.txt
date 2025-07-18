@@ -1,7 +1,7 @@
 add_library(systemd_objects STATIC
-  sd_manager_obj.cpp
-  sd_unit_obj.cpp
-  sd_service_unit_obj.cpp
+  sd_manager.cpp
+  sd_unit.cpp
+  sd_service_unit.cpp
 )
 
 #

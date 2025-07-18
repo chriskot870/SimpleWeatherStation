@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_OBJ_H_
-#define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_OBJ_H_
+#ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_H_
+#define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_H_
 
 #include "qw/systemd/include/systemd.h"
 
@@ -52,4 +52,4 @@ class SdManager {
 
 }  // namespace qw::systemd
 
-#endif  // SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_OBJ_H_
+#endif  // SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_H_

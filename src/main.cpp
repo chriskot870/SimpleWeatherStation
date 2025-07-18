@@ -37,8 +37,8 @@
 #include "weather_station.h"
 #include "weather_station_config.h"
 #include "weather_underground_config.h"
-#include "qw/systemd/include/sd_unit_obj.h"
-#include "qw/systemd/include/sd_service_unit_obj.h"
+#include "qw/systemd/include/sd_unit.h"
+#include "qw/systemd/include/sd_service_unit.h"
 
 #include "qw/devices/i2c/include/lps22.h"
 #include "qw/devices/i2c/include/sht4x.h"
@@ -87,8 +87,8 @@ using qw::logger::LOGGER_MODE_JOURNAL;
 using qw::logger::LOGGER_MODE_FILE;
 using qw::logger::LOGGER_MODE_NOLOGGING;
 using qw::systemd::SdBusError;
-using qw::systemd::SdUnitObj;
-using qw::systemd::SdServiceUnitObj;
+using qw::systemd::SdUnit;
+using qw::systemd::SdServiceUnit;
 using qw::systemd::systemd_destination;
 using qw::systemd::systemd_quietwind_service_path;
 using qw::systemd::systemd_unit_interface;
@@ -127,10 +127,10 @@ int main(int argc, char* argv[]) {
     * If we have started from systemd then we always use
     * LOGGER_MODE_JOURNAL.
     */
-  SdUnitObj sd_qw_unit(systemd_destination,
+  SdUnit sd_qw_unit(systemd_destination,
                        systemd_quietwind_service_path,
                        systemd_unit_interface);
-  SdServiceUnitObj sd_qw_service_unit(systemd_destination,
+  SdServiceUnit sd_qw_service_unit(systemd_destination,
                        systemd_quietwind_service_path,
                        systemd_service_interface);
 

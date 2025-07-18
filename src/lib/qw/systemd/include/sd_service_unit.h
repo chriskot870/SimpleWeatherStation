@@ -26,16 +26,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_SERVICE_UNIT_OBJ_H_
-#define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_SERVICE_UNIT_OBJ_H_
+#ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_SERVICE_UNIT_H_
+#define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_SERVICE_UNIT_H_
 
 #include "qw/systemd/include/systemd.h"
 
 namespace qw::systemd {
 
-class SdServiceUnitObj {
+class SdServiceUnit {
  public:
-  SdServiceUnitObj(std::string destination, std::string path, std::string interface);
+  SdServiceUnit(std::string destination, std::string path, std::string interface);
 
   /*
    * Properties this application needs
@@ -53,4 +53,4 @@ class SdServiceUnitObj {
 
 }  // namespace qw::systemd
 
-#endif  // SRC_LIB_QW_SYSTEMD_INCLUDE_SD_SERVICE_UNIT_OBJ_H_
+#endif  // SRC_LIB_QW_SYSTEMD_INCLUDE_SD_SERVICE_UNIT_H_
