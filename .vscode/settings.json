@@ -59,6 +59,5 @@
         "format": "cpp",
         "map": "cpp",
         "cinttypes": "cpp"
-    },
-    "editor.formatOnSave": true
+    }
 }
