@@ -29,26 +29,11 @@
 #ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_KNOTS_H_
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_KNOTS_H_
 
-#include "qw/units/speed/include/miles_per_hour.h"
-#include "qw/units/speed/include/kilometers_per_hour.h"
-#include "qw/units/speed/include/meters_per_second.h"
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {
 
-  /*
-   * Need to predeclare these classes
-   * I found that out the hard way
-   */
-  class MilesPerHour;
-  class KilometersPerHour;
-  class MetersPerSecond;
-
-class Knots {
-
-  friend MilesPerHour;
-  friend KilometersPerHour;
-  friend MetersPerSecond;
+class Knots : Speed {
 
  public:
   Knots();
@@ -56,6 +41,8 @@ class Knots {
   Knots(float temp);
 
   Knots(float temp, std::string fmt_value);
+
+  Knots(int64_t base_level);
 
   float value();
 
@@ -65,52 +52,13 @@ class Knots {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const Knots& other) const;
-
-  bool operator!=(const Knots& other) const;
-
-  bool operator<(const Knots& other) const;
-
-  bool operator>(const Knots& other) const;
-
-  bool operator<=(const Knots& other) const;
-
-  bool operator>=(const Knots& other) const;
-
-  std::strong_ordering operator<=> (const Knots& other) const;
-
-  Knots& operator=(const Knots& other);
-
-  Knots& operator+=(const Knots& other);
-
-  Knots& operator-=(const Knots& other);
-
-  const Knots operator+(const Knots& other) const;
-
-  const Knots operator-(const Knots& other) const;
-
-  /*
-   * Supports implicit casting
-   * hence the need for the predeclaration
-   */
-  operator MilesPerHour() const;
-
-  operator KilometersPerHour() const;
-
-  operator MetersPerSecond() const;
-
  private:
-  int64_t base_value_;
 
   std::string fmt_value_ = speed_default_format;
-  
-  Knots(int64_t base_value);
 
-  int KnotsToBase(float temp);
+  int64_t KnotsToBase(float temp);
 
   float BaseToKnots(int base);
-
-  void setBaseValue(int base_value);
 
 };
 

@@ -29,33 +29,20 @@
 #ifndef SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
 #define SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
 
-#include "qw/units/speed/include/miles_per_hour.h"
-#include "qw/units/speed/include/meters_per_second.h"
-#include "qw/units/speed/include/knots.h"
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {
 
-/*
- * Need to predeclare these classes
- * I found that out the hard way
- */
-class MilesPerHour;
-class MetersPerSecond;
-class Knots;
-
-class KilometersPerHour {
-
-  friend MilesPerHour;
-  friend MetersPerSecond;
-  friend Knots;
+class KilometersPerHour : Speed {
 
   public:
   KilometersPerHour();
 
-  KilometersPerHour(float temp);
+  KilometersPerHour(float kph);
 
-  KilometersPerHour(float temp, std::string fmt_value);
+  KilometersPerHour(float kph, std::string fmt_value);
+
+  KilometersPerHour(int64_t base_level);
 
   float value();
 
@@ -65,52 +52,12 @@ class KilometersPerHour {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const KilometersPerHour& other) const;
-
-  bool operator!=(const KilometersPerHour& other) const;
-
-  bool operator<(const KilometersPerHour& other) const;
-
-  bool operator>(const KilometersPerHour& other) const;
-
-  bool operator<=(const KilometersPerHour& other) const;
-
-  bool operator>=(const KilometersPerHour& other) const;
-
-  std::strong_ordering operator<=> (const KilometersPerHour& other) const;
-
-  KilometersPerHour& operator=(const KilometersPerHour& other);
-
-  KilometersPerHour& operator+=(const KilometersPerHour& other);
-
-  KilometersPerHour& operator-=(const KilometersPerHour& other);
-
-  const KilometersPerHour operator+(const KilometersPerHour& other) const;
-
-  const KilometersPerHour operator-(const KilometersPerHour& other) const;
-
-  /*
-   * Supports implicit casting
-   * hence the need for the predeclaration
-   */
-  operator MilesPerHour() const;
-
-  operator MetersPerSecond() const;
-
-  operator Knots() const;
-
  private:
-  int64_t base_value_;
-
   std::string fmt_value_ = speed_default_format;
 
-  KilometersPerHour(int64_t base_value);
-
-  int KilometersPerHourToBase(float temp);
+  int64_t KilometersPerHourToBase(float kph);
 
   float BaseToKilometersPerHour(int base);
-
-  void setBaseValue(int base_value);
 };
 
 }  // qw::units Namespace

@@ -26,38 +26,47 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Any measurement invlolves the reading the accuracy and the time of the reading
- */
-#ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_MEASUREMENT_H_
-#define SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_MEASUREMENT_H_
+#ifndef SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
+#define SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
 
-#include <chrono>
+#include <cmath>
+#include <deque>
+#include <expected>
+
 #include "qw/units/speed/include/speed.h"
+#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/speed_measurement.h"
 
-namespace qw::units {
+namespace qw::weather {
 
-using SpeedMeasurementClock = std::chrono::system_clock;
-using SpeedMeasurementTimeStamp = std::chrono::time_point<SpeedMeasurementClock>;
+constexpr std::chrono::seconds kMaxListTimeSpan(60 * 10);  // 10 minutes of samples
 
-class SpeedMeasurement {
+class WindspeedHistory {
  public:
-  SpeedMeasurement();
+  WindspeedHistory();
 
-  SpeedMeasurement(Speed value, Speed accuracy, SpeedMeasurementTimeStamp time);
+  void setMaximumTime(std::chrono::seconds time_span);
 
-  Speed value();
+  std::chrono::seconds getMaximumTime();
 
-  Speed accuracy();
+  size_t size();
 
-  SpeedMeasurementTimeStamp time();
+  size_t countOverPeriod(std::chrono::seconds time_span);
+
+  void add(qw::units::SpeedMeasurement speed);
+
+  std::expected<qw::units::Speed, int> average(std::chrono::seconds time_span);
+
+  std::expected<qw::units::SpeedMeasurement, int> gust(std::chrono::seconds time_span);
 
  private:
-  Speed value_;
-  Speed accuracy_;
-  SpeedMeasurementTimeStamp time_;
+  std::deque<qw::units::SpeedMeasurement> history;
+
+  std::chrono::seconds maximum_time = kMaxListTimeSpan;
+
+  void prune();
 };
 
-}  // Namespace qw::units
+}  // namespace qw::weather
 
-#endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_MEASUREMENT_H_
+#endif  // SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_

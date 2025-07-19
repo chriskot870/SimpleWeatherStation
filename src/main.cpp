@@ -79,8 +79,6 @@ using qw::units::RelativeHumidity;
 using qw::units::MilesPerHour;
 using qw::units::KilometersPerHour;
 using qw::units::SpeedMeasurement;
-using qw::units::SpeedUnitsVariant;
-using qw::units::SpeedUnits;
 using qw::units::SpeedMeasurementTimeStamp;
 using qw::logger::Logger;
 using qw::logger::LOGGER_MODE_JOURNAL;
@@ -469,8 +467,7 @@ int main(int argc, char* argv[]) {
        * Weather Underground wants speed in mph
        */
       if (x_anomometer.has_value()) {
-        MilesPerHour wind_mph;
-        x_anomometer.value().valueUnit(wind_mph);
+        MilesPerHour wind_mph = x_anomometer.value().value();
         wu->setVarData("windspeedmph", wind_mph.value());
       }
 

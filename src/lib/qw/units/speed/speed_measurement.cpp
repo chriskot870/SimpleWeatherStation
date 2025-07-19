@@ -28,10 +28,6 @@
 
 #include "qw/units/speed/include/speed_measurement.h"
 
-using std::get;
-using std::holds_alternative;
-using std::variant;
-using std::visit;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
@@ -40,89 +36,17 @@ namespace qw::units {
 SpeedMeasurement::SpeedMeasurement() {}
 
 SpeedMeasurement::SpeedMeasurement(
-    SpeedUnitsVariant value,
-    SpeedUnitsVariant accuracy,
+    Speed value,
+    Speed accuracy,
     SpeedMeasurementTimeStamp time)
     : value_(value), accuracy_(accuracy), time_(time) {}
 
-SpeedUnitsVariant SpeedMeasurement::value() {
+Speed SpeedMeasurement::value() {
   return value_;
 }
 
-void SpeedMeasurement::valueUnit(MilesPerHour &mph) {
-
-  visit([&mph](auto&& arg) {
-    mph = arg;
-  }, value_);
-
-  return;
-}
-
-void SpeedMeasurement::valueUnit(KilometersPerHour &kph) {
-
-  visit([&kph](auto&& arg) {
-    kph = arg;
-  }, value_);
-
-  return;
-}
-
-void SpeedMeasurement::valueUnit(MetersPerSecond &mps) {
-
-  visit([&mps](auto&& arg) {
-    mps = arg;
-  }, value_);
-
-  return;
-}
-
-void SpeedMeasurement::valueUnit(Knots &knots) {
-
-  visit([&knots](auto&& arg) {
-    knots = arg;
-  }, value_);
-
-  return;
-}
-
-SpeedUnitsVariant SpeedMeasurement::accuracy() {
+Speed SpeedMeasurement::accuracy() {
   return accuracy_;
-}
-
-void SpeedMeasurement::accuracyUnit(MilesPerHour &mph) {
-
-  visit([&mph](auto&& arg) {
-    mph = arg;
-  }, accuracy_);
-
-  return;
-}
-
-void SpeedMeasurement::accuracyUnit(KilometersPerHour &kph) {
-
-  visit([&kph](auto&& arg) {
-    kph = arg;
-  }, accuracy_);
-
-  return;
-}
-
-void SpeedMeasurement::accuracyUnit(MetersPerSecond &mps) {
-
-  visit([&mps](auto&& arg) {
-    mps = arg;
-  }, accuracy_);
-
-  return;
-}
-
-void SpeedMeasurement::accuracyUnit(Knots &knots) {
-
-  visit([&knots](auto&& arg) {
-    knots = arg;
-  }, accuracy_);
-
-  return;
 }
 
 SpeedMeasurementTimeStamp SpeedMeasurement::time() {

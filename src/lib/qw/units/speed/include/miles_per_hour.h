@@ -30,32 +30,19 @@
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_MILES_PER_HOUR_H_
 
 #include "qw/units/speed/include/speed.h"
-#include "qw/units/speed/include/kilometers_per_hour.h"
-#include "qw/units/speed/include/meters_per_second.h"
-#include "qw/units/speed/include/knots.h"
 
 namespace qw::units {
 
-  /*
-   * Need to predeclare these classes
-   * I found that out the hard way
-   */
-  class KilometersPerHour;
-  class MetersPerSecond;
-  class Knots;
-
-class MilesPerHour {
-
-  friend KilometersPerHour;
-  friend MetersPerSecond;
-  friend Knots;
+class MilesPerHour : public Speed {
 
   public:
   MilesPerHour();
 
-  MilesPerHour(float temp);
+  MilesPerHour(float mph);
 
-  MilesPerHour(float temp, std::string fmt_value);
+  MilesPerHour(float mph, std::string fmt_value);
+
+  MilesPerHour(int64_t base_level);
 
   float value();
 
@@ -65,52 +52,14 @@ class MilesPerHour {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const MilesPerHour& other) const;
-
-  bool operator!=(const MilesPerHour& other) const;
-
-  bool operator<(const MilesPerHour& other) const;
-
-  bool operator>(const MilesPerHour& other) const;
-
-  bool operator<=(const MilesPerHour& other) const;
-
-  bool operator>=(const MilesPerHour& other) const;
-
-  std::strong_ordering operator<=> (const MilesPerHour& other) const;
-
-  MilesPerHour& operator=(const MilesPerHour& other);
-
-  MilesPerHour& operator+=(const MilesPerHour& other);
-
-  MilesPerHour& operator-=(const MilesPerHour& other);
-
-  const MilesPerHour operator+(const MilesPerHour& other) const;
-
-  const MilesPerHour operator-(const MilesPerHour& other) const;
-
-  /*
-   * Supports implicit casting
-   * hence the need for the predeclaration
-   */
-  operator KilometersPerHour() const;
-
-  operator MetersPerSecond() const;
-
-  operator Knots() const;
-
  private:
-  int64_t base_value_;
 
   std::string fmt_value_ = speed_default_format;
-  
-  MilesPerHour(int64_t base_value);
 
-  int MilesPerHourToBase(float temp);
+  int MilesPerHourToBase(float mph);
 
-  float BaseToMilesPerHour(int base);
+  float BaseToMilesPerHour(int64_t base);
 
-  void setBaseValue(int base_value);
 };
 
 }  //qw::units Namespace

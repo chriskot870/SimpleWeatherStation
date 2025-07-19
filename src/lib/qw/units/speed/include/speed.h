@@ -35,6 +35,14 @@
 #include <string>
 
 namespace qw::units {
+
+  /*
+   * Need to pre-declare these for
+   */
+  class MilesPerHour;
+  class KilometersPerHour;
+  class MetersPerSecond;
+  class Knots;
 /*
  * Our speed is based on .001 mile per hour
  */
@@ -46,6 +54,56 @@ constexpr float kMphPerMps = (1/kMpsPerMph);  // The inverse of above
 constexpr float kMphPerKnot = 1.15078;
 constexpr float kKnotPerMph = (1/kMphPerKnot);  // The inverse of above.
 const std::string speed_default_format = "{0:.2f}";
+
+class Speed {
+ public:
+  int64_t base_value_;
+
+  Speed();
+
+  explicit Speed(const int64_t);
+
+  void setBaseValue(int64_t base_value);
+
+  int64_t getBaseValue();
+
+  bool operator==(const Speed& other) const;
+
+  bool operator!=(const Speed& other) const;
+
+  bool operator<(const Speed& other) const;
+
+  bool operator>(const Speed& other) const;
+
+  bool operator<=(const Speed& other) const;
+
+  bool operator>=(const Speed& other) const;
+
+  std::strong_ordering operator<=> (const Speed& other) const;
+
+  Speed& operator=(const Speed& other);
+
+  Speed& operator+=(const Speed& other);
+
+  Speed& operator-=(const Speed& other);
+
+  const Speed operator+(const Speed& other) const;
+
+  const Speed operator-(const Speed& other) const;
+
+  /*
+   * Supports implicit casting
+   * hence the need for the predeclaration
+   */
+  operator MilesPerHour() const;
+
+  operator KilometersPerHour() const;
+
+  operator MetersPerSecond() const;
+
+  operator Knots() const;
+
+};
 
 }  // Namespace qw::units
 

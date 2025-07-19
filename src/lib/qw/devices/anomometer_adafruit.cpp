@@ -34,7 +34,6 @@ using qw::devices::kAds1015CountPerVolts;
 using qw::units::MilesPerHour;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementTimeStamp;
-using qw::units::SpeedUnitsVariant;
 using std::expected;
 using std::unexpected;
 using std::chrono::system_clock;
@@ -72,11 +71,11 @@ expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
         (count - kAnomometerAdafruitBaseValue) * kAnomometerAdafruitMphPerCount;
   }
 
-  MilesPerHour speed(mph);
+  MilesPerHour mph_speed(mph);
   MilesPerHour accuracy(float(.5));  // Assume accuracy is .5 mph
   SpeedMeasurementTimeStamp current_time = system_clock::now();
 
-  SpeedMeasurement measured_speed(speed, accuracy, current_time);
+  SpeedMeasurement measured_speed(mph_speed, accuracy, current_time);
 
   return measured_speed;
 }

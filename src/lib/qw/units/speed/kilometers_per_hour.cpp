@@ -25,18 +25,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "qw/units/speed/include/kilometers_per_hour.h"
-
-namespace qw::units {
 
 using fmt::format;
 using std::string;
 using std::strong_ordering;
 
-class MilesPerHour;
-class MetersPerSecond;
-class Knots;
+namespace qw::units {
 
 /*
  * Constructor routines
@@ -44,13 +39,13 @@ class Knots;
 KilometersPerHour::KilometersPerHour() {}
 
 KilometersPerHour::KilometersPerHour(float kph)
-    : base_value_(KilometersPerHourToBase(kph)) {}
+    : Speed(KilometersPerHourToBase(kph)) {}
 
 KilometersPerHour::KilometersPerHour(float kph, string fmt_value)
-    : base_value_(KilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
+    : Speed(KilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
 
 KilometersPerHour::KilometersPerHour(int64_t base_value)
-    : base_value_(base_value) {}
+    : Speed(base_value) {}
 
 /*
  * Data manipulation routines
@@ -64,7 +59,7 @@ float KilometersPerHour::value() {
  * For every mile per hour there are 100 base units.
  * So, convert kph to mph than apply the base conversion factor.
  */
-int KilometersPerHour::KilometersPerHourToBase(float kph) {
+int64_t KilometersPerHour::KilometersPerHourToBase(float kph) {
 
   int value = round((kph * kMilesPerKilometer) * speed_base_conversion_factor);
 
@@ -110,155 +105,6 @@ void KilometersPerHour::setFormat(string fmt_value) {
   fmt_value_ = fmt_value;
 
   return;
-}
-
-/*
- * Used by conversion routines for implicit casting
- */
-void KilometersPerHour::setBaseValue(int base_value) {
-
-  base_value_ = base_value;
-
-  return;
-}
-
-bool KilometersPerHour::operator==(const KilometersPerHour& other) const {
-
-  bool value = (base_value_ == other.base_value_);
-
-  return value;
-}
-
-bool KilometersPerHour::operator!=(const KilometersPerHour& other) const {
-
-  bool value = (base_value_ != other.base_value_);
-
-  return value;
-}
-
-bool KilometersPerHour::operator<(const KilometersPerHour& other) const {
-
-  bool value = (base_value_ < other.base_value_);
-
-  return value;
-}
-
-bool KilometersPerHour::operator>(const KilometersPerHour& other) const {
-
-  bool value = (base_value_ > other.base_value_);
-
-  return value;
-}
-
-bool KilometersPerHour::operator<=(const KilometersPerHour& other) const {
-
-  bool value = (base_value_ <= other.base_value_);
-
-  return value;
-}
-
-bool KilometersPerHour::operator>=(const KilometersPerHour& other) const {
-
-  bool value = (base_value_ >= other.base_value_);
-
-  return value;
-}
-
-strong_ordering KilometersPerHour::operator<=>
-    (const KilometersPerHour& other) const {
-
-  /*
-   * The <=> returns a std::strong_ordering type.
-   * Either ::less, ::equal, or ::greater
-   */
-  strong_ordering value = (base_value_ <=> other.base_value_);
-
-  return value;
-}
-
-/*
- * Assignment operators
- */
-KilometersPerHour& KilometersPerHour::operator=(
-    const KilometersPerHour& other) {
-
-  /*
-   * Guard against self assignement
-   */
-  if (this == &other) {
-    return *this;
-  }
-
-  /*
-   * This is the one that is to the left of = sign so we want
-   * to copy the base_value_ in other to the one in this
-   */
-  base_value_ = other.base_value_;
-
-  return *this;
-}
-
-KilometersPerHour& KilometersPerHour::operator+=(
-    const KilometersPerHour& other) {
-
-  base_value_ += other.base_value_;
-
-  return *this;
-}
-
-KilometersPerHour& KilometersPerHour::operator-=(
-    const KilometersPerHour& other) {
-
-  base_value_ -= other.base_value_;
-
-  return *this;
-}
-
-/*
- * Arithmetic operations
- */
-const KilometersPerHour KilometersPerHour::operator+(
-    const KilometersPerHour& other) const {
-
-  KilometersPerHour result = *this;
-
-  result += other;
-
-  return result;
-}
-
-const KilometersPerHour KilometersPerHour::operator-(
-    const KilometersPerHour& other) const {
-
-  KilometersPerHour result = *this;
-
-  result -= other;
-
-  return result;
-}
-
-/*
- * Intrinsic casting to other speed units
- */
-KilometersPerHour::operator MilesPerHour() const {
-
-  MilesPerHour mph(base_value_);
-
-  return mph;
-}
-
-KilometersPerHour::operator MetersPerSecond() const {
-
-  MetersPerSecond mps(base_value_);
-
-  return mps;
-}
-
-KilometersPerHour::operator Knots() const {
-
-  Knots knots(base_value_);
-
-  return knots;
 }
 
 }  // namespace qw_units

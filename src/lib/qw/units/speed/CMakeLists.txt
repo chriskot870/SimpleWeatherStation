@@ -1,4 +1,5 @@
 add_library(speed_units STATIC
+  speed.cpp
   miles_per_hour.cpp
   kilometers_per_hour.cpp
   meters_per_second.cpp

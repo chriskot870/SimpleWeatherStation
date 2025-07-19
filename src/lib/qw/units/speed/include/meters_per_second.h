@@ -30,25 +30,10 @@
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_
 
 #include "qw/units/speed/include/speed.h"
-#include "qw/units/speed/include/miles_per_hour.h"
-#include "qw/units/speed/include/kilometers_per_hour.h"
-#include "qw/units/speed/include/knots.h"
 
 namespace qw::units {
 
-   /*
-   * Need to predeclare these classes
-   * I found that out the hard way
-   */
-  class MilesPerHour;
-  class KilometersPerHour;
-  class Knots;
-
-class MetersPerSecond {
-
-  friend MilesPerHour;
-  friend KilometersPerHour;
-  friend Knots;
+class MetersPerSecond : Speed {
 
  public:
 
@@ -58,6 +43,8 @@ class MetersPerSecond {
 
   MetersPerSecond(float temp, std::string fmt_value);
 
+  MetersPerSecond(int64_t base_level);
+
   float value();
 
   std::string toString();
@@ -66,48 +53,11 @@ class MetersPerSecond {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const MetersPerSecond& other) const;
-
-  bool operator!=(const MetersPerSecond& other) const;
-
-  bool operator<(const MetersPerSecond& other) const;
-
-  bool operator>(const MetersPerSecond& other) const;
-
-  bool operator<=(const MetersPerSecond& other) const;
-
-  bool operator>=(const MetersPerSecond& other) const;
-
-  std::strong_ordering operator<=> (const MetersPerSecond& other) const;
-
-  MetersPerSecond& operator=(const MetersPerSecond& other);
-
-  MetersPerSecond& operator+=(const MetersPerSecond& other);
-
-  MetersPerSecond& operator-=(const MetersPerSecond& other);
-
-  const MetersPerSecond operator+(const MetersPerSecond& other) const;
-
-  const MetersPerSecond operator-(const MetersPerSecond& other) const;
-
-  /*
-   * Supports implicit casting
-   * hence the need for the predeclaration
-   */
-  operator MilesPerHour() const;
-
-  operator KilometersPerHour() const;
-
-  operator Knots() const;
-
  private:
-  int64_t base_value_;
 
   std::string fmt_value_ = speed_default_format;
 
-  MetersPerSecond(int64_t base_value);
-
-  int MetersPerSecondToBase(float temp);
+  int64_t MetersPerSecondToBase(float temp);
 
   float BaseToMetersPerSecond(int base);
 

@@ -25,7 +25,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "qw/units/speed/include/meters_per_second.h"
 
 using std::string;
@@ -33,23 +32,19 @@ using std::strong_ordering;
 
 namespace qw::units {
 
-class MilesPerHour;
-class KilometersPerHour;
-class Knots;
-
 /*
  * Constructor routines
  */
 MetersPerSecond::MetersPerSecond() {}
 
 MetersPerSecond::MetersPerSecond(float mps)
-    : base_value_(MetersPerSecondToBase(mps)) {}
+    : Speed(MetersPerSecondToBase(mps)) {}
 
 MetersPerSecond::MetersPerSecond(float mps, string fmt_value)
-    : base_value_(MetersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
+    : Speed(MetersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
 
 MetersPerSecond::MetersPerSecond(int64_t base_value)
-    : base_value_(base_value) {}
+    : Speed(base_value) {}
 
 /*
  * Data manipulation routines
@@ -64,7 +59,7 @@ float MetersPerSecond::value() {
  * Convert the meters per second to miles per hour.
  * Then convert the miles per hour to the base.
  */
-int MetersPerSecond::MetersPerSecondToBase(float mps) {
+int64_t MetersPerSecond::MetersPerSecondToBase(float mps) {
 
   int value = round((mps * kMphPerMps) * speed_base_conversion_factor);
 
@@ -110,152 +105,6 @@ void MetersPerSecond::setFormat(string fmt_value) {
   fmt_value_ = fmt_value;
 
   return;
-}
-
-/*
- * Used by conversion routines for implicit casting
- */
-void MetersPerSecond::setBaseValue(int base_value) {
-
-  base_value_ = base_value;
-
-  return;
-}
-
-bool MetersPerSecond::operator==(const MetersPerSecond& other) const {
-
-  bool value = (base_value_ == other.base_value_);
-
-  return value;
-}
-
-bool MetersPerSecond::operator!=(const MetersPerSecond& other) const {
-
-  bool value = (base_value_ != other.base_value_);
-
-  return value;
-}
-
-bool MetersPerSecond::operator<(const MetersPerSecond& other) const {
-
-  bool value = (base_value_ < other.base_value_);
-
-  return value;
-}
-
-bool MetersPerSecond::operator>(const MetersPerSecond& other) const {
-
-  bool value = (base_value_ > other.base_value_);
-
-  return value;
-}
-
-bool MetersPerSecond::operator<=(const MetersPerSecond& other) const {
-
-  bool value = (base_value_ <= other.base_value_);
-
-  return value;
-}
-
-bool MetersPerSecond::operator>=(const MetersPerSecond& other) const {
-
-  bool value = (base_value_ >= other.base_value_);
-
-  return value;
-}
-
-strong_ordering MetersPerSecond::operator<=>
-    (const MetersPerSecond& other) const {
-
-  /*
-   * The <=> returns a std::strong_ordering type.
-   * Either ::less, ::equal, or ::greater
-   */
-  strong_ordering value = (base_value_ <=> other.base_value_);
-
-  return value;
-}
-
-/*
- * Assignment operators
- */
-MetersPerSecond& MetersPerSecond::operator=(const MetersPerSecond& other) {
-
-  /*
-   * Guard against self assignement
-   */
-  if (this == &other) {
-    return *this;
-  }
-
-  /*
-   * This is the one that is to the left of = sign so we want
-   * to copy the base_value_ in other to the one in this
-   */
-  base_value_ = other.base_value_;
-
-  return *this;
-}
-
-MetersPerSecond& MetersPerSecond::operator+=(const MetersPerSecond& other) {
-
-  base_value_ += other.base_value_;
-
-  return *this;
-}
-
-MetersPerSecond& MetersPerSecond::operator-=(const MetersPerSecond& other) {
-
-  base_value_ -= other.base_value_;
-
-  return *this;
-}
-
-/*
- * Arithmetic operations
- */
-const MetersPerSecond MetersPerSecond::operator+(
-    const MetersPerSecond& other) const {
-
-  MetersPerSecond result = *this;
-
-  result += other;
-
-  return result;
-}
-
-const MetersPerSecond MetersPerSecond::operator-(
-    const MetersPerSecond& other) const {
-
-  MetersPerSecond result = *this;
-
-  result -= other;
-
-  return result;
-}
-
-/*
- * Intrinsic casting to other speed units
- */
-MetersPerSecond::operator KilometersPerHour() const {
-
-  KilometersPerHour kph(base_value_);
-
-  return kph;
-}
-
-MetersPerSecond::operator MilesPerHour() const {
-
-  MilesPerHour mph(base_value_);
-
-  return mph;
-}
-
-MetersPerSecond::operator Knots() const {
-
-  Knots knots(base_value_);
-
-  return knots;
 }
 
 }  // namespace qw_units
