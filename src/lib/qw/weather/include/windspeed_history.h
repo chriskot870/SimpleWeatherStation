@@ -60,9 +60,9 @@ class WindspeedHistory {
   std::expected<qw::units::SpeedMeasurement, int> gust(std::chrono::seconds time_span);
 
  private:
-  std::deque<qw::units::SpeedMeasurement> history;
+  std::deque<qw::units::SpeedMeasurement> history_;
 
-  std::chrono::seconds maximum_time = kMaxListTimeSpan;
+  std::chrono::seconds maximum_time_ = kMaxListTimeSpan;
 
   void prune();
 };

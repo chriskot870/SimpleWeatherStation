@@ -27,10 +27,12 @@
  */
 
 #include <expected>
+#include <algorithm>
 #include "qw//weather/include/windspeed_history.h"
 
 using std::expected;
 using std::unexpected;
+using std::sort;
 using qw::units::Speed;
 using qw::units::MilesPerHour;
 using qw::units::SpeedMeasurement;
@@ -43,7 +45,7 @@ WindspeedHistory::WindspeedHistory() {}
 
 void WindspeedHistory::setMaximumTime(std::chrono::seconds time_span) {
   
-  maximum_time = time_span;
+  maximum_time_ = time_span;
 
   /*
    * Since we changed the time span cleanup the list with the new maximum_time
@@ -55,7 +57,7 @@ void WindspeedHistory::setMaximumTime(std::chrono::seconds time_span) {
 
 std::chrono::seconds WindspeedHistory::getMaximumTime() {
   
-  return maximum_time;
+  return maximum_time_;
 }
 
 size_t WindspeedHistory::size() {
@@ -66,7 +68,7 @@ size_t WindspeedHistory::size() {
    */
   prune();
 
-  count = history.size();
+  count = history_.size();
 
   return count;
 }
@@ -82,7 +84,7 @@ size_t WindspeedHistory::countOverPeriod(std::chrono::seconds time_span) {
   /*
    * Iterate through the list backwards, which is from newest measurement.
    */
-  for (auto it = history.rbegin(); it != history.rend(); ++it) {
+  for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
     if ((current_time - (*it).time()) <= time_span) {
       count++;
     }
@@ -104,9 +106,27 @@ void WindspeedHistory::add(SpeedMeasurement speed) {
    * Make sure the speed is within the maximum time
    */
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
-  if ((current_time - speed.time()) <= maximum_time) {
-    history.push_back(speed);
+  if ((current_time - speed.time()) <= maximum_time_) {
+    history_.push_back(speed);
   }
+
+  /*
+   * We need the deque to be ordered by time.
+   * On the chance the measurements got added in different order
+   * we want to sort by time whenever a new measurement is added.
+   * This way we can be sure of the order of the measurements by time.
+   * We use a lambda function to make the comparison.
+   */
+  sort(history_.begin(), history_.end(), [](SpeedMeasurement a, SpeedMeasurement b) {
+    /*
+     * We want the older times near the front.
+     * So, if a.time() > b.time() return true.
+     */
+    if (a.time() > b.time()) {
+      return true;
+    }
+    return false;
+  } );
 
   return;
 }
@@ -120,7 +140,7 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
   /*
    * If history is empty return an error so we don't divide by 0
    */
-  if (history.empty() == true) {
+  if (history_.empty() == true) {
     return unexpected(ENODATA);
   }
 
@@ -128,7 +148,7 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
    * Iterate through the list backwards, which is from newest measurement.
    */
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
-  for (auto it = history.rbegin(); it != history.rend(); ++it) {
+  for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
     /*
      * If it is within the time stamp add the value
      */
@@ -161,13 +181,13 @@ expected<SpeedMeasurement, int> WindspeedHistory::gust(std::chrono::seconds time
   /*
    * Return error if there is no data
    */
-  if (history.empty() == true) {
+  if (history_.empty() == true) {
     return unexpected(ENODATA);
   }
 
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
-  SpeedMeasurement max_measurement = history.back();
-  for (auto it = history.rbegin(); it != history.rend(); ++it) {
+  SpeedMeasurement max_measurement = history_.back();
+  for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
     /*
      * If we go past the time_span then exit loop
      */
@@ -187,12 +207,17 @@ expected<SpeedMeasurement, int> WindspeedHistory::gust(std::chrono::seconds time
 
 void WindspeedHistory::prune() {
 
-  SpeedMeasurement measurement;
-  MilesPerHour mph;
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
 
-  while((history.size() > 0) && ((current_time - history.front().time()) > maximum_time)) {
-    history.pop_front();
+  /*
+   * We look at the fron of the history which is the oldest one.
+   * If the time stamp is greater than the maximum time we pop it
+   * off the history deque. We keep doing this till we run into an
+   * element that is less than or equal to the maximum_time or there
+   * are no elements left in the history.
+   */
+  while((history_.empty() != true) && ((current_time - history_.front().time()) > maximum_time_)) {
+    history_.pop_front();
   }
 
   return;
