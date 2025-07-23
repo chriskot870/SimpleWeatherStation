@@ -33,15 +33,8 @@
 #include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
-/*
- * Need to predeclare these classes
- * I found that out the hard way
- */
-class Millibar;
 
-class InchesMercury {
-
-  friend Millibar;
+class InchesMercury : public Pressure {
 
  public:
   InchesMercury();
@@ -89,7 +82,6 @@ class InchesMercury {
   operator Millibar() const;
 
  private:
-  int64_t base_value_;
 
   std::string fmt_value_ = pressure_default_format;
 
@@ -97,7 +89,6 @@ class InchesMercury {
 
   float BaseToInchesMercury(int base);
 
-  void setBaseValue(int base_value);
 };
 
 }  // namespace qw::units

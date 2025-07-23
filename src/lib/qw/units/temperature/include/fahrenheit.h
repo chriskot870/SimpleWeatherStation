@@ -29,29 +29,11 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_FAHRENHEIT_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_FAHRENHEIT_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
-#include <string>
-#include <variant>
-
-#include "qw/units/temperature/include/celsius.h"
-#include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
 
 namespace qw::units {
-/*
- * Need to predeclare the friend classes
- * I found that out the hard way
- */
 
-class Celsius;
-class Kelvin;
-
-class Fahrenheit {
-  friend Celsius;
-  friend Kelvin;
-
+class Fahrenheit : public Temperature {
  public:
   Fahrenheit();
 
@@ -67,40 +49,7 @@ class Fahrenheit {
 
   void setFormat(std::string fmt_value);
 
-  /********************
-   * Operator functions
-   ********************/
-
-  bool operator==(const Fahrenheit& other) const;
-
-  bool operator!=(const Fahrenheit& other) const;
-
-  bool operator<(const Fahrenheit& other) const;
-
-  bool operator>(const Fahrenheit& other) const;
-
-  bool operator<=(const Fahrenheit& other) const;
-
-  bool operator>=(const Fahrenheit& other) const;
-
-  std::strong_ordering operator<=> (const Fahrenheit& other) const;
-
-  Fahrenheit& operator=(const Fahrenheit& other);
-
-  Fahrenheit& operator+=(const Fahrenheit& other);
-
-  Fahrenheit& operator-=(const Fahrenheit& other);
-
-  const Fahrenheit operator+(const Fahrenheit& other) const;
-
-  const Fahrenheit operator-(const Fahrenheit& other) const;
-
-  operator Celsius() const;
-
-  operator Kelvin() const;
-
  private:
-  int64_t base_value_;
 
   std::string fmt_value_ = temperature_default_format;
 
@@ -108,7 +57,6 @@ class Fahrenheit {
 
   float BaseToFahrenheit(int base);
 
-  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw::units

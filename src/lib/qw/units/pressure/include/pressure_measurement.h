@@ -33,10 +33,9 @@
 #define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_MEASUREMENT_H_
 
 #include <chrono>
-#include <variant>
+#include "qw/units/pressure/include/pressure.h"
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
 
@@ -44,27 +43,19 @@ class PressureMeasurement {
  public:
   PressureMeasurement();
 
-  PressureMeasurement(std::variant<Millibar, InchesMercury> value,
-                      std::variant<Millibar, InchesMercury> accuracy,
+  PressureMeasurement(Pressure value,
+                      Pressure accuracy,
                       std::chrono::time_point<std::chrono::system_clock> time);
 
-  std::variant<Millibar, InchesMercury> value();
+  Pressure value();
 
-  std::variant<Millibar, InchesMercury> accuracy();
+  Pressure accuracy();
 
   std::chrono::time_point<std::chrono::system_clock> time();
 
-  Millibar millibarValue();
-
-  InchesMercury inchesMercuryValue();
-
-  Millibar millibarAccuracy();
-
-  InchesMercury inchesMercuryAccuracy();
-
  private:
-  std::variant<Millibar, InchesMercury> value_;
-  std::variant<Millibar, InchesMercury> accuracy_;
+  Pressure value_;
+  Pressure accuracy_;
   std::chrono::time_point<std::chrono::system_clock> time_;
 };
 

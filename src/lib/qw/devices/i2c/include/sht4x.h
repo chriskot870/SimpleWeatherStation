@@ -60,12 +60,12 @@
  * This device has temperature and relative humidity sensors so add the units
  * and measurements.
  */
+#include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/humidity/include/relative_humidity_measurement.h"
-#include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
 
 /*

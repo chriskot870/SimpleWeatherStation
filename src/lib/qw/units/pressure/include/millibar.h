@@ -29,12 +29,6 @@
 #ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_MILLIBAR_H_
 #define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_MILLIBAR_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
-#include <string>
-
-#include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
@@ -44,9 +38,7 @@ namespace qw::units {
  */
 class InchesMercury;
 
-class Millibar {
-
-  friend InchesMercury;
+class Millibar : public Pressure {
 
  public:
   Millibar();
@@ -63,45 +55,13 @@ class Millibar {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const Millibar& other) const;
-
-  bool operator!=(const Millibar& other) const;
-
-  bool operator<(const Millibar& other) const;
-
-  bool operator>(const Millibar& other) const;
-
-  bool operator<=(const Millibar& other) const;
-
-  bool operator>=(const Millibar& other) const;
-
-  std::strong_ordering operator<=> (const Millibar& other) const;
-
-  Millibar& operator=(const Millibar& other);
-
-  Millibar& operator+=(const Millibar& other);
-
-  Millibar& operator-=(const Millibar& other);
-
-  const Millibar operator+(const Millibar& other) const;
-
-  const Millibar operator-(const Millibar& other) const;
-
-  /*
-   * Supports implicit casting
-   */
-  operator InchesMercury() const;
-
  private:
-  int64_t base_value_;
-
   std::string fmt_value_ = pressure_default_format;
 
-  int MillibarToBase(float temp);
+  int MillibarToBase(float mb);
 
   float BaseToMillibar(int base);
 
-  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw::units

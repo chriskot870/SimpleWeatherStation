@@ -35,7 +35,14 @@
 #include <string>
 
 namespace qw::units {
-/*
+
+  /*
+   * Need to pre-declare these for
+   */
+  class Millibar;
+  class InchesMercury;
+
+ /*
    * Our pressure base is millicelsius so we want
    * to apply the pressur_base_conversion_factor
    * to millibar values.
@@ -44,6 +51,58 @@ constexpr int pressure_base_conversion_factor = 1000;
 constexpr float inHg_sea_level = 29.92;  // inches mercury at sea level
 constexpr float mb_sea_level = 1013.25;  // millibars at sea level
 constexpr std::string pressure_default_format = "{0:.2f}";
+
+class Pressure {
+
+  friend Millibar;
+  friend InchesMercury;
+
+ public:
+
+  Pressure();
+
+  explicit Pressure(const int64_t);
+
+  bool operator==(const Pressure& other) const;
+
+  bool operator!=(const Pressure& other) const;
+
+  bool operator<(const Pressure& other) const;
+
+  bool operator>(const Pressure& other) const;
+
+  bool operator<=(const Pressure& other) const;
+
+  bool operator>=(const Pressure& other) const;
+
+  std::strong_ordering operator<=> (const Pressure& other) const;
+
+  Pressure& operator=(const Pressure& other);
+
+  Pressure& operator+=(const Pressure& other);
+
+  Pressure& operator-=(const Pressure& other);
+
+  const Pressure operator+(const Pressure& other) const;
+
+  const Pressure operator-(const Pressure& other) const;
+
+  const Pressure operator/(const int& other) const;
+
+  const Pressure operator*(const int& other) const;
+
+  /*
+   * Supports implicit casting
+   * hence the need for the predeclaration
+   */
+  operator Millibar() const;
+
+  operator InchesMercury() const;
+
+ private:
+  int64_t base_value_;
+
+};
 
 }  // Namespace qw::units
 

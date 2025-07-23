@@ -435,9 +435,9 @@ int main(int argc, char* argv[]) {
         /*
          * The SHT4x is supposed to be more accurate so use it
          */
-        Fahrenheit tempf = x_sht4x_temp.value().fahrenheitValue();
+        Fahrenheit tempf = x_sht4x_temp.value().value();
         wu->setVarData("tempf", tempf.value());
-        Fahrenheit temp2f = x_lps22_temp.value().fahrenheitValue();
+        Fahrenheit temp2f = x_lps22_temp.value().value();
         wu->setVarData("temp2f", temp2f.value());
       }
 
@@ -451,9 +451,9 @@ int main(int argc, char* argv[]) {
        * If there are valid temperature and relative humidity then add a dewpoint
        */
       if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-        Celsius tempc = x_sht4x_temp.value().celsiusValue();
+        Celsius tempc = x_sht4x_temp.value().value();
         RelativeHumidity humidity =
-          x_sht4x_humidity.value().relativeHumidityValue();
+          x_sht4x_humidity.value().value();
         Celsius dewptc = dewPoint(tempc, humidity);
         Fahrenheit dewptf = dewptc;
         wu->setVarData("dewptf", dewptf.value());
@@ -464,7 +464,7 @@ int main(int argc, char* argv[]) {
        */
       if (x_lps22_pressure.has_value()) {
         InchesMercury pressure =
-          x_lps22_pressure.value().inchesMercuryValue();
+          x_lps22_pressure.value().value();
         wu->setVarData("baromin", pressure.value());
       }
 

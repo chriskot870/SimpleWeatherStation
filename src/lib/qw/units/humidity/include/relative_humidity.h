@@ -67,6 +67,9 @@ class RelativeHumidity {
 
   RelativeHumidity& operator-=(const RelativeHumidity& other);
 
+  /*
+   * I don't know if arithmetic operators make sense
+   */
   const RelativeHumidity operator+(const RelativeHumidity& other) const;
 
   const RelativeHumidity operator-(const RelativeHumidity& other) const;
@@ -83,8 +86,6 @@ class RelativeHumidity {
   int base_value_;
 
   std::string fmt_value_ = relative_humidity_default_format;
-
-  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw::units

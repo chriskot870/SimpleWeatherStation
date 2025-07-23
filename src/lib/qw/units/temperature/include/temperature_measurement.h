@@ -33,11 +33,6 @@
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_MEASUREMENT_H_
 
 #include <chrono>
-#include <variant>
-
-#include "qw/units/temperature/include/celsius.h"
-#include "qw/units/temperature/include/fahrenheit.h"
-#include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
 
 namespace qw::units {
@@ -46,31 +41,19 @@ class TemperatureMeasurement {
  public:
   TemperatureMeasurement();
 
-  TemperatureMeasurement(std::variant<Celsius, Fahrenheit, Kelvin> value,
-                         std::variant<Celsius, Fahrenheit, Kelvin> accuracy,
+  TemperatureMeasurement(Temperature value,
+                         Temperature accuracy,
                          std::chrono::time_point<std::chrono::system_clock> time);
 
-  std::variant<Celsius, Fahrenheit, Kelvin> value();
+  Temperature value();
 
-  std::variant<Celsius, Fahrenheit, Kelvin> accuracy();
+  Temperature accuracy();
 
   std::chrono::time_point<std::chrono::system_clock> time();
 
-  Celsius celsiusValue();
-
-  Fahrenheit fahrenheitValue();
-
-  Kelvin kelvinValue();
-
-  Celsius celsiusAccuracy();
-
-  Fahrenheit fahrenheitAccuracy();
-
-  Kelvin kelvinAccuracy();
-
  private:
-  std::variant<Celsius, Fahrenheit, Kelvin> value_;
-  std::variant<Celsius, Fahrenheit, Kelvin> accuracy_;
+  Temperature value_;
+  Temperature accuracy_;
   std::chrono::time_point<std::chrono::system_clock> time_;
 };
 

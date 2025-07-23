@@ -57,7 +57,11 @@ const std::string speed_default_format = "{0:.2f}";
 
 class Speed {
  public:
-  int64_t base_value_;
+
+  friend MilesPerHour;
+  friend KilometersPerHour;
+  friend MetersPerSecond;
+  friend Knots;
 
   Speed();
 
@@ -102,6 +106,9 @@ class Speed {
   operator MetersPerSecond() const;
 
   operator Knots() const;
+
+ private:
+  int64_t base_value_;
 
 };
 

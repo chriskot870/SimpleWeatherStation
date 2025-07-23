@@ -29,10 +29,19 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 
+#include <fmt/format.h>
+#include <math.h>
+#include <compare>
 #include <string>
 
 namespace qw::units {
 
+  /*
+   * Need to pre-declare these for
+   */
+  class Fahrenheit;
+  class Celsius;
+  class Kelvin;
 /*
  * Our temperature base is millicelsius so we want
  * to apply the temperature_base_conversion_factor
@@ -41,6 +50,62 @@ namespace qw::units {
 constexpr int temperature_base_conversion_factor = 1000;
 constexpr float temperature_celsius_kelvin_offset = 273.15;
 const std::string temperature_default_format = "{0:.2f}";
+
+class Temperature {
+
+  friend Fahrenheit;
+  friend Celsius;
+  friend Kelvin;
+
+ public:
+
+  Temperature();
+
+  explicit Temperature(const int64_t);
+
+  bool operator==(const Temperature& other) const;
+
+  bool operator!=(const Temperature& other) const;
+
+  bool operator<(const Temperature& other) const;
+
+  bool operator>(const Temperature& other) const;
+
+  bool operator<=(const Temperature& other) const;
+
+  bool operator>=(const Temperature& other) const;
+
+  std::strong_ordering operator<=> (const Temperature& other) const;
+
+  Temperature& operator=(const Temperature& other);
+
+  Temperature& operator+=(const Temperature& other);
+
+  Temperature& operator-=(const Temperature& other);
+
+  const Temperature operator+(const Temperature& other) const;
+
+  const Temperature operator-(const Temperature& other) const;
+
+  const Temperature operator/(const int& other) const;
+
+  const Temperature operator*(const int& other) const;
+
+  /*
+   * Supports implicit casting
+   * hence the need for the predeclaration
+   */
+  operator Fahrenheit() const;
+
+  operator Celsius() const;
+
+  operator Kelvin() const;
+
+ private:
+  int64_t base_value_;
+
+};
+
 
 }  // Namespace qw::units
 

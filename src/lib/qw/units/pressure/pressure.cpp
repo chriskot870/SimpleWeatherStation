@@ -26,9 +26,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/pressure/include/millibar.h"
+#include "qw/units/pressure/include/inches_mercury.h"
 
-using fmt::format;
 using std::string;
 using std::strong_ordering;
 
@@ -37,114 +38,67 @@ namespace qw::units {
 /*
  * Constructor routines
  */
-RelativeHumidity::RelativeHumidity() {}
+Pressure::Pressure() {}
 
-RelativeHumidity::RelativeHumidity(float rh) {
+Pressure::Pressure(int64_t base_value) : base_value_(base_value) {}
 
-  base_value_ = round(rh * rh_base_conversion_factor);
-
-  return;
-}
-
-RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
-
-  base_value_ = round(rh * rh_base_conversion_factor);
-
-  fmt_value_ = fmt_value;
-
-  return;
-}
-
-/*
- * Data manipulation routnes
- */
-float RelativeHumidity::value() {
-
-  float value = ((float)base_value_ / rh_base_conversion_factor);
-
-  return value;
-}
-
-/*
- * Use the default format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string RelativeHumidity::toString() {
-
-  string data = format(fmt::runtime(fmt_value_), value());
-
-  return data;
-}
-
-/*
- * Use the provided format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string RelativeHumidity::toString(string fmt_value) {
-
-  string data = format(fmt::runtime(fmt_value), value());
-
-  return data;
-}
-
-void RelativeHumidity::setFormat(string fmt_value) {
-
-  fmt_value_ = fmt_value;
-
-  return;
-}
-
-bool RelativeHumidity::operator==(const RelativeHumidity& other) const {
+bool Pressure::operator==(const Pressure& other) const {
 
   bool value = (base_value_ == other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator!=(const RelativeHumidity& other) const {
+bool Pressure::operator!=(const Pressure& other) const {
 
   bool value = (base_value_ != other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator<(const RelativeHumidity& other) const {
+bool Pressure::operator<(const Pressure& other) const {
 
   bool value = (base_value_ < other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator>(const RelativeHumidity& other) const {
+bool Pressure::operator>(const Pressure& other) const {
 
   bool value = (base_value_ > other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator<=(const RelativeHumidity& other) const {
+bool Pressure::operator<=(const Pressure& other) const {
 
   bool value = (base_value_ <= other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator>=(const RelativeHumidity& other) const {
+bool Pressure::operator>=(const Pressure& other) const {
 
   bool value = (base_value_ >= other.base_value_);
 
   return value;
 }
 
-strong_ordering RelativeHumidity::operator<=>
-    (const RelativeHumidity& other) const {
+strong_ordering Pressure::operator<=> (const Pressure& other) const {
 
+  /*
+   * The <=> returns a std::strong_ordering type.
+   * Either ::less, ::equal, or ::greater
+   */
   strong_ordering value = (base_value_ <=> other.base_value_);
 
   return value;
 }
 
-RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
+/*
+ * Assignment operators
+ */
+Pressure& Pressure::operator=(const Pressure& other) {
 
   /*
    * Guard against self assignement
@@ -154,7 +108,7 @@ RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
   }
 
   /*
-   * This is the one that is to the left of = sign so we eant
+   * This is the one that is to the left of = sign so we want
    * to copy the base_value_ in other to the one in this
    */
   base_value_ = other.base_value_;
@@ -162,14 +116,14 @@ RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
   return *this;
 }
 
-RelativeHumidity& RelativeHumidity::operator+=(const RelativeHumidity& other) {
+Pressure& Pressure::operator+=(const Pressure& other) {
 
   base_value_ += other.base_value_;
 
   return *this;
 }
 
-RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
+Pressure& Pressure::operator-=(const Pressure& other) {
 
   base_value_ -= other.base_value_;
 
@@ -178,26 +132,63 @@ RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
 
 /*
  * Arithmetic operations
- * it is unclear that these make sense. 
  */
-const RelativeHumidity RelativeHumidity::operator+(
-    const RelativeHumidity& other) const {
+const Pressure Pressure::operator+(const Pressure& other) const {
 
-  RelativeHumidity result = *this;
+  Pressure result = *this;
 
-  result += other;
-
-  return result;
-}
-
-const RelativeHumidity RelativeHumidity::operator-(
-    const RelativeHumidity& other) const {
-
-  RelativeHumidity result = *this;
-
-  result -= other;
+  result.base_value_ += other.base_value_;
 
   return result;
 }
 
-}  // namespace qw::units
+const Pressure Pressure::operator-(const Pressure& other) const {
+
+  Pressure result = *this;
+
+  result.base_value_ -= other.base_value_;
+
+  return result;
+}
+
+const Pressure Pressure::operator/(const int& other) const {
+
+  Pressure result = *this;
+
+  result.base_value_ /= other;
+
+  return result;
+}
+
+/*
+ * You can multiply by an integer but the integer has to
+ * be the second factor of the multiplication.
+ * Pressure * int but not int * Pressure
+ */
+const Pressure Pressure::operator*(const int& other) const {
+
+  Pressure result = *this;
+
+  result.base_value_ *= other;
+
+  return result;
+}
+
+/*
+ * Intrinsic casting to pressure units
+ */
+Pressure::operator Millibar() const {
+
+  Millibar mbar(base_value_);
+
+  return mbar;
+}
+
+Pressure::operator InchesMercury() const {
+
+  InchesMercury inches(base_value_);
+
+  return inches;
+}
+
+}  // namespace qw_units

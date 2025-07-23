@@ -60,6 +60,7 @@
  * This device provides temperature and pressure data so include the interfaces.
  * The device makes temperature and pressure measurements so add those includes.
  */
+#include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/pressure/include/inches_mercury.h"
@@ -67,7 +68,6 @@
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/pressure.h"
 #include "qw/units/pressure/include/pressure_measurement.h"
-#include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
 
 /*

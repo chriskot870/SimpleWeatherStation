@@ -1,4 +1,5 @@
 add_library(pressure_units STATIC
+  pressure.cpp
   inches_mercury.cpp
   millibar.cpp
   pressure_measurement.cpp

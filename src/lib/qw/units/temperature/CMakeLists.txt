@@ -1,4 +1,5 @@
 add_library(temperature_units STATIC
+  temperature.cpp
   celsius.cpp
   fahrenheit.cpp
   kelvin.cpp

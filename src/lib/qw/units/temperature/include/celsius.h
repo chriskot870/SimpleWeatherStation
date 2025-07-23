@@ -29,29 +29,11 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_CELSIUS_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_CELSIUS_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
-#include <string>
-#include <variant>
-
-#include "qw/units/temperature/include/fahrenheit.h"
-#include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
 
 namespace qw::units {
 
-/*
- * Need to predeclare the friend classes
- * I found that out the hard way
- */
-class Fahrenheit;
-class Kelvin;
-
-class Celsius {
-
-  friend Fahrenheit;
-  friend Kelvin;
+class Celsius : public Temperature {
 
  public:
   Celsius();
@@ -59,39 +41,6 @@ class Celsius {
   Celsius(float temp);
 
   Celsius(float temp, std::string fmt_value);
-
-  bool operator==(const Celsius& other) const;
-
-  bool operator!=(const Celsius& other) const;
-
-  bool operator<(const Celsius& other) const;
-
-  bool operator>(const Celsius& other) const;
-
-  bool operator<=(const Celsius& other) const;
-
-  bool operator>=(const Celsius& other) const;
-
-  std::strong_ordering operator<=> (const Celsius& other) const;
-
-  Celsius& operator=(const Celsius& other);
-
-  Celsius& operator+=(const Celsius& other);
-
-  Celsius& operator-=(const Celsius& other);
-
-  const Celsius operator+(const Celsius& other) const;
-
-  const Celsius operator-(const Celsius& other) const;
-
-  /*
-   * These constructors are for casting
-   */
-  operator Fahrenheit() const;
-
-  operator Kelvin() const;
-
-  //Celsius& operator=(const Celsius& other);
 
   float value();
 
@@ -102,7 +51,6 @@ class Celsius {
   void setFormat(std::string fmt_value);
 
  private:
-  int64_t base_value_;
 
   std::string fmt_value_ = temperature_default_format;
 
@@ -113,10 +61,6 @@ class Celsius {
 
   float BaseToCelsius(int base);
 
-  /*
-   * USed for conversion for implicit casting
-   */
-  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw::units

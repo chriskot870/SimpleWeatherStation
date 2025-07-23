@@ -39,21 +39,9 @@ namespace qw::units {
  */
 Millibar::Millibar() {}
 
-Millibar::Millibar(float mb) {
+Millibar::Millibar(float mb) : Pressure(MillibarToBase(mb)) {}
 
-  base_value_ = MillibarToBase(mb);
-
-  return;
-}
-
-Millibar::Millibar(float mb, string fmt_value) {
-
-  base_value_ = MillibarToBase(mb);
-
-  fmt_value_ = fmt_value;
-
-  return;
-}
+Millibar::Millibar(float mb, string fmt_value) : Pressure(MillibarToBase(mb)), fmt_value_(fmt_value) {}
 
 /*
  * Data manpulation routines
@@ -104,140 +92,6 @@ void Millibar::setFormat(string fmt_value) {
   fmt_value_ = fmt_value;
 
   return;
-}
-
-void Millibar::setBaseValue(int base_value) {
-  base_value_ = base_value;
-
-  return;
-}
-
-/*********************
- * Operator routines
- *********************/
-/*
- * Comparison operators
- */
-
-bool Millibar::operator==(const Millibar& other) const {
-
-  bool value = (base_value_ == other.base_value_);
-
-  return value;
-}
-
-bool Millibar::operator!=(const Millibar& other) const {
-
-  bool value = (base_value_ != other.base_value_);
-
-  return value;
-}
-
-bool Millibar::operator<(const Millibar& other) const {
-
-  bool value = (base_value_ < other.base_value_);
-
-  return value;
-}
-
-bool Millibar::operator>(const Millibar& other) const {
-
-  bool value = (base_value_ > other.base_value_);
-
-  return value;
-}
-
-bool Millibar::operator<=(const Millibar& other) const {
-
-  bool value = (base_value_ <= other.base_value_);
-
-  return value;
-}
-
-bool Millibar::operator>=(const Millibar& other) const {
-
-  bool value = (base_value_ >= other.base_value_);
-
-  return value;
-}
-
-strong_ordering Millibar::operator<=> (const Millibar& other) const {
-
-  /*
-   * The <=> returns a std::strong_ordering type.
-   * Either ::less, ::equal, or ::greater
-   */
-  strong_ordering value = (base_value_ <=> other.base_value_);
-
-  return value;
-}
-
-/*
- * Assignment operators
- */
-Millibar& Millibar::operator=(const Millibar& other) {
-
-  /*
-   * Guard against self assignement
-   */
-  if (this == &other) {
-    return *this;
-  }
-
-  /*
-   * This is the one that is to the left of = sign so we eant
-   * to copy the base_value_ in other to the one in this
-   */
-  base_value_ = other.base_value_;
-
-  return *this;
-}
-
-Millibar& Millibar::operator+=(const Millibar& other) {
-
-  base_value_ += other.base_value_;
-
-  return *this;
-}
-
-Millibar& Millibar::operator-=(const Millibar& other) {
-
-  base_value_ -= other.base_value_;
-
-  return *this;
-}
-
-/*
- * Arithmetic operations
- */
-const Millibar Millibar::operator+(const Millibar& other) const {
-
-  Millibar result = *this;
-
-  result += other;
-
-  return result;
-}
-
-const Millibar Millibar::operator-(const Millibar& other) const {
-
-  Millibar result = *this;
-
-  result -= other;
-
-  return result;
-}
-
-/*
- * Conversion routines for implicit casting
- */
-Millibar::operator InchesMercury() const {
-
-  InchesMercury inhg;
-
-  inhg.base_value_ = base_value_;
-
-  return inhg;
 }
 
 }  // namespace qw::units

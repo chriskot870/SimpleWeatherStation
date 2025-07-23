@@ -31,6 +31,7 @@
  */
 #include "qw/devices/i2c/include/lps22.h"
 
+using qw::units::Temperature;
 using qw::units::Celsius;
 using qw::units::Fahrenheit;
 using qw::units::InchesMercury;

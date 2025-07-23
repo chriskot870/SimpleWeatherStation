@@ -26,9 +26,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/temperature/include/temperature.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/kelvin.h"
 
-using fmt::format;
 using std::string;
 using std::strong_ordering;
 
@@ -37,114 +39,67 @@ namespace qw::units {
 /*
  * Constructor routines
  */
-RelativeHumidity::RelativeHumidity() {}
+Temperature::Temperature() {}
 
-RelativeHumidity::RelativeHumidity(float rh) {
+Temperature::Temperature(int64_t base_value) : base_value_(base_value) {}
 
-  base_value_ = round(rh * rh_base_conversion_factor);
-
-  return;
-}
-
-RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
-
-  base_value_ = round(rh * rh_base_conversion_factor);
-
-  fmt_value_ = fmt_value;
-
-  return;
-}
-
-/*
- * Data manipulation routnes
- */
-float RelativeHumidity::value() {
-
-  float value = ((float)base_value_ / rh_base_conversion_factor);
-
-  return value;
-}
-
-/*
- * Use the default format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string RelativeHumidity::toString() {
-
-  string data = format(fmt::runtime(fmt_value_), value());
-
-  return data;
-}
-
-/*
- * Use the provided format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
-string RelativeHumidity::toString(string fmt_value) {
-
-  string data = format(fmt::runtime(fmt_value), value());
-
-  return data;
-}
-
-void RelativeHumidity::setFormat(string fmt_value) {
-
-  fmt_value_ = fmt_value;
-
-  return;
-}
-
-bool RelativeHumidity::operator==(const RelativeHumidity& other) const {
+bool Temperature::operator==(const Temperature& other) const {
 
   bool value = (base_value_ == other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator!=(const RelativeHumidity& other) const {
+bool Temperature::operator!=(const Temperature& other) const {
 
   bool value = (base_value_ != other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator<(const RelativeHumidity& other) const {
+bool Temperature::operator<(const Temperature& other) const {
 
   bool value = (base_value_ < other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator>(const RelativeHumidity& other) const {
+bool Temperature::operator>(const Temperature& other) const {
 
   bool value = (base_value_ > other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator<=(const RelativeHumidity& other) const {
+bool Temperature::operator<=(const Temperature& other) const {
 
   bool value = (base_value_ <= other.base_value_);
 
   return value;
 }
 
-bool RelativeHumidity::operator>=(const RelativeHumidity& other) const {
+bool Temperature::operator>=(const Temperature& other) const {
 
   bool value = (base_value_ >= other.base_value_);
 
   return value;
 }
 
-strong_ordering RelativeHumidity::operator<=>
-    (const RelativeHumidity& other) const {
+strong_ordering Temperature::operator<=> (const Temperature& other) const {
 
+  /*
+   * The <=> returns a std::strong_ordering type.
+   * Either ::less, ::equal, or ::greater
+   */
   strong_ordering value = (base_value_ <=> other.base_value_);
 
   return value;
 }
 
-RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
+/*
+ * Assignment operators
+ */
+Temperature& Temperature::operator=(const Temperature& other) {
 
   /*
    * Guard against self assignement
@@ -154,7 +109,7 @@ RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
   }
 
   /*
-   * This is the one that is to the left of = sign so we eant
+   * This is the one that is to the left of = sign so we want
    * to copy the base_value_ in other to the one in this
    */
   base_value_ = other.base_value_;
@@ -162,14 +117,14 @@ RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
   return *this;
 }
 
-RelativeHumidity& RelativeHumidity::operator+=(const RelativeHumidity& other) {
+Temperature& Temperature::operator+=(const Temperature& other) {
 
   base_value_ += other.base_value_;
 
   return *this;
 }
 
-RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
+Temperature& Temperature::operator-=(const Temperature& other) {
 
   base_value_ -= other.base_value_;
 
@@ -178,26 +133,70 @@ RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
 
 /*
  * Arithmetic operations
- * it is unclear that these make sense. 
  */
-const RelativeHumidity RelativeHumidity::operator+(
-    const RelativeHumidity& other) const {
+const Temperature Temperature::operator+(const Temperature& other) const {
 
-  RelativeHumidity result = *this;
+  Temperature result = *this;
 
-  result += other;
-
-  return result;
-}
-
-const RelativeHumidity RelativeHumidity::operator-(
-    const RelativeHumidity& other) const {
-
-  RelativeHumidity result = *this;
-
-  result -= other;
+  result.base_value_ += other.base_value_;
 
   return result;
 }
 
-}  // namespace qw::units
+const Temperature Temperature::operator-(const Temperature& other) const {
+
+  Temperature result = *this;
+
+  result.base_value_ -= other.base_value_;
+
+  return result;
+}
+
+const Temperature Temperature::operator/(const int& other) const {
+
+  Temperature result = *this;
+
+  result.base_value_ /= other;
+
+  return result;
+}
+
+/*
+ * You can multiply by an integer but the integer has to
+ * be the second factor of the multiplication.
+ * Speeed * int but not int * Temperature
+ */
+const Temperature Temperature::operator*(const int& other) const {
+
+  Temperature result = *this;
+
+  result.base_value_ *= other;
+
+  return result;
+}
+
+/*
+ * Intrinsic casting to speed units
+ */
+Temperature::operator Fahrenheit() const {
+
+  Fahrenheit f(base_value_);
+
+  return f;
+}
+
+Temperature::operator Celsius() const {
+
+  Celsius c(base_value_);
+
+  return c;
+}
+
+Temperature::operator Kelvin() const {
+
+  Kelvin k(base_value_);
+
+  return k;
+}
+
+}  // namespace qw_units

@@ -29,28 +29,11 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_KELVIN_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_KELVIN_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
-#include <string>
-#include <variant>
-
-#include "qw/units/temperature/include/celsius.h"
-#include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/temperature.h"
 
 namespace qw::units {
 
-/*
- * Need to predeclare the friend classes
- * I found this out the hard way
- */
-class Celsius;
-class Fahrenheit;
-
-class Kelvin {
-  friend Celsius;
-  friend Fahrenheit;
+class Kelvin : public Temperature {
 
  public:
   Kelvin();
@@ -67,44 +50,14 @@ class Kelvin {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const Kelvin& other) const;
-
-  bool operator!=(const Kelvin& other) const;
-
-  bool operator<(const Kelvin& other) const;
-
-  bool operator>(const Kelvin& other) const;
-
-  bool operator<=(const Kelvin& other) const;
-
-  bool operator>=(const Kelvin& other) const;
-
-  std::strong_ordering operator<=> (const Kelvin& other) const;
-
-  Kelvin& operator=(const Kelvin& other);
-
-  Kelvin& operator+=(const Kelvin& other);
-
-  Kelvin& operator-=(const Kelvin& other);
-
-  const Kelvin operator+(const Kelvin& other) const;
-
-  const Kelvin operator-(const Kelvin& other) const;
-
-  operator Celsius() const;
-
-  operator Fahrenheit() const;
-
+  
  private:
-  int64_t base_value_;
-
   std::string fmt_value_ = temperature_default_format;
 
   int KelvinToBase(float temp);
 
   float BaseToKelvin(int base);
 
-  void setBaseValue(int base_value);
 };
 
 }  // Namespace qw::units
