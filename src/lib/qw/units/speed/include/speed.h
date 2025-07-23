@@ -63,10 +63,6 @@ class Speed {
 
   explicit Speed(const int64_t);
 
-  void setBaseValue(int64_t base_value);
-
-  int64_t getBaseValue();
-
   bool operator==(const Speed& other) const;
 
   bool operator!=(const Speed& other) const;
@@ -90,6 +86,10 @@ class Speed {
   const Speed operator+(const Speed& other) const;
 
   const Speed operator-(const Speed& other) const;
+
+  const Speed operator/(const int& other) const;
+
+  const Speed operator*(const int& other) const;
 
   /*
    * Supports implicit casting

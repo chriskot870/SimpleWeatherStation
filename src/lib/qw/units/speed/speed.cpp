@@ -153,6 +153,29 @@ const Speed Speed::operator-(const Speed& other) const {
   return result;
 }
 
+const Speed Speed::operator/(const int& other) const {
+
+  Speed result = *this;
+
+  result.base_value_ /= other;
+
+  return result;
+}
+
+/*
+ * You can multiply by an integer but the integer has to
+ * be the second factor of the multiplication.
+ * Speeed * int but not int * Speed
+ */
+const Speed Speed::operator*(const int& other) const {
+
+  Speed result = *this;
+
+  result.base_value_ *= other;
+
+  return result;
+}
+
 /*
  * Intrinsic casting to speed units
  */
