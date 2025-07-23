@@ -40,6 +40,8 @@
 namespace qw::weather {
 
 constexpr std::chrono::seconds kMaxListTimeSpan(60 * 10);  // 10 minutes of samples
+constexpr std::chrono::seconds kInterval10m(60 * 10);  //
+constexpr std::chrono::seconds kInterval2m(60 * 2);
 
 class WindspeedHistory {
  public:

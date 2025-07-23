@@ -132,8 +132,8 @@ void WindspeedHistory::add(SpeedMeasurement speed) {
 }
 
 expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
-  size_t count = 0;
-  int64_t base_total = 0;
+  uint count = 0;
+  Speed total(0);
 
   prune();
 
@@ -162,14 +162,13 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
        * this to work.
        */
       Speed speed = (*it).value();
-      base_total += speed.getBaseValue();
+      total += speed;
     } else {
         break;
     }
   }
 
-  int64_t ave_base = base_total / count;
-  Speed ave_mph(ave_base);
+  Speed ave_mph = total / count;
 
   return ave_mph;
 }

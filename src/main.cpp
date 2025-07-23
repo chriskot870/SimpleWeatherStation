@@ -58,6 +58,7 @@
 #include "qw/units/speed/include/speed_measurement.h"
 
 #include "qw/weather/include/dewpoint.h"
+#include "qw/weather/include/windspeed_history.h"
 
 using fmt::format;
 using qw::devices::I2cBus;
@@ -92,6 +93,9 @@ using qw::systemd::systemd_quietwind_service_path;
 using qw::systemd::systemd_unit_interface;
 using qw::systemd::systemd_service_interface;
 using qw::weather::dewPoint;
+using qw::weather::WindspeedHistory;
+using qw::weather::kInterval10m;
+using qw::weather::kInterval2m;
 using std::cout;
 using std::max;
 using std::min;
@@ -120,6 +124,7 @@ int main(int argc, char* argv[]) {
   int c;
   bool in_systemd = false;
   Ads1015Config value;
+  WindspeedHistory ws_history;
 
   /*
     * If we have started from systemd then we always use
@@ -467,8 +472,27 @@ int main(int argc, char* argv[]) {
        * Weather Underground wants speed in mph
        */
       if (x_anomometer.has_value()) {
+        ws_history.add(x_anomometer.value());
         MilesPerHour wind_mph = x_anomometer.value().value();
         wu->setVarData("windspeedmph", wind_mph.value());
+      }
+      if (ws_history.countOverPeriod(kInterval10m) > 0) {
+        expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval10m);
+        if (gust.has_value() == true) {
+          MilesPerHour mph = gust.value().value();
+          wu->setVarData("windgustmph_10m", mph.value());
+        }
+      }
+      if (ws_history.countOverPeriod(kInterval2m) > 0) {
+        expected<MilesPerHour, int> ave = ws_history.average(kInterval2m);
+        if (ave.has_value() == true) {
+          wu->setVarData("windspdmph_avg2m", ave.value().value());
+        }
+        expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval2m);
+        if (gust.has_value() == true) {
+          MilesPerHour mph = gust.value().value();
+          wu->setVarData("windgustmph", mph.value());
+        }
       }
 
       /*
