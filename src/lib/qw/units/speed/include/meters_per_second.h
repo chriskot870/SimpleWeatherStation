@@ -33,7 +33,7 @@
 
 namespace qw::units {
 
-class MetersPerSecond : Speed {
+class MetersPerSecond : public  Speed {
 
  public:
 

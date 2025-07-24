@@ -41,22 +41,36 @@
 #define SRC_LIB_DEVICES_QW_ANOMOMETER_ADAFRUIT_H_
 
 #include "qw/devices/i2c/include/ads1015.h"
-#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/meters_per_second.h"
 #include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/speed_measurement.h"
 
 namespace qw::devices {
 
-constexpr float kAnonometerAdafruitBaseVolts = .4;
-constexpr float kAnomometerAdafruitConnectedVolts = .3;
-constexpr float kAnonometerAdafruitCalibrateVoltage = 2.0;
-constexpr float kAnomometerAdafruitCalibrateMph = 72;
-constexpr float kAnomometerAdafruitMphPerCount =
-    kAnomometerAdafruitCalibrateMph /
+ /*
+  * The information on the Adafruit anomometer is written in a language
+  * I don't know. I assume Chinese. But the digits are in arabic numerals.
+  * One section has
+  * DC 7-24VDC  - I assume this is the power input range
+  * Another section has
+  * +/- (0.3 + 0. 03) m/s  - I assume this is an accuracy of +/-.33 meters/second
+  * Another section has
+  * 0.4-2V  - I assume this is the output voltage range
+  * Another section has
+  * 0-32.4 m/s  - I assume this is the speed range that correspondes to the output voltage range
+  */
+
+constexpr float kAnonometerAdafruitMinVolts = .4;  // Minimum voltage, corresponds to 0 m/s
+constexpr float kAnomometerAdafruitConnectedVolts = .3;  // If below this assume not plugged in
+constexpr float kAnonometerAdafruitMaxVoltage = 2.0; // The maximum output voltage, corresponds to 32.4 m/s
+constexpr float kAnomometerAdafruitMaxMps = 32.4;  // Maximun m/s corresponds to 2.0 volts
+constexpr float kAnomometerAdafruitAccuracy = .33;  // Accuracy .33 m/s from label on device
+constexpr float kAnomometerAdafruitMpsPerCount =
+    kAnomometerAdafruitMaxMps /
     (qw::devices::kAds1015CountPerVolts *
-     (kAnonometerAdafruitCalibrateVoltage - kAnonometerAdafruitBaseVolts));
-constexpr float kAnomometerAdafruitBaseValue =
-    (qw::devices::kAds1015CountPerVolts * kAnonometerAdafruitBaseVolts);
+     (kAnonometerAdafruitMaxVoltage - kAnonometerAdafruitMinVolts));
+constexpr float kAnomometerAdafruitMinValue =
+    (qw::devices::kAds1015CountPerVolts * kAnonometerAdafruitMinVolts);
 constexpr float kAnomometerAdafruitNotConnected =
     (qw::devices::kAds1015CountPerVolts * kAnomometerAdafruitConnectedVolts);
 

@@ -31,7 +31,7 @@
 using qw::devices::Ads1015MuxType;
 using qw::devices::I2cAds1015;
 using qw::devices::kAds1015CountPerVolts;
-using qw::units::MilesPerHour;
+using qw::units::MetersPerSecond;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementTimeStamp;
 using std::expected;
@@ -54,7 +54,7 @@ expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
      * Convert the reading to a speed
      */
 
-  float mph = 0.0;
+  float mps = 0.0;
   float count = reading.value();
 
   /*
@@ -66,16 +66,16 @@ expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
     return unexpected(ENODEV);
   }
 
-  if (count > kAnomometerAdafruitBaseValue) {
-    mph =
-        (count - kAnomometerAdafruitBaseValue) * kAnomometerAdafruitMphPerCount;
+  if (count > kAnomometerAdafruitMinValue) {
+    mps =
+        (count - kAnomometerAdafruitMinValue) * kAnomometerAdafruitMpsPerCount;
   }
 
-  MilesPerHour mph_speed(mph);
-  MilesPerHour accuracy(float(.5));  // Assume accuracy is .5 mph
+  MetersPerSecond mps_speed(mps);
+  MetersPerSecond accuracy(kAnomometerAdafruitAccuracy); 
   SpeedMeasurementTimeStamp current_time = system_clock::now();
 
-  SpeedMeasurement measured_speed(mph_speed, accuracy, current_time);
+  SpeedMeasurement measured_speed(mps_speed, accuracy, current_time);
 
   return measured_speed;
 }

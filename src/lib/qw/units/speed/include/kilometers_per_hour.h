@@ -33,7 +33,7 @@
 
 namespace qw::units {
 
-class KilometersPerHour : Speed {
+class KilometersPerHour : public Speed {
 
   public:
   KilometersPerHour();

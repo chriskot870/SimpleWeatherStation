@@ -33,7 +33,7 @@
 
 namespace qw::units {
 
-class Knots : Speed {
+class Knots : public Speed {
 
  public:
   Knots();
