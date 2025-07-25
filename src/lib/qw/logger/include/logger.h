@@ -38,7 +38,7 @@
 
 using std::string;
 
-namespace qw::logger {
+namespace qw::logging {
 
 enum LoggerMode {
   LOGGER_MODE_NOLOGGING,
@@ -70,6 +70,8 @@ class Logger {
   std::filesystem::path log_path_ = "";
 };
 
-}  // namespace qw::logger
+extern Logger logger;
+
+}  // namespace qw::logging
 
 #endif  // SRC_LIB_QW_LOGGER_LOGGER_H_

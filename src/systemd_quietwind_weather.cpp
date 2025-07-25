@@ -37,7 +37,8 @@ using fmt::format;
 using std::expected;
 using std::unexpected;
 using std::variant;
-using qw::logger::Logger;
+using qw::logging::Logger;
+using qw::logging::logger;
 using qw::systemd::SdBus;
 using qw::systemd::SdBusService;
 using qw::systemd::SdBusObject;
@@ -47,7 +48,6 @@ using qw::systemd::SdBusProperty;
 using qw::systemd::SdBusError;
 using qw::systemd::SD_BUS_TYPE_SYSTEM;
 
-extern Logger logger;
 /*
  * Set the System Bus, Service and Object we are interested in.
  * We only want to talk to systemd about the quietwind.weather.service

@@ -81,10 +81,10 @@ using qw::units::MilesPerHour;
 using qw::units::KilometersPerHour;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementTimeStamp;
-using qw::logger::Logger;
-using qw::logger::LOGGER_MODE_JOURNAL;
-using qw::logger::LOGGER_MODE_FILE;
-using qw::logger::LOGGER_MODE_NOLOGGING;
+using qw::logging::Logger;
+using qw::logging::LOGGER_MODE_JOURNAL;
+using qw::logging::LOGGER_MODE_FILE;
+using qw::logging::LOGGER_MODE_NOLOGGING;
 using qw::systemd::SdBusError;
 using qw::systemd::SdUnit;
 using qw::systemd::SdServiceUnit;
@@ -96,6 +96,7 @@ using qw::weather::dewPoint;
 using qw::weather::WindspeedHistory;
 using qw::weather::kInterval10m;
 using qw::weather::kInterval2m;
+using qw::logging::logger;
 using std::cout;
 using std::max;
 using std::min;
@@ -108,8 +109,6 @@ using std::string;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::chrono::utc_clock;
-
-Logger logger;
 
 int main(int argc, char* argv[]) {
   string temperature;
@@ -249,6 +248,8 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
+
+
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
   error = lps22.init();
@@ -355,6 +356,10 @@ int main(int argc, char* argv[]) {
   logger.log(LOG_INFO, "Starting");
 
   /*
+   * Set the data_gather_interval
+   */
+  int data_gathering_interval = json_config["Configuration"]["data_gathering_interval"].asInt();
+  /*
    * Get the Weather Underground configuration
    */
   WeatherUndergroundConfig wu_config(json_config["WeatherUndegroundFile"].asString());
@@ -371,7 +376,7 @@ int main(int argc, char* argv[]) {
   }
   
   if (wu_json_config.isMember("pwu_name") == false || wu_json_config.isMember("pwu_password") == false) {
-    logger.log(LOG_INFO, "Improperly formatted Weather Underground config file");
+    logger.log(LOG_INFO, "Improperly formatted Weather Underground config file no authentication info");
 
   }
   string pwu_name = wu_json_config["pwu_name"].asString();
@@ -384,6 +389,12 @@ int main(int argc, char* argv[]) {
       min(max(wu_report_interval_min, wu_json_config["report_interval"].asInt()),
           wu_report_interval_max);
   }
+  /*
+   * Initializing last reporting time to 2 reporting loops prior to now so a report is
+   * sent on first pass.
+   */
+  auto reporting_interval = std::chrono::milliseconds(reporting_loop_interval);
+  auto last_report_time = system_clock::now() - (reporting_interval * 2);
   /*
    * Setup inotify to get notified when config file changes during poll
    */
@@ -410,110 +421,121 @@ int main(int argc, char* argv[]) {
       logger.log(LOG_INFO, format("{:%F %T}", now_time));
 
       /*
-       * Gather up all the raw data
+       * We need wind information on each data gathering pass
        */
-      auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
-
-      auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
-
-      auto x_lps22_temp = lps22.getTemperatureMeasurement();
-
-      auto x_lps22_pressure = lps22.getPressureMeasurement();
-
       auto x_anomometer = anomometer.getMeasurement();
 
       /*
-       * Put the raw data into the wu data
-       */
-      wu->setVarData("action", "updateraw");
-      //time_point<utc_clock> utc_time = utc_clock::now();
-      wu->setVarData("dateutc", "now");
-      /*
-       * Weather Underground wants fahrenheit
-       */
-      if (x_sht4x_temp.has_value()) {
-        /*
-         * The SHT4x is supposed to be more accurate so use it
-         */
-        Fahrenheit tempf = x_sht4x_temp.value().value();
-        wu->setVarData("tempf", tempf.value());
-        Fahrenheit temp2f = x_lps22_temp.value().value();
-        wu->setVarData("temp2f", temp2f.value());
-      }
-
-      if (x_sht4x_humidity.has_value()) {
-        RelativeHumidity humidity =
-          x_sht4x_humidity.value().relativeHumidityValue();
-        wu->setVarData("humidity", humidity.value());
-      }
-
-      /*
-       * If there are valid temperature and relative humidity then add a dewpoint
-       */
-      if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-        Celsius tempc = x_sht4x_temp.value().value();
-        RelativeHumidity humidity =
-          x_sht4x_humidity.value().value();
-        Celsius dewptc = dewPoint(tempc, humidity);
-        Fahrenheit dewptf = dewptc;
-        wu->setVarData("dewptf", dewptf.value());
-      }
-
-      /*
-       * Weather Underground wants inches mercury
-       */
-      if (x_lps22_pressure.has_value()) {
-        InchesMercury pressure =
-          x_lps22_pressure.value().value();
-        wu->setVarData("baromin", pressure.value());
-      }
-
-      /*
-       * Weather Underground wants speed in mph
+       * If we successfully got a anomometer measurement add it to the history
        */
       if (x_anomometer.has_value()) {
         ws_history.add(x_anomometer.value());
-        MilesPerHour wind_mph = x_anomometer.value().value();
-        wu->setVarData("windspeedmph", wind_mph.value());
       }
-      if (ws_history.countOverPeriod(kInterval10m) > 0) {
-        expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval10m);
-        if (gust.has_value() == true) {
-          MilesPerHour mph = gust.value().value();
-          wu->setVarData("windgustmph_10m", mph.value());
+
+      if ((now_time - last_report_time) >= std::chrono::milliseconds(reporting_loop_interval)) {
+
+        /*
+         * We only need this information when we are going to make a report so get it now.
+         */
+ 
+        auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
+
+        auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
+
+        auto x_lps22_temp = lps22.getTemperatureMeasurement();
+
+        auto x_lps22_pressure = lps22.getPressureMeasurement();
+        /*
+         * Put the raw data into the wu data
+         */
+        wu->setVarData("action", "updateraw");
+        //time_point<utc_clock> utc_time = utc_clock::now();
+        wu->setVarData("dateutc", "now");
+        /*
+         * Weather Underground wants fahrenheit
+         */
+        if (x_sht4x_temp.has_value()) {
+          /*
+           * The SHT4x is supposed to be more accurate so use it
+           */
+          Fahrenheit tempf = x_sht4x_temp.value().value();
+          wu->setVarData("tempf", tempf.value());
+          Fahrenheit temp2f = x_lps22_temp.value().value();
+          wu->setVarData("temp2f", temp2f.value());
         }
-      }
-      if (ws_history.countOverPeriod(kInterval2m) > 0) {
-        expected<MilesPerHour, int> ave = ws_history.average(kInterval2m);
-        if (ave.has_value() == true) {
-          wu->setVarData("windspdmph_avg2m", ave.value().value());
+
+        if (x_sht4x_humidity.has_value()) {
+          RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
+          wu->setVarData("humidity", humidity.value());
         }
-        expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval2m);
-        if (gust.has_value() == true) {
-          MilesPerHour mph = gust.value().value();
-          wu->setVarData("windgustmph", mph.value());
+
+        /*
+         * If there are valid temperature and relative humidity then add a dewpoint
+         */
+        if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
+          Celsius tempc = x_sht4x_temp.value().value();
+          RelativeHumidity humidity =
+            x_sht4x_humidity.value().value();
+          Celsius dewptc = dewPoint(tempc, humidity);
+          Fahrenheit dewptf = dewptc;
+          wu->setVarData("dewptf", dewptf.value());
         }
+
+        /*
+         * Weather Underground wants inches mercury
+         */
+        if (x_lps22_pressure.has_value()) {
+          InchesMercury pressure =
+            x_lps22_pressure.value().value();
+          wu->setVarData("baromin", pressure.value());
+        }
+
+        /*
+         * Weather Underground wants speed in mph
+         */
+        if (x_anomometer.has_value()) {
+          MilesPerHour wind_mph = x_anomometer.value().value();
+          wu->setVarData("windspeedmph", wind_mph.value());
+        }
+        if (ws_history.countOverPeriod(kInterval2m) > 0) {
+          expected<MilesPerHour, int> ave = ws_history.average(kInterval2m);
+          if (ave.has_value() == true) {
+            wu->setVarData("windspdmph_avg2m", ave.value().value());
+          }
+          expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval2m);
+          if (gust.has_value() == true) {
+            MilesPerHour mph = gust.value().value();
+            wu->setVarData("windgustmph", mph.value());
+          }
+        }
+        if (ws_history.countOverPeriod(kInterval10m) > 0) {
+          expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval10m);
+          if (gust.has_value() == true) {
+            MilesPerHour mph = gust.value().value();
+            wu->setVarData("windgustmph_10m", mph.value());
+          }
+        }
+
+        /*
+         * debug to check out the string
+         */
+        string http_request = wu->buildHttpRequest();
+        logger.log(LOG_INFO, http_request);
+        /* ### DEBUG
+        auto errval = wu->sendData();
+        if (errval.has_value() == false) {
+          logger.log(LOG_ERR, "COMM Error");
+        }
+
+        string response = wu->getHttpResponse();
+
+        logger.log(LOG_INFO, response);
+        */
+        wu->reset();
       }
-
-      /*
-       * debug to check out the string
-       */
-      string http_request = wu->buildHttpRequest();
-      logger.log(LOG_INFO, http_request);
-
-      auto errval = wu->sendData();
-      if (errval.has_value() == false) {
-        logger.log(LOG_ERR, "COMM Error");
-      }
-
-      string response = wu->getHttpResponse();
-
-      logger.log(LOG_INFO, response);
     }
 
-    wu->reset();
-
-    int poll_cnt = poll(fds, 1, reporting_loop_interval);
+    int poll_cnt = poll(fds, 1, data_gathering_interval);
     /*
      * If poll_cnt is zero it means the configuration file was
      * not updated and we can just cycle through and gather

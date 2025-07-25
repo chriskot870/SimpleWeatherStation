@@ -32,6 +32,8 @@
 #include <cmath>
 #include <deque>
 #include <expected>
+#include <fmt/format.h>
+#include <fmt/chrono.h>
 
 #include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/miles_per_hour.h"

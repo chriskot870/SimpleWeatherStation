@@ -28,16 +28,19 @@
 
 #include <expected>
 #include <algorithm>
-#include "qw//weather/include/windspeed_history.h"
+#include "qw/logger/include/logger.h"
+#include "qw/weather/include/windspeed_history.h"
 
 using std::expected;
 using std::unexpected;
 using std::sort;
+using fmt::format;
 using qw::units::Speed;
 using qw::units::MilesPerHour;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementClock;
 using qw::units::SpeedMeasurementTimeStamp;
+using qw::logging::logger;
 
 namespace qw::weather {
 
@@ -89,7 +92,6 @@ size_t WindspeedHistory::countOverPeriod(std::chrono::seconds time_span) {
       count++;
     }
   }
-
   return count;
 }
 
@@ -116,10 +118,13 @@ void WindspeedHistory::add(SpeedMeasurement speed) {
    * we want to sort by time whenever a new measurement is added.
    * This way we can be sure of the order of the measurements by time.
    * We use a lambda function to make the comparison.
+   * We go in reverse order so the older (smaller) times get moved to the front.
+   * THis way when we read from the back we get the newest times. As a time moves
+   * to the front it gets removed by prune.
    */
-  sort(history_.begin(), history_.end(), [](SpeedMeasurement a, SpeedMeasurement b) {
+  sort(history_.rbegin(), history_.rend(), [](SpeedMeasurement a, SpeedMeasurement b) {
     /*
-     * We want the older times near the front.
+     * We want the older times near the front when going in reverse order.
      * So, if a.time() > b.time() return true.
      */
     if (a.time() > b.time()) {
@@ -149,6 +154,7 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
    */
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
   for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
+
     /*
      * If it is within the time stamp add the value
      */
@@ -166,6 +172,11 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
     } else {
         break;
     }
+  }
+
+  if (count == 0) {
+    logger.log(LOG_ERR, fmt::format("WindspeedHistory Average: Divide by zero"));
+    return unexpected(ENOTSUP);
   }
 
   Speed ave_mph = total / count;

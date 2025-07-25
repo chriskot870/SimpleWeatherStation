@@ -30,7 +30,9 @@
 
 using std::string;
 
-namespace qw::logger {
+namespace qw::logging {
+
+  Logger logger;
 
 Logger::Logger() {}
 
@@ -135,4 +137,4 @@ Logger::~Logger() {
   return;
 }
 
-}  // namespace qw::logger
+}  // namespace qw::logging
