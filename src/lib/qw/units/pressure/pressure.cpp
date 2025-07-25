@@ -179,14 +179,16 @@ const Pressure Pressure::operator*(const int& other) const {
  */
 Pressure::operator Millibar() const {
 
-  Millibar mbar(base_value_);
+  Millibar mbar;
+  mbar.setBase(base_value_);
 
   return mbar;
 }
 
 Pressure::operator InchesMercury() const {
 
-  InchesMercury inches(base_value_);
+  InchesMercury inches;
+  inches.setBase(base_value_);
 
   return inches;
 }

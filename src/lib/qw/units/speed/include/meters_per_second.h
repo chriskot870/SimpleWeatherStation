@@ -35,6 +35,8 @@ namespace qw::units {
 
 class MetersPerSecond : public  Speed {
 
+  friend Speed;
+
  public:
 
   MetersPerSecond();
@@ -42,8 +44,6 @@ class MetersPerSecond : public  Speed {
   MetersPerSecond(float temp);
 
   MetersPerSecond(float temp, std::string fmt_value);
-
-  MetersPerSecond(int64_t base_level);
 
   float value();
 
@@ -61,7 +61,7 @@ class MetersPerSecond : public  Speed {
 
   float BaseToMetersPerSecond(int base);
 
-  void setBaseValue(int base_value);
+  void setBase(int64_t base_value);
 };
 
 }  //qw::units Namespace

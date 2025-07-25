@@ -70,6 +70,13 @@ float InchesMercury::BaseToInchesMercury(int base) {
   return inhg;
 }
 
+void InchesMercury::setBase(int64_t base_value) {
+
+  base_value_ = base_value;
+
+  return;
+}
+
 /*
  * Use the default format
  * Use "fmt" so it doesn't get confused with fmt::format

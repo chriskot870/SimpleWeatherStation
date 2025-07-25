@@ -42,8 +42,6 @@ MilesPerHour::MilesPerHour(float mph) : Speed(MilesPerHourToBase(mph)) {}
 MilesPerHour::MilesPerHour(float mph, string fmt_value)
     : Speed(MilesPerHourToBase(mph)), fmt_value_(fmt_value) {}
 
-MilesPerHour::MilesPerHour(int64_t base_value) : Speed(base_value) {}
-
 /*
  * Data manipulation routines
  */
@@ -67,6 +65,13 @@ float MilesPerHour::BaseToMilesPerHour(int64_t base) {
   float mph = ((float)base / speed_base_conversion_factor);
 
   return mph;
+}
+
+void MilesPerHour::setBase(int64_t base_value) {
+
+  base_value_ = base_value;
+
+  return;
 }
 
 /*

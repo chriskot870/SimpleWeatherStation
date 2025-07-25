@@ -42,8 +42,6 @@ Knots::Knots(float knt) : Speed(KnotsToBase(knt)) {}
 Knots::Knots(float knt, string fmt_value)
     : Speed(KnotsToBase(knt)), fmt_value_(fmt_value) {}
 
-Knots::Knots(int64_t base_value) : Speed(base_value) {}
-
 /*
  * Data manipulation routines
  */
@@ -72,6 +70,13 @@ float Knots::BaseToKnots(int base) {
   float knots = ((float)base / speed_base_conversion_factor) * kKnotPerMph;
 
   return knots;
+}
+
+void Knots::setBase(int64_t base_value) {
+
+  base_value_ = base_value;
+
+  return;
 }
 
 /*

@@ -181,28 +181,32 @@ const Speed Speed::operator*(const int& other) const {
  */
 Speed::operator MilesPerHour() const {
 
-  MilesPerHour mph(base_value_);
+  MilesPerHour mph;
+  mph.setBase(base_value_);
 
   return mph;
 }
 
 Speed::operator KilometersPerHour() const {
 
-  KilometersPerHour kph(base_value_);
+  KilometersPerHour kph;
+  kph.setBase(base_value_);
 
   return kph;
 }
 
 Speed::operator MetersPerSecond() const {
 
-  MetersPerSecond mps(base_value_);
+  MetersPerSecond mps;
+  mps.setBase(base_value_);
 
   return mps;
 }
 
 Speed::operator Knots() const {
 
-  Knots knots(base_value_);
+  Knots knots;
+  knots.setBase(base_value_);
 
   return knots;
 }

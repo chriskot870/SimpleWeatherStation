@@ -45,7 +45,12 @@ const map<string, WuFieldProperties> wu_field_regex_list = {
     {"^temp[2-9]?f$|^temp[1-9][0-9]f$",
      WuFieldProperties(WU_FIELD_TYPE_NUMBER,
                        "{0:.2f}")},  // This supports tempf, temp2-99f
-    {"^dewptf$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")}};
+    {"^dewptf$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.2f}")},
+    {"^windspeedmph$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
+    {"^windgustmph$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
+    {"^windspdmph_avg2m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
+    {"^windgustmph_10m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")}
+  };
 
 map<string, FieldType> wu_fields = {
     {"ID", TEXT},
@@ -308,7 +313,6 @@ expected<WuFieldProperties, int> WeatherUnderground::getFieldProperties(
   for (auto [rgx, properties] : wu_field_regex_list) {
     if (std::regex_match(field, regex(rgx)) == true) {
       return properties;
-      break;
     }
   }
 

@@ -44,9 +44,6 @@ KilometersPerHour::KilometersPerHour(float kph)
 KilometersPerHour::KilometersPerHour(float kph, string fmt_value)
     : Speed(KilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
 
-KilometersPerHour::KilometersPerHour(int64_t base_value)
-    : Speed(base_value) {}
-
 /*
  * Data manipulation routines
  */
@@ -75,6 +72,13 @@ float KilometersPerHour::BaseToKilometersPerHour(int base) {
   float mph = ((float)base / speed_base_conversion_factor) * kKilometersPerMile;
 
   return mph;
+}
+
+void KilometersPerHour::setBase(int64_t base_value) {
+
+  base_value_ = base_value;
+
+  return;
 }
 
 /*

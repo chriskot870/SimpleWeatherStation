@@ -36,6 +36,8 @@ namespace qw::units {
 
 class InchesMercury : public Pressure {
 
+  friend Pressure;
+
  public:
   InchesMercury();
 
@@ -88,6 +90,8 @@ class InchesMercury : public Pressure {
   int InchesMercuryToBase(float temp);
 
   float BaseToInchesMercury(int base);
+
+  void setBase(int64_t base_value);
 
 };
 

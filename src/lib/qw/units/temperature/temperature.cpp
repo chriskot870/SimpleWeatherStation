@@ -180,21 +180,24 @@ const Temperature Temperature::operator*(const int& other) const {
  */
 Temperature::operator Fahrenheit() const {
 
-  Fahrenheit f(base_value_);
+  Fahrenheit f;
+  f.setBase(base_value_);
 
   return f;
 }
 
 Temperature::operator Celsius() const {
 
-  Celsius c(base_value_);
+  Celsius c;
+  c.setBase(base_value_);
 
   return c;
 }
 
 Temperature::operator Kelvin() const {
 
-  Kelvin k(base_value_);
+  Kelvin k;
+  k.setBase(base_value_);
 
   return k;
 }

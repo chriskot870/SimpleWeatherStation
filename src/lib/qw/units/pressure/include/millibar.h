@@ -32,13 +32,10 @@
 #include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
-/*
- * Need to predeclare these classes
- * I found that out the hard way
- */
-class InchesMercury;
 
 class Millibar : public Pressure {
+
+  friend Pressure;
 
  public:
   Millibar();
@@ -61,6 +58,8 @@ class Millibar : public Pressure {
   int MillibarToBase(float mb);
 
   float BaseToMillibar(int base);
+
+  void setBase(int64_t base_value);
 
 };
 

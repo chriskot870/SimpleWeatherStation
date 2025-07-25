@@ -35,14 +35,14 @@ namespace qw::units {
 
 class Knots : public Speed {
 
+  friend Speed;
+
  public:
   Knots();
 
   Knots(float temp);
 
   Knots(float temp, std::string fmt_value);
-
-  Knots(int64_t base_level);
 
   float value();
 
@@ -59,6 +59,8 @@ class Knots : public Speed {
   int64_t KnotsToBase(float temp);
 
   float BaseToKnots(int base);
+
+  void setBase(int64_t base_value);
 
 };
 

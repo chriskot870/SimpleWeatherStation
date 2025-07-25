@@ -35,14 +35,14 @@ namespace qw::units {
 
 class KilometersPerHour : public Speed {
 
-  public:
+  friend Speed;
+
+ public:
   KilometersPerHour();
 
   KilometersPerHour(float kph);
 
   KilometersPerHour(float kph, std::string fmt_value);
-
-  KilometersPerHour(int64_t base_level);
 
   float value();
 
@@ -58,6 +58,8 @@ class KilometersPerHour : public Speed {
   int64_t KilometersPerHourToBase(float kph);
 
   float BaseToKilometersPerHour(int base);
+
+  void setBase(int64_t base_value);
 };
 
 }  // qw::units Namespace

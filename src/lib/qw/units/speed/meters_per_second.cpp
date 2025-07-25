@@ -43,9 +43,6 @@ MetersPerSecond::MetersPerSecond(float mps)
 MetersPerSecond::MetersPerSecond(float mps, string fmt_value)
     : Speed(MetersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
 
-MetersPerSecond::MetersPerSecond(int64_t base_value)
-    : Speed(base_value) {}
-
 /*
  * Data manipulation routines
  */
@@ -75,6 +72,13 @@ float MetersPerSecond::BaseToMetersPerSecond(int base) {
   float mps = ((float)base / speed_base_conversion_factor) * kMpsPerMph;
 
   return mps;
+}
+
+void MetersPerSecond::setBase(int64_t base_value) {
+
+  base_value_ = base_value;
+
+  return;
 }
 
 /*

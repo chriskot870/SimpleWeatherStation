@@ -34,6 +34,7 @@
 namespace qw::units {
 
 class Celsius : public Temperature {
+  friend Temperature;
 
  public:
   Celsius();
@@ -60,6 +61,8 @@ class Celsius : public Temperature {
   int CelsiusToBase(float temp);
 
   float BaseToCelsius(int base);
+
+  void setBase(int64_t base_value);
 
 };
 

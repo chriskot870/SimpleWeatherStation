@@ -45,6 +45,7 @@ AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux)
 
 expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
 
+
   expected<int16_t, int> reading = adc_.getReading(mux_);
   if (reading.has_value() == false) {
     return unexpected(EIO);
