@@ -85,6 +85,9 @@ using qw::logging::Logger;
 using qw::logging::LOGGER_MODE_JOURNAL;
 using qw::logging::LOGGER_MODE_FILE;
 using qw::logging::LOGGER_MODE_NOLOGGING;
+using qw::logging::LOGGER_ERR;
+using qw::logging::LOGGER_INFO;
+using qw::logging::LOGGER_DEBUG;
 using qw::systemd::SdBusError;
 using qw::systemd::SdUnit;
 using qw::systemd::SdServiceUnit;
@@ -122,6 +125,7 @@ int main(int argc, char* argv[]) {
   int error;
   int c;
   bool in_systemd = false;
+  bool reporting_enabled = false;  // We are debugging so don't send the data to weather underground
   Ads1015Config value;
   WindspeedHistory ws_history;
 
@@ -138,13 +142,13 @@ int main(int argc, char* argv[]) {
 
   service_state = sd_qw_unit.getSubState();
   if (service_state.has_value() != true) {
-    logger.log(LOG_ERR, "Can't get substate of quietwind weather service");
+    logger.log(LOGGER_ERR, "Can't get substate of quietwind weather service");
     exit(1);
   }
 
   service_pid = sd_qw_service_unit.getMainPID();
   if (service_pid.has_value() != true) {
-    logger.log(LOG_ERR, "Can't get main pid of quietwind weather service");
+    logger.log(LOGGER_INFO, "Can't get main pid of quietwind weather service");
     exit(1);
   }
 
@@ -154,7 +158,7 @@ int main(int argc, char* argv[]) {
   
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
-    logger.log(LOG_INFO, "Logging in Journal Mode");
+    logger.log(LOGGER_INFO, "Logging in Journal Mode");
   }
   /*
    * Determine the logging mode from parameters
@@ -200,7 +204,7 @@ int main(int argc, char* argv[]) {
               }
             }
             logger.setMode(LOGGER_MODE_FILE, fpath);
-            logger.log(LOG_INFO, format("Logging to file: {}", fpath.c_str()));
+            logger.log(LOGGER_INFO, format("Logging to file: {}", fpath.c_str()));
             break;
           }
         } else {
@@ -209,13 +213,13 @@ int main(int argc, char* argv[]) {
            */
           if (value == args_log_mode_file) {
             logger.setMode(LOGGER_MODE_FILE);
-            logger.log(LOG_INFO, "Logging in File Mode to cout");
+            logger.log(LOGGER_INFO, "Logging in File Mode to cout");
             break;
           }
         }
         if (value == "none") {
           logger.setMode(LOGGER_MODE_NOLOGGING);
-          logger.log(LOG_INFO, "No Logging");
+          logger.log(LOGGER_INFO, "No Logging");
           break;
         }
     }
@@ -233,13 +237,13 @@ int main(int argc, char* argv[]) {
                             json_config["Software"]["Version"]["Minor"].asString() + "." +
                             json_config["Software"]["Version"]["Patchlevel"].asString();
 
-  logger.log(LOG_INFO, format("Software version {}", software_version));
-  logger.log(LOG_INFO, "Checking Hardware");
-  logger.log(LOG_INFO, format("Model: {}",json_config["Hardware"]["Model"].asString()));
+  logger.log(LOGGER_INFO, format("Software version {}", software_version));
+  logger.log(LOGGER_INFO, "Checking Hardware");
+  logger.log(LOGGER_INFO, format("Model: {}",json_config["Hardware"]["Model"].asString()));
 
   I2cBus i2c_bus = I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
   if (i2c_bus.status() !=  qw::devices::I2CBUS_STATUS_OK) {
-    logger.log(LOG_ERR, "Initialization of I2C bus failed");
+    logger.log(LOGGER_ERR, "Initialization of I2C bus failed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -254,7 +258,7 @@ int main(int argc, char* argv[]) {
 
   error = lps22.init();
   if (error != 0) {
-    logger.log(LOG_ERR, "Initialization of lps22hb Failed");
+    logger.log(LOGGER_ERR, "Initialization of lps22hb Failed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -265,7 +269,7 @@ int main(int argc, char* argv[]) {
 
   x_whoami = lps22.whoami();
   if (x_whoami.has_value() != true) {
-    logger.log(LOG_ERR, "Couldn't get Who am I value for lps22hb");
+    logger.log(LOGGER_ERR, "Couldn't get Who am I value for lps22hb");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -273,7 +277,7 @@ int main(int argc, char* argv[]) {
     }
     exit(1);
   }
-  logger.log(LOG_INFO,
+  logger.log(LOGGER_INFO,
              format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
 
   /*
@@ -283,7 +287,7 @@ int main(int argc, char* argv[]) {
 
   error = sht4x.softReset();
   if (error != 0) {
-    logger.log(LOG_ERR, "CHT4X reset failed");
+    logger.log(LOGGER_ERR, "CHT4X reset failed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -293,7 +297,7 @@ int main(int argc, char* argv[]) {
   }
   x_serial_number = sht4x.getSerialNumber();
   if (x_serial_number.has_value() == false) {
-    logger.log(LOG_ERR, "Getting SHT44 Serial Number failed");
+    logger.log(LOGGER_ERR, "Getting SHT44 Serial Number failed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -301,7 +305,7 @@ int main(int argc, char* argv[]) {
     }
     exit(1);
   }
-  logger.log(LOG_ERR,
+  logger.log(LOGGER_INFO,
              format("SHT44 Serial Number: {}", x_serial_number.value()));
 
   /*
@@ -313,7 +317,7 @@ int main(int argc, char* argv[]) {
    */
   expected<Ads1015Config, int> ads_result = ads1015.inspectConfigRegister();
   if (ads_result.has_value() == false) {
-    logger.log(LOG_ERR, "Getting ADS1015 Configuration Register");
+    logger.log(LOGGER_ERR, "Getting ADS1015 Configuration Register");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -321,9 +325,9 @@ int main(int argc, char* argv[]) {
     }
     exit(1);
   }
-  logger.log(LOG_INFO, "Ads 1015 Successfully read configuration register");
+  logger.log(LOGGER_INFO, "Ads 1015 Successfully read configuration register");
   value = ads_result.value();
-  logger.log(LOG_INFO, format("\tOs: {}\n\tMux: {}\n\tPga: {}\n\tMode: {}\n\tDr: {}\n\tCompMode: {}\n\tCompPol: {}\n\tCompLatch: {}\n\tCompQueue: {}\n",
+  logger.log(LOGGER_INFO, format("\tOs: {}\n\tMux: {}\n\tPga: {}\n\tMode: {}\n\tDr: {}\n\tCompMode: {}\n\tCompPol: {}\n\tCompLatch: {}\n\tCompQueue: {}\n",
                       static_cast<uint8_t>(value.fields.os),
                       static_cast<uint8_t>(value.fields.mux),
                       static_cast<uint8_t>(value.fields.pga),
@@ -341,7 +345,7 @@ int main(int argc, char* argv[]) {
   AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
   expected<SpeedMeasurement, int> wind_speed_measurement = anomometer.getMeasurement();
   if (wind_speed_measurement.has_value() == false) {
-    logger.log(LOG_ERR, "Unable to read anomometer speed");
+    logger.log(LOGGER_ERR, "Unable to read anomometer speed");
     if (in_systemd == true) {
       sleep(10); // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
@@ -353,7 +357,7 @@ int main(int argc, char* argv[]) {
   /*
    * Starting to gather data
    */
-  logger.log(LOG_INFO, "Starting");
+  logger.log(LOGGER_INFO, "Starting");
 
   /*
    * Set the data_gather_interval
@@ -364,19 +368,19 @@ int main(int argc, char* argv[]) {
    */
   WeatherUndergroundConfig wu_config(json_config["WeatherUndegroundFile"].asString());
   if (wu_config.exists() == false) {
-    logger.log(LOG_INFO, "Can't get Weather Underground configuration info");
+    logger.log(LOGGER_INFO, "Can't get Weather Underground configuration info");
     exit(1);
   }
   
   Json::Value wu_json_config;
   if (wu_config.getRoot(wu_json_config) == false) {
-    logger.log(LOG_INFO,
+    logger.log(LOGGER_INFO,
       format("Unable to parse Weather Underground config file: {}", json_config["WeatherUndegroundFile"].asString()));
       exit(1);
   }
   
   if (wu_json_config.isMember("pwu_name") == false || wu_json_config.isMember("pwu_password") == false) {
-    logger.log(LOG_INFO, "Improperly formatted Weather Underground config file no authentication info");
+    logger.log(LOGGER_INFO, "Improperly formatted Weather Underground config file no authentication info");
 
   }
   string pwu_name = wu_json_config["pwu_name"].asString();
@@ -411,14 +415,14 @@ int main(int argc, char* argv[]) {
        * If there is no Weather Underground username and password
        * then don't gather any data.
        */
-      logger.log(LOG_INFO, "Invalid Weather Underground Authentication");
+      logger.log(LOGGER_INFO, "Invalid Weather Underground Authentication");
     } else {
       /*
        * Gather the data. 
        * get the current time.
        */
       auto now_time = system_clock::now();
-      logger.log(LOG_INFO, format("{:%F %T}", now_time));
+      logger.log(LOGGER_INFO, format("{:%F %T}", now_time));
 
       /*
        * We need wind information on each data gathering pass
@@ -520,17 +524,21 @@ int main(int argc, char* argv[]) {
          * debug to check out the string
          */
         string http_request = wu->buildHttpRequest();
-        logger.log(LOG_INFO, http_request);
-        /* ### DEBUG
-        auto errval = wu->sendData();
-        if (errval.has_value() == false) {
-          logger.log(LOG_ERR, "COMM Error");
+        logger.log(LOGGER_INFO, http_request);
+        /*
+         * When we are deugging we may not want to actually send the
+         * data. So, only send is reporting enabled is on
+         */
+        if (reporting_enabled == true) {
+          auto errval = wu->sendData();
+          if (errval.has_value() == false) {
+            logger.log(LOGGER_ERR, format("Send Data Failed: {}", errval.error()));
+          }
+
+          string response = wu->getHttpResponse();
+
+          logger.log(LOGGER_INFO, response);
         }
-
-        string response = wu->getHttpResponse();
-
-        logger.log(LOG_INFO, response);
-        */
         wu->reset();
       }
     }
@@ -551,7 +559,7 @@ int main(int argc, char* argv[]) {
       if ((wu_config.getRoot(wu_json_config) == false) ||
           (wu_json_config.isMember("pwu_name") == false) ||
           (wu_json_config.isMember("pwu_password") == false)) {
-        logger.log(LOG_INFO, "Unable to parse Weather Underground config file");
+        logger.log(LOGGER_INFO, "Unable to parse Weather Underground config file");
       } else {
         pwu_name = wu_json_config["pwu_name"].asString();
         pwu_password = wu_json_config["pwu_password"].asString();

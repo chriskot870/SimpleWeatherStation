@@ -38,6 +38,9 @@ Logger::Logger() {}
 
 void Logger::log(int priority, string message) {
 
+  if ( priority > max_priority_reporting_) {
+    return;
+  }
   switch (mode_) {
     case LOGGER_MODE_NOLOGGING:
       break;
@@ -121,6 +124,18 @@ void Logger::setMode(LoggerMode mode, std::filesystem::path log_path) {
 LoggerMode Logger::getMode() {
 
   return mode_;
+}
+
+void Logger::setMaxPriorityReporting(LoggerPriority priority) {
+
+  max_priority_reporting_ = priority;
+
+  return;
+}
+
+LoggerPriority Logger::getMaxPriorityReporting() {
+
+  return max_priority_reporting_;
 }
 
 Logger::~Logger() {
