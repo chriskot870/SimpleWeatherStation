@@ -41,8 +41,7 @@
 #define SRC_LIB_DEVICES_QW_ANOMOMETER_ADAFRUIT_H_
 
 #include "qw/devices/i2c/include/ads1015.h"
-#include "qw/units/speed/include/meters_per_second.h"
-#include "qw/units/speed/include/speed.h"
+
 #include "qw/units/speed/include/speed_measurement.h"
 
 namespace qw::devices {

@@ -26,6 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "qw/devices/i2c/include/i2cbus.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -37,9 +39,8 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+#include <mutex>
 #include <string>
-
-#include "qw/devices/i2c/include/i2cbus.h"
 
 using std::lock_guard;
 using std::mutex;

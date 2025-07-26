@@ -31,12 +31,23 @@
  */
 #include "qw/devices/i2c/include/sht4x.h"
 
+#include <errno.h>
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <expected>
+#include <map>
+#include <memory>
+#include <vector>
+
+#include "qw/units/humidity/include/relative_humidity.h"  // This device measures in RH
+#include "qw/units/humidity/include/relative_humidity_measurement.h"
+#include "qw/units/temperature/include/celsius.h"  // This device measures in Celsius
+#include "qw/units/temperature/include/temperature_measurement.h"
+
 using qw::units::Celsius;
-using qw::units::Fahrenheit;
-using qw::units::Kelvin;
 using qw::units::RelativeHumidity;
 using qw::units::RelativeHumidityMeasurement;
-using qw::units::Temperature;
 using qw::units::TemperatureMeasurement;
 using std::atomic_bool;
 using std::expected;

@@ -28,6 +28,15 @@
 
 #include "qw/logger/include/logger.h"
 
+#include <filesystem>
+#include <iostream>
+#include <string>
+
+using std::cout;
+using std::endl;
+using std::filesystem::path;
+using std::ios;
+using std::ofstream;
 using std::string;
 
 namespace qw::logging {
@@ -45,8 +54,8 @@ void Logger::log(int priority, string message) {
     case LOGGER_MODE_NOLOGGING:
       break;
     case LOGGER_MODE_FILE:
-      std::cout << message << std::endl;
-      std::cout.flush();
+      cout << message << endl;
+      cout.flush();
       break;
     case LOGGER_MODE_JOURNAL:
       sd_journal_print(priority, message.c_str());
@@ -64,11 +73,11 @@ void Logger::setMode(LoggerMode mode) {
     if (log_path_ == "")
       ;
     if ((log_path_ != "") && (log_stream_.is_open() == true)) {
-      if (std::cout.rdbuf() == log_stream_.rdbuf()) {
+      if (cout.rdbuf() == log_stream_.rdbuf()) {
         /*
-         * Set the std::cout.rdbuf() back to std::cout's buffer
+         * Set the cout.rdbuf() back to cout's buffer
          */
-        std::cout.rdbuf(cout_buffer_);
+        cout.rdbuf(cout_buffer_);
       }
       log_stream_.close();
     }
@@ -78,7 +87,7 @@ void Logger::setMode(LoggerMode mode) {
   return;
 }
 
-void Logger::setMode(LoggerMode mode, std::filesystem::path log_path) {
+void Logger::setMode(LoggerMode mode, path log_path) {
 
   mode_ = mode;
 
@@ -94,11 +103,11 @@ void Logger::setMode(LoggerMode mode, std::filesystem::path log_path) {
   /*
    * Check if the current cout.rdbuf() is set to log_stream_
    */
-  if (std::cout.rdbuf() == log_stream_.rdbuf()) {
+  if (cout.rdbuf() == log_stream_.rdbuf()) {
     /*
-     * Set the std::cout.rdbuf() back to std::cout's buffer
+     * Set the cout.rdbuf() back to cout's buffer
      */
-    std::cout.rdbuf(cout_buffer_);
+    cout.rdbuf(cout_buffer_);
   }
 
   /*
@@ -111,12 +120,12 @@ void Logger::setMode(LoggerMode mode, std::filesystem::path log_path) {
   /*
    * Assign log_stream_ to the new file
    */
-  log_stream_ = std::ofstream(log_path.string(), std::ios::out | std::ios::app);
+  log_stream_ = ofstream(log_path.string(), ios::out | ios::app);
   /*
    * Assign the cout.rdbuf() to the new file's rdbuf()
    */
-  cout_buffer_ = std::cout.rdbuf();
-  std::cout.rdbuf(log_stream_.rdbuf());
+  cout_buffer_ = cout.rdbuf();
+  cout.rdbuf(log_stream_.rdbuf());
 
   return;
 }
@@ -141,11 +150,11 @@ LoggerPriority Logger::getMaxPriorityReporting() {
 Logger::~Logger() {
 
   /*
-   * If the log_strem_.rdbuf() is the same as std::cout.rdbuf()
-   * Put the old cout_buffer_ back to std::cout.
+   * If the log_strem_.rdbuf() is the same as cout.rdbuf()
+   * Put the old cout_buffer_ back to cout.
    */
-  if (log_stream_.rdbuf() == std::cout.rdbuf()) {
-    std::cout.rdbuf(cout_buffer_);
+  if (log_stream_.rdbuf() == cout.rdbuf()) {
+    cout.rdbuf(cout_buffer_);
     cout_buffer_ = nullptr;
   }
 

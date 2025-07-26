@@ -31,6 +31,15 @@
  */
 #include "qw/devices/i2c/include/ads1015.h"
 
+#include <errno.h>
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <expected>
+#include <map>
+#include <memory>
+#include <vector>
+
 using std::atomic_bool;
 using std::expected;
 using std::find;

@@ -29,15 +29,11 @@
 #ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SYSTEMD_H_
 #define SRC_LIB_QW_SYSTEMD_INCLUDE_SYSTEMD_H_
 
-#include <fmt/format.h>
 #include <systemd/sd-bus.h>
-#include <algorithm>
 #include <array>
 #include <expected>
-#include <map>
 #include <string>
 #include <variant>
-#include <vector>
 
 namespace qw::systemd {
 

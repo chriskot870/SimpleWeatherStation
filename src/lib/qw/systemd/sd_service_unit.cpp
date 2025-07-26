@@ -28,6 +28,11 @@
 
 #include "qw/systemd/include/sd_service_unit.h"
 
+#include <fmt/format.h>
+#include <expected>
+#include <string>
+#include <variant>
+
 using fmt::format;
 using std::expected;
 using std::string;

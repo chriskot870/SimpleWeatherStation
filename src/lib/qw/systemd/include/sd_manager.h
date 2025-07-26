@@ -31,6 +31,9 @@
 
 #include "qw/systemd/include/systemd.h"
 
+#include <expected>
+#include <string>
+
 namespace qw::systemd {
 
 class SdManager {

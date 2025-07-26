@@ -26,8 +26,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <fmt/format.h>
 #include <expected>
 #include <variant>
+#include <string>
 
 #include "include/weather_station_config.h"
 #include "qw/logger/include/logger.h"

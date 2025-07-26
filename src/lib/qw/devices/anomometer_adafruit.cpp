@@ -28,6 +28,13 @@
 
 #include "qw/devices/include/anomometer_adafruit.h"
 
+#include <chrono>
+#include <expected>
+
+#include "qw/devices/i2c/include/ads1015.h"
+#include "qw/units/speed/include/meters_per_second.h"
+#include "qw/units/speed/include/speed_measurement.h"
+
 using qw::devices::Ads1015MuxType;
 using qw::devices::I2cAds1015;
 using qw::devices::kAds1015CountPerVolts;
@@ -50,7 +57,7 @@ expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
     return unexpected(EIO);
   }
 
-  /*
+  /*pee
      * Convert the reading to a speed
      */
 

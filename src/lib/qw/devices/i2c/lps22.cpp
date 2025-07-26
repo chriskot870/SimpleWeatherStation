@@ -31,13 +31,23 @@
  */
 #include "qw/devices/i2c/include/lps22.h"
 
+#include <errno.h>
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <expected>
+#include <map>
+#include <memory>
+#include <vector>
+
+#include "qw/units/pressure/include/millibar.h"  // This device measures in millibars
+#include "qw/units/pressure/include/pressure_measurement.h"
+#include "qw/units/temperature/include/celsius.h"  // This device measures in Celsius
+#include "qw/units/temperature/include/temperature_measurement.h"
+
 using qw::units::Celsius;
-using qw::units::Fahrenheit;
-using qw::units::InchesMercury;
-using qw::units::Kelvin;
 using qw::units::Millibar;
 using qw::units::PressureMeasurement;
-using qw::units::Temperature;
 using qw::units::TemperatureMeasurement;
 using std::expected;
 using std::find;
