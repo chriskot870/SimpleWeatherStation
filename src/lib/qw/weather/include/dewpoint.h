@@ -29,8 +29,6 @@
 #ifndef SRC_LIB_QW_WEATHER_INCLUDE_DEWPOINT_H_
 #define SRC_LIB_QW_WEATHER_INCLUDE_DEWPOINT_H_
 
-#include <cmath>
-
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/temperature/include/celsius.h"
 

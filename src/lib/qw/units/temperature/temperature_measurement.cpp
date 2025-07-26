@@ -28,6 +28,9 @@
 
 #include "qw/units/temperature/include/temperature_measurement.h"
 
+#include <chrono>
+#include <string>
+
 using std::string;
 using std::chrono::system_clock;
 using std::chrono::time_point;

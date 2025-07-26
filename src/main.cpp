@@ -30,8 +30,15 @@
  * The main program to show the data.
  * Right now it's pretty simple
  */
-
 #include "include/weather_station.h"
+
+#include <expected>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+
 #include "include/weather_station_config.h"
 #include "include/weather_underground_config.h"
 #include "qw/locking/include/locking_file.h"
@@ -39,24 +46,15 @@
 #include "qw/systemd/include/sd_service_unit.h"
 #include "qw/systemd/include/sd_unit.h"
 #include "qw/systemd/include/systemd.h"
-
 #include "qw/devices/i2c/include/ads1015.h"
 #include "qw/devices/i2c/include/lps22.h"
 #include "qw/devices/i2c/include/sht4x.h"
 #include "qw/devices/include/anomometer_adafruit.h"
-
-#include "fmt/chrono.h"
-#include "fmt/format.h"
 #include "include/weather_underground.h"
-
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/pressure/include/inches_mercury.h"
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/speed/include/speed_measurement.h"
-#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/speed/include/miles_per_hour.h"
 #include "qw/units/temperature/include/fahrenheit.h"
-#include "qw/units/temperature/include/kelvin.h"
-
 #include "qw/weather/include/dewpoint.h"
 #include "qw/weather/include/windspeed_history.h"
 

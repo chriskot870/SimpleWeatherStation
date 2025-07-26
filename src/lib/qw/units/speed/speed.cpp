@@ -26,6 +26,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <string>
+#include <compare>
+
 #include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/kilometers_per_hour.h"
 #include "qw/units/speed/include/knots.h"

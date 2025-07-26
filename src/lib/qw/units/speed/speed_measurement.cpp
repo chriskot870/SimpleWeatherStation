@@ -28,6 +28,8 @@
 
 #include "qw/units/speed/include/speed_measurement.h"
 
+#include <chrono>
+
 using std::chrono::system_clock;
 using std::chrono::time_point;
 

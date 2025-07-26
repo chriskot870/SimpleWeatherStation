@@ -29,6 +29,8 @@
 #ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_KNOTS_H_
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_KNOTS_H_
 
+#include <string>
+
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {

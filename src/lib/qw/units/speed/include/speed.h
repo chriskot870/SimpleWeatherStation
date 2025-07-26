@@ -29,8 +29,6 @@
 #ifndef SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
 #define SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
 
-#include <fmt/format.h>
-#include <math.h>
 #include <compare>
 #include <string>
 

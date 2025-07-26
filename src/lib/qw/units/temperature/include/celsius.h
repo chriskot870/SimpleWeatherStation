@@ -29,6 +29,8 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_CELSIUS_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_CELSIUS_H_
 
+#include <string>
+
 #include "qw/units/temperature/include/temperature.h"
 
 namespace qw::units {

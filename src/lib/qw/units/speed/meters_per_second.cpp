@@ -27,6 +27,10 @@
  */
 #include "qw/units/speed/include/meters_per_second.h"
 
+#include <string>
+#include <compare>
+#include <fmt/format.h>
+
 using std::string;
 using std::strong_ordering;
 

@@ -29,6 +29,8 @@
 #ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_
 
+#include <string>
+
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {

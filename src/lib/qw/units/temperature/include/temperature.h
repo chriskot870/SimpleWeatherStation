@@ -29,10 +29,8 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
 #include <string>
+#include <compare>
 
 namespace qw::units {
 

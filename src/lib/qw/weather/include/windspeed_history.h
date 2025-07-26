@@ -31,12 +31,9 @@
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
-#include <cmath>
 #include <deque>
 #include <expected>
 
-#include "qw/units/speed/include/miles_per_hour.h"
-#include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/speed_measurement.h"
 
 namespace qw::weather {

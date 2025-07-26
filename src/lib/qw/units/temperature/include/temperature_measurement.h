@@ -33,6 +33,7 @@
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_MEASUREMENT_H_
 
 #include <chrono>
+
 #include "qw/units/temperature/include/temperature.h"
 
 namespace qw::units {

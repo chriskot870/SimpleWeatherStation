@@ -27,6 +27,10 @@
  */
 #include "qw/units/speed/include/kilometers_per_hour.h"
 
+#include <string>
+#include <compare>
+#include <fmt/format.h>
+
 using fmt::format;
 using std::string;
 using std::strong_ordering;

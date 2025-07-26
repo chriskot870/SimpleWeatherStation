@@ -33,6 +33,7 @@
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_MEASUREMENT_H_
 
 #include <chrono>
+
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {

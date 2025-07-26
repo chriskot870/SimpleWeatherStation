@@ -27,8 +27,11 @@
  */
 
 #include "qw/weather/include/windspeed_history.h"
+
 #include <algorithm>
 #include <expected>
+#include <fmt/format.h>
+
 #include "qw/logger/include/logger.h"
 
 using fmt::format;

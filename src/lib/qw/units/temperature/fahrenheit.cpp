@@ -28,6 +28,11 @@
 
 #include "qw/units/temperature/include/fahrenheit.h"
 
+#include <fmt/format.h>
+#include <math.h>
+#include <compare>
+#include <string>
+
 using std::string;
 using std::strong_ordering;
 

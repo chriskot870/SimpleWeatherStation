@@ -27,6 +27,10 @@
  */
 
 #include "qw/units/temperature/include/temperature.h"
+
+#include <string>
+#include <compare>
+
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/kelvin.h"
