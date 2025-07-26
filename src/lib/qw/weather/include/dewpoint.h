@@ -31,8 +31,8 @@
 
 #include <cmath>
 
-#include "qw/units/temperature/include/celsius.h"
 #include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/temperature/include/celsius.h"
 
 namespace qw::weather {
 

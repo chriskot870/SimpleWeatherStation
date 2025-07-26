@@ -45,7 +45,6 @@ AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux)
 
 expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
 
-
   expected<int16_t, int> reading = adc_.getReading(mux_);
   if (reading.has_value() == false) {
     return unexpected(EIO);
@@ -73,7 +72,7 @@ expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
   }
 
   MetersPerSecond mps_speed(mps);
-  MetersPerSecond accuracy(kAnomometerAdafruitAccuracy); 
+  MetersPerSecond accuracy(kAnomometerAdafruitAccuracy);
   SpeedMeasurementTimeStamp current_time = system_clock::now();
 
   SpeedMeasurement measured_speed(mps_speed, accuracy, current_time);

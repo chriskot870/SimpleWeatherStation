@@ -53,7 +53,6 @@ class MilesPerHour : public Speed {
   void setFormat(std::string fmt_value);
 
  private:
-
   std::string fmt_value_ = speed_default_format;
 
   int MilesPerHourToBase(float mph);
@@ -61,9 +60,8 @@ class MilesPerHour : public Speed {
   float BaseToMilesPerHour(int64_t base);
 
   void setBase(int64_t base_value);
-
 };
 
-}  //qw::units Namespace
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_MILES_PER_HOUR_H_

@@ -111,4 +111,4 @@ void MetersPerSecond::setFormat(string fmt_value) {
   return;
 }
 
-}  // namespace qw_units
+}  // namespace qw::units

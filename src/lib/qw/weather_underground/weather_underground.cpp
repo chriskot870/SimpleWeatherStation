@@ -49,8 +49,7 @@ const map<string, WuFieldProperties> wu_field_regex_list = {
     {"^windspeedmph$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
     {"^windgustmph$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
     {"^windspdmph_avg2m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
-    {"^windgustmph_10m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")}
-  };
+    {"^windgustmph_10m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")}};
 
 map<string, FieldType> wu_fields = {
     {"ID", TEXT},

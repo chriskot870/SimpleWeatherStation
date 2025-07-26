@@ -53,7 +53,6 @@ class Knots : public Speed {
   void setFormat(std::string fmt_value);
 
  private:
-
   std::string fmt_value_ = speed_default_format;
 
   int64_t KnotsToBase(float temp);
@@ -61,10 +60,8 @@ class Knots : public Speed {
   float BaseToKnots(int base);
 
   void setBase(int64_t base_value);
-
 };
 
-}  // qw::units Namespace
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_KNOTS_H_
-

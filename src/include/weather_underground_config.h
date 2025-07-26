@@ -48,7 +48,6 @@ const std::string wu_default_config = R"({
 
 class WeatherUndergroundConfig {
  public:
-
   WeatherUndergroundConfig(const string& config_file);
 
   bool exists();

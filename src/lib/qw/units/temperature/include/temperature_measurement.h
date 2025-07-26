@@ -41,9 +41,9 @@ class TemperatureMeasurement {
  public:
   TemperatureMeasurement();
 
-  TemperatureMeasurement(Temperature value,
-                         Temperature accuracy,
-                         std::chrono::time_point<std::chrono::system_clock> time);
+  TemperatureMeasurement(
+      Temperature value, Temperature accuracy,
+      std::chrono::time_point<std::chrono::system_clock> time);
 
   Temperature value();
 

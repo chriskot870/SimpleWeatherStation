@@ -41,7 +41,8 @@ Millibar::Millibar() {}
 
 Millibar::Millibar(float mb) : Pressure(MillibarToBase(mb)) {}
 
-Millibar::Millibar(float mb, string fmt_value) : Pressure(MillibarToBase(mb)), fmt_value_(fmt_value) {}
+Millibar::Millibar(float mb, string fmt_value)
+    : Pressure(MillibarToBase(mb)), fmt_value_(fmt_value) {}
 
 /*
  * Data manpulation routines

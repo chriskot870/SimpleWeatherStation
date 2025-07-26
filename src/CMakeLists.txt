@@ -39,7 +39,7 @@ target_compile_options(weatherstation PUBLIC -std=c++23)
 
 # What are weatherstation library include paths
 target_include_directories(weatherstation PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/include
+  ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/lib
 )
 
@@ -63,7 +63,7 @@ target_compile_options(systemdqwweather PUBLIC -std=c++23)
 # What are weatherstation library include paths
 target_include_directories(systemdqwweather PRIVATE
   ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/src/include
+  ${CMAKE_SOURCE_DIR}/src
 )
 
 # Weather libraries do weatherstation need to link with

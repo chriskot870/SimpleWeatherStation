@@ -62,6 +62,6 @@ class KilometersPerHour : public Speed {
   void setBase(int64_t base_value);
 };
 
-}  // qw::units Namespace
+}  // namespace qw::units
 
 #endif  // SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_

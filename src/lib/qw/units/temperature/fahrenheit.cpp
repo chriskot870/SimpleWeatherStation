@@ -39,7 +39,8 @@ Fahrenheit::Fahrenheit(){};
 
 Fahrenheit::Fahrenheit(float temp) : Temperature(FahrenheitToBase(temp)) {}
 
-Fahrenheit::Fahrenheit(float temp, string fmt_value) : Temperature(FahrenheitToBase(temp)), fmt_value_(fmt_value) {}
+Fahrenheit::Fahrenheit(float temp, string fmt_value)
+    : Temperature(FahrenheitToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
@@ -104,4 +105,4 @@ void Fahrenheit::setFormat(string fmt_value) {
   return;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

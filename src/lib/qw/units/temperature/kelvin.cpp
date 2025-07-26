@@ -27,10 +27,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- #include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/temperature/include/kelvin.h"
 
- using std::string;
- using std::strong_ordering;
+using std::string;
+using std::strong_ordering;
 
 namespace qw::units {
 
@@ -41,7 +41,8 @@ Kelvin::Kelvin(){};
 
 Kelvin::Kelvin(float temp) : Temperature(KelvinToBase(temp)) {}
 
-Kelvin::Kelvin(float temp, string fmt_value) : Temperature(KelvinToBase(temp)), fmt_value_(fmt_value) {}
+Kelvin::Kelvin(float temp, string fmt_value)
+    : Temperature(KelvinToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
@@ -106,4 +107,4 @@ void Kelvin::setFormat(string fmt_value) {
   return;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

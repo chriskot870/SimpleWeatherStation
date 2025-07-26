@@ -38,9 +38,8 @@ namespace qw::systemd {
 /*
  * Constructor
  */
-SdUnit::SdUnit(string destination, string path, string interface) :
-   destination_(destination), path_(path), interface_(interface) {
-}
+SdUnit::SdUnit(string destination, string path, string interface)
+    : destination_(destination), path_(path), interface_(interface) {}
 
 /*
  * Methods used by this application
@@ -50,21 +49,21 @@ SdUnit::SdUnit(string destination, string path, string interface) :
  * Start(in  s mode,
  *       out o job);
  */
-expected<string, SdBusError>  SdUnit::Start(string mode) {
+expected<string, SdBusError> SdUnit::Start(string mode) {
   sd_bus_error error = SD_BUS_ERROR_NULL;
-   sd_bus_message *m = NULL;
-   sd_bus* bus = NULL;
-   SdBusError return_error;
-   int r;
-   string in_signature = "s"; // The signature for StopUnit method is "s"
-   string out_signature = "o";
-   char* job;
+  sd_bus_message* m = NULL;
+  sd_bus* bus = NULL;
+  SdBusError return_error;
+  int r;
+  string in_signature = "s";  // The signature for StopUnit method is "s"
+  string out_signature = "o";
+  char* job;
 
-   /*
+  /*
     * Open the system bus
     */
-   r = sd_bus_open_system(&bus);
-   if (r < 0) {
+  r = sd_bus_open_system(&bus);
+  if (r < 0) {
     sd_bus_unref(bus);
     return_error.type = SD_BUS_BUS_ERROR;
     return_error.code = r;
@@ -73,23 +72,20 @@ expected<string, SdBusError>  SdUnit::Start(string mode) {
         new string(format("SD Bus failed to initialize. Error Code: {}", r));
     return_error.need_free = true;
     return unexpected(return_error);
-   }
+  }
 
-   /*
+  /*
     * Get the property
     */
-   r = sd_bus_call_method(
-      bus,
-      destination_.c_str(),  /* The destination */
-      path_.c_str(),         /* The path*/
-      interface_.c_str(),    /* The interface */
-      "Start",           /* The method StatUnit */
-      &error,                /* Where errors are stored */
-      &m,                    /* Return message */
-      in_signature.c_str(),
-      mode.c_str()
-    );            /* The signature  */
-   if (r < 0) {
+  r = sd_bus_call_method(bus, destination_.c_str(), /* The destination */
+                         path_.c_str(),             /* The path*/
+                         interface_.c_str(),        /* The interface */
+                         "Start",                   /* The method StatUnit */
+                         &error, /* Where errors are stored */
+                         &m,     /* Return message */
+                         in_signature.c_str(),
+                         mode.c_str()); /* The signature  */
+  if (r < 0) {
     sd_bus_unref(bus);
     return_error.type = SD_BUS_EXEC_ERROR;
     return_error.code = r;
@@ -137,19 +133,19 @@ expected<string, SdBusError>  SdUnit::Start(string mode) {
  */
 expected<string, SdBusError> SdUnit::Stop(string mode) {
   sd_bus_error error = SD_BUS_ERROR_NULL;
-   sd_bus_message *m = NULL;
-   sd_bus* bus = NULL;
-   SdBusError return_error;
-   int r;
-   string in_signature = "s"; // The signature for StopUnit method is "s"
-   string out_signature;
-   char* job;
+  sd_bus_message* m = NULL;
+  sd_bus* bus = NULL;
+  SdBusError return_error;
+  int r;
+  string in_signature = "s";  // The signature for StopUnit method is "s"
+  string out_signature;
+  char* job;
 
-   /*
+  /*
     * Open the system bus
     */
-   r = sd_bus_open_system(&bus);
-   if (r < 0) {
+  r = sd_bus_open_system(&bus);
+  if (r < 0) {
     sd_bus_unref(bus);
     return_error.type = SD_BUS_BUS_ERROR;
     return_error.code = r;
@@ -158,23 +154,20 @@ expected<string, SdBusError> SdUnit::Stop(string mode) {
         new string(format("SD Bus failed to initialize. Error Code: {}", r));
     return_error.need_free = true;
     return unexpected(return_error);
-   }
+  }
 
-   /*
+  /*
     * Get the property
     */
-   r = sd_bus_call_method(
-      bus,
-      destination_.c_str(),  /* The destination */
-      path_.c_str(),         /* The path*/
-      interface_.c_str(),    /* The interface */
-      "Stop",                /* The method Stop */
-      &error,                /* Where errors are stored */
-      &m,                    /* Return message */
-      in_signature.c_str(),
-      mode.c_str()
-    );            /* The signature  */
-   if (r < 0) {
+  r = sd_bus_call_method(bus, destination_.c_str(), /* The destination */
+                         path_.c_str(),             /* The path*/
+                         interface_.c_str(),        /* The interface */
+                         "Stop",                    /* The method Stop */
+                         &error, /* Where errors are stored */
+                         &m,     /* Return message */
+                         in_signature.c_str(),
+                         mode.c_str()); /* The signature  */
+  if (r < 0) {
     sd_bus_unref(bus);
     return_error.type = SD_BUS_EXEC_ERROR;
     return_error.code = r;
@@ -217,19 +210,19 @@ expected<string, SdBusError> SdUnit::Stop(string mode) {
 }
 
 expected<string, SdBusError> SdUnit::getSubState() {
-   sd_bus_error error = SD_BUS_ERROR_NULL;
-   sd_bus_message *m = NULL;
-   sd_bus* bus = NULL;
-   SdBusError return_error;
-   int r;
-   string signature = "s"; // The signature for SubState property is "s"
-   char *output_chr;
+  sd_bus_error error = SD_BUS_ERROR_NULL;
+  sd_bus_message* m = NULL;
+  sd_bus* bus = NULL;
+  SdBusError return_error;
+  int r;
+  string signature = "s";  // The signature for SubState property is "s"
+  char* output_chr;
 
-   /*
+  /*
     * Open the system bus
     */
-   r = sd_bus_open_system(&bus);
-   if (r < 0) {
+  r = sd_bus_open_system(&bus);
+  if (r < 0) {
     sd_bus_unref(bus);
     return_error.type = SD_BUS_BUS_ERROR;
     return_error.code = r;
@@ -238,21 +231,19 @@ expected<string, SdBusError> SdUnit::getSubState() {
         new string(format("SD Bus failed to initialize. Error Code: {}", r));
     return_error.need_free = true;
     return unexpected(return_error);
-   }
+  }
 
-   /*
+  /*
     * Get the property
     */
-   r = sd_bus_get_property(
-      bus,
-      destination_.c_str(),  /* The destination */
-      path_.c_str(),         /* The path*/
-      interface_.c_str(),    /* The interface */
-      "SubState",            /* The property member, SubState */
-      &error,                /* Where errors are stored */
-      &m,                    /* Return message */
-      signature.c_str());            /* The signature  */
-   if (r < 0) {
+  r = sd_bus_get_property(bus, destination_.c_str(), /* The destination */
+                          path_.c_str(),             /* The path*/
+                          interface_.c_str(),        /* The interface */
+                          "SubState", /* The property member, SubState */
+                          &error,     /* Where errors are stored */
+                          &m,         /* Return message */
+                          signature.c_str()); /* The signature  */
+  if (r < 0) {
     sd_bus_unref(bus);
     return_error.type = SD_BUS_EXEC_ERROR;
     return_error.code = r;
@@ -292,8 +283,6 @@ expected<string, SdBusError> SdUnit::getSubState() {
    * return the string result
    */
   return output;
-
 }
 
 }  // namespace qw::systemd
-

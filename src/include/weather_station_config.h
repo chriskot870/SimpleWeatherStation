@@ -33,7 +33,7 @@
 #ifndef SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
 #define SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
 
-#include "weather_station.h"
+#include "./weather_station.h"
 
 const std::string weather_station_config = "/usr/local/qw/etc/ws_config.json";
 

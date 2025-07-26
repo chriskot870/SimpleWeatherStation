@@ -27,10 +27,10 @@
  */
 
 #include "qw/units/speed/include/speed.h"
-#include "qw/units/speed/include/miles_per_hour.h"
 #include "qw/units/speed/include/kilometers_per_hour.h"
-#include "qw/units/speed/include/meters_per_second.h"
 #include "qw/units/speed/include/knots.h"
+#include "qw/units/speed/include/meters_per_second.h"
+#include "qw/units/speed/include/miles_per_hour.h"
 
 using std::string;
 using std::strong_ordering;
@@ -211,4 +211,4 @@ Speed::operator Knots() const {
   return knots;
 }
 
-}  // namespace qw_units
+}  // namespace qw::units

@@ -53,7 +53,6 @@ class Fahrenheit : public Temperature {
   void setFormat(std::string fmt_value);
 
  private:
-
   std::string fmt_value_ = temperature_default_format;
 
   int FahrenheitToBase(float temp);
@@ -61,7 +60,6 @@ class Fahrenheit : public Temperature {
   float BaseToFahrenheit(int base);
 
   void setBase(int64_t base_value);
-
 };
 
 }  // Namespace qw::units

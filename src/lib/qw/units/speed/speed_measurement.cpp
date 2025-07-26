@@ -35,10 +35,8 @@ namespace qw::units {
 
 SpeedMeasurement::SpeedMeasurement() {}
 
-SpeedMeasurement::SpeedMeasurement(
-    Speed value,
-    Speed accuracy,
-    SpeedMeasurementTimeStamp time)
+SpeedMeasurement::SpeedMeasurement(Speed value, Speed accuracy,
+                                   SpeedMeasurementTimeStamp time)
     : value_(value), accuracy_(accuracy), time_(time) {}
 
 Speed SpeedMeasurement::value() {
@@ -53,4 +51,4 @@ SpeedMeasurementTimeStamp SpeedMeasurement::time() {
   return time_;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

@@ -264,4 +264,4 @@ int I2cBus::readCommandResult(uint8_t slave_address, uint8_t* buffer,
   return 0;
 }
 
-}  // Namespace qw_devices
+}  // namespace qw::devices

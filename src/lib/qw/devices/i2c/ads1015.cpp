@@ -380,4 +380,4 @@ expected<int16_t, int> I2cAds1015::getReading(Ads1015MuxType mux) {
   return data;
 }
 
-}  // namespace qw_devices
+}  // namespace qw::devices

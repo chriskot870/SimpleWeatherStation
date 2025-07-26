@@ -36,12 +36,12 @@
 
 namespace qw::units {
 
-  /*
+/*
    * Need to pre-declare these for
    */
-  class Fahrenheit;
-  class Celsius;
-  class Kelvin;
+class Fahrenheit;
+class Celsius;
+class Kelvin;
 /*
  * Our temperature base is millicelsius so we want
  * to apply the temperature_base_conversion_factor
@@ -58,7 +58,6 @@ class Temperature {
   friend Kelvin;
 
  public:
-
   Temperature();
 
   explicit Temperature(const int64_t);
@@ -103,9 +102,7 @@ class Temperature {
 
  private:
   int64_t base_value_;
-
 };
-
 
 }  // Namespace qw::units
 

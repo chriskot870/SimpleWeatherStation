@@ -46,10 +46,10 @@ class SdUnit {
   /*
    * Properties this application needs
    */
-  std::expected<std::string,  SdBusError> getSubState();
+  std::expected<std::string, SdBusError> getSubState();
 
  private:
- /*
+  /*
   * local variables
   */
   std::string destination_;

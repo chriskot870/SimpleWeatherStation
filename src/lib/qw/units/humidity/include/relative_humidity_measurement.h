@@ -41,8 +41,9 @@ class RelativeHumidityMeasurement {
  public:
   RelativeHumidityMeasurement();
 
-  RelativeHumidityMeasurement(RelativeHumidity value, RelativeHumidity accuracy,
-                              std::chrono::time_point<std::chrono::system_clock> time);
+  RelativeHumidityMeasurement(
+      RelativeHumidity value, RelativeHumidity accuracy,
+      std::chrono::time_point<std::chrono::system_clock> time);
 
   RelativeHumidity value();
 

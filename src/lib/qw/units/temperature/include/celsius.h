@@ -52,7 +52,6 @@ class Celsius : public Temperature {
   void setFormat(std::string fmt_value);
 
  private:
-
   std::string fmt_value_ = temperature_default_format;
 
   /*
@@ -63,7 +62,6 @@ class Celsius : public Temperature {
   float BaseToCelsius(int base);
 
   void setBase(int64_t base_value);
-
 };
 
 }  // Namespace qw::units

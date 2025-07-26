@@ -36,10 +36,9 @@ namespace qw::units {
 
 TemperatureMeasurement::TemperatureMeasurement() {}
 
-TemperatureMeasurement::TemperatureMeasurement(
-    Temperature value,
-    Temperature accuracy,
-    time_point<system_clock> time)
+TemperatureMeasurement::TemperatureMeasurement(Temperature value,
+                                               Temperature accuracy,
+                                               time_point<system_clock> time)
     : value_(value), accuracy_(accuracy), time_(time) {}
 
 Temperature TemperatureMeasurement::value() {
@@ -54,4 +53,4 @@ time_point<system_clock> TemperatureMeasurement::time() {
   return time_;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

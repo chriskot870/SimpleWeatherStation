@@ -31,12 +31,12 @@
  */
 #include "qw/devices/i2c/include/sht4x.h"
 
-using qw::units::Temperature;
 using qw::units::Celsius;
 using qw::units::Fahrenheit;
 using qw::units::Kelvin;
 using qw::units::RelativeHumidity;
 using qw::units::RelativeHumidityMeasurement;
+using qw::units::Temperature;
 using qw::units::TemperatureMeasurement;
 using std::atomic_bool;
 using std::expected;
@@ -403,4 +403,4 @@ bool I2cSht4x::measurementExpired(time_point<steady_clock> last_read_time,
   return false;
 }
 
-}  // namespace qw_devices
+}  // namespace qw::devices

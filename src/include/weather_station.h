@@ -62,4 +62,4 @@ const std::string args_log_mode_nologging = "none";
 const std::string lock_directory = "/run/lock/";
 const std::string lock_file_suffix = ".lock";
 
-#endif  // SRC_INCLUDE_WEATHER_STATION_H
+#endif  // SRC_INCLUDE_WEATHER_STATION_H_

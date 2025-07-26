@@ -38,7 +38,8 @@
 namespace qw::units {
 
 using SpeedMeasurementClock = std::chrono::system_clock;
-using SpeedMeasurementTimeStamp = std::chrono::time_point<SpeedMeasurementClock>;
+using SpeedMeasurementTimeStamp =
+    std::chrono::time_point<SpeedMeasurementClock>;
 
 class SpeedMeasurement {
  public:

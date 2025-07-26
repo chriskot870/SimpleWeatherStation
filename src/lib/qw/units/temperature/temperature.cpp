@@ -27,8 +27,8 @@
  */
 
 #include "qw/units/temperature/include/temperature.h"
-#include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/kelvin.h"
 
 using std::string;
@@ -202,4 +202,4 @@ Temperature::operator Kelvin() const {
   return k;
 }
 
-}  // namespace qw_units
+}  // namespace qw::units

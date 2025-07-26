@@ -31,13 +31,13 @@
  */
 #include "qw/devices/i2c/include/lps22.h"
 
-using qw::units::Temperature;
 using qw::units::Celsius;
 using qw::units::Fahrenheit;
 using qw::units::InchesMercury;
 using qw::units::Kelvin;
 using qw::units::Millibar;
 using qw::units::PressureMeasurement;
+using qw::units::Temperature;
 using qw::units::TemperatureMeasurement;
 using std::expected;
 using std::find;
@@ -579,4 +579,4 @@ bool Lps22::measurementExpired(time_point<steady_clock> last_read_time,
   return false;
 }
 
-}  // Namespace qw_devices
+}  // namespace qw::devices

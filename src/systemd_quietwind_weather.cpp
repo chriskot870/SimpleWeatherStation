@@ -29,24 +29,24 @@
 #include <expected>
 #include <variant>
 
+#include "include/weather_station_config.h"
 #include "qw/logger/include/logger.h"
 #include "qw/systemd/include/systemd.h"
-#include "weather_station_config.h"
 
 using fmt::format;
+using qw::logging::Logger;
+using qw::logging::logger;
+using qw::systemd::SD_BUS_TYPE_SYSTEM;
+using qw::systemd::SdBus;
+using qw::systemd::SdBusError;
+using qw::systemd::SdBusInterface;
+using qw::systemd::SdBusNumericResult;
+using qw::systemd::SdBusObject;
+using qw::systemd::SdBusProperty;
+using qw::systemd::SdBusService;
 using std::expected;
 using std::unexpected;
 using std::variant;
-using qw::logging::Logger;
-using qw::logging::logger;
-using qw::systemd::SdBus;
-using qw::systemd::SdBusService;
-using qw::systemd::SdBusObject;
-using qw::systemd::SdBusInterface;
-using qw::systemd::SdBusNumericResult;
-using qw::systemd::SdBusProperty;
-using qw::systemd::SdBusError;
-using qw::systemd::SD_BUS_TYPE_SYSTEM;
 
 /*
  * Set the System Bus, Service and Object we are interested in.

@@ -38,9 +38,11 @@ namespace qw::units {
  */
 InchesMercury::InchesMercury() {}
 
-InchesMercury::InchesMercury(float temp) : Pressure(InchesMercuryToBase(temp)) {}
+InchesMercury::InchesMercury(float temp)
+    : Pressure(InchesMercuryToBase(temp)) {}
 
-InchesMercury::InchesMercury(float temp, string fmt_value) : Pressure(InchesMercuryToBase(temp)), fmt_value_(fmt_value) {}
+InchesMercury::InchesMercury(float temp, string fmt_value)
+    : Pressure(InchesMercuryToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
@@ -109,4 +111,4 @@ void InchesMercury::setFormat(string fmt_value) {
   return;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

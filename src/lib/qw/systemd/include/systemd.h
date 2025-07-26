@@ -42,9 +42,11 @@
 namespace qw::systemd {
 
 const std::string systemd_destination = "org.freedesktop.systemd1";
-const std::string systemd_quietwind_service_path = "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice";
+const std::string systemd_quietwind_service_path =
+    "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice";
 const std::string systemd_unit_interface = "org.freedesktop.systemd1.Unit";
-const std::string systemd_service_interface = "org.freedesktop.systemd1.Service";
+const std::string systemd_service_interface =
+    "org.freedesktop.systemd1.Service";
 
 enum SdBusErrorType {
   SD_BUS_NO_ERROR,
@@ -104,9 +106,9 @@ const std::array<std::string, 19> systemd_valid_signatures = {
     "u",  // 32-bit unsigned integer
     "x",  // 64-bit signed integer
     "t",  // 64-bit unsigned integer
-    "d", // double-precision floating point (IEEE 754)
-    "s", // UTF-8 string (no embedded nul characters)
-    "o", // D-Bus Object Path string
+    "d",  // double-precision floating point (IEEE 754)
+    "s",  // UTF-8 string (no embedded nul characters)
+    "o",  // D-Bus Object Path string
     "g",  //  D-Bus Signature string
     "a",  // array
     "(",  // structure start
@@ -163,8 +165,8 @@ class SdBusInterface {
 class SdBusMethod {
 
  public:
-  SdBusMethod(std::string name, std::string signature, std::string result_value, std::string flags,
-              const SdBusInterface& sdbus_interface);
+  SdBusMethod(std::string name, std::string signature, std::string result_value,
+              std::string flags, const SdBusInterface& sdbus_interface);
 
   std::string name_;
   std::string signature_;
@@ -177,7 +179,8 @@ class SdBusProperty {
   SdBusProperty(std::string name, std::string signature, std::string flags,
                 const SdBusInterface& sdbus_interface);
 
-  std::expected<std::variant<SdBusNumericResult, std::string>, SdBusError> getValue();
+  std::expected<std::variant<SdBusNumericResult, std::string>, SdBusError>
+  getValue();
 
   std::string name_;
   std::string signature_;
@@ -185,7 +188,8 @@ class SdBusProperty {
   SdBusInterface sdbus_interface_;
 
  private:
-  std::expected<std::string, SdBusError> process_char_type_message(sd_bus_message* m);
+  std::expected<std::string, SdBusError> process_char_type_message(
+      sd_bus_message* m);
 
   std::expected<SdBusNumericResult, SdBusError> process_number_type_message(
       sd_bus_message* m);

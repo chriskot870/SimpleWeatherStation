@@ -35,7 +35,8 @@ namespace qw::systemd {
 
 class SdServiceUnit {
  public:
-  SdServiceUnit(std::string destination, std::string path, std::string interface);
+  SdServiceUnit(std::string destination, std::string path,
+                std::string interface);
 
   /*
    * Properties this application needs
@@ -43,7 +44,7 @@ class SdServiceUnit {
   std::expected<uint64_t, SdBusError> getMainPID();
 
  private:
- /*
+  /*
   * local variables
   */
   std::string destination_;

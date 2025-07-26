@@ -27,8 +27,8 @@
  */
 
 #include "qw/units/pressure/include/pressure.h"
-#include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/pressure/include/millibar.h"
 
 using std::string;
 using std::strong_ordering;
@@ -193,4 +193,4 @@ Pressure::operator InchesMercury() const {
   return inches;
 }
 
-}  // namespace qw_units
+}  // namespace qw::units

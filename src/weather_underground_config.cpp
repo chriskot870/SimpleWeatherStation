@@ -26,29 +26,27 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "weather_underground_config.h"
+#include "include/weather_underground_config.h"
 #include "qw/logger/include/logger.h"
 
+using qw::locking::LockingFile;
+using qw::logging::Logger;
+using qw::logging::logger;
 using std::ifstream;
 using std::ofstream;
 using std::string;
 using std::unique_ptr;
-using qw::logging::Logger;
-using qw::locking::LockingFile;
-using qw::logging::logger;
 
 WeatherUndergroundConfig::WeatherUndergroundConfig(const string& config_file)
     : config_file_(config_file) {}
 
 void WeatherUndergroundConfig::setConfigFile(string config_file) {
-
   config_file_ = config_file;
 
   return;
 }
 
 bool WeatherUndergroundConfig::exists() {
-
   std::filesystem::path fpath = config_file_;
   if (std::filesystem::exists(fpath) == false) {
     return false;
@@ -58,7 +56,6 @@ bool WeatherUndergroundConfig::exists() {
 }
 
 bool WeatherUndergroundConfig::initialize() {
-
   Json::Value initial_data;
   Json::Reader initial_config_reader;
 
@@ -74,7 +71,6 @@ bool WeatherUndergroundConfig::initialize() {
 }
 
 bool WeatherUndergroundConfig::getRoot(Json::Value& ws_json_config) {
-
   Json::Reader json_config_reader;
   string lock_file = getLockFileName(config_file_);
 
@@ -99,7 +95,6 @@ bool WeatherUndergroundConfig::getRoot(Json::Value& ws_json_config) {
 }
 
 bool WeatherUndergroundConfig::putRoot(Json::Value data) {
-
   string lock_file = getLockFileName(config_file_);
   LockingFile config_guard(lock_file);
   config_guard.lock();
@@ -137,7 +132,6 @@ bool WeatherUndergroundConfig::putRoot(Json::Value data) {
 }
 
 string WeatherUndergroundConfig::getLockFileName(string file) {
-
   std::filesystem::path file_path = file;
 
   string fname = file_path.filename();

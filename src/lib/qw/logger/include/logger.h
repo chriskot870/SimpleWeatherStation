@@ -50,14 +50,14 @@ enum LoggerMode {
  * These must match syslog.h values
  */
 enum LoggerPriority {
-  LOGGER_EMERG,	 /* 0	system is unusable */
-  LOGGER_ALERT,	 /* 1	action must be taken immediately */
-  LOGGER_CRIT, 	 /* 2	critical conditions */
-  LOGGER_ERR, 	   /* 3 error conditions */
+  LOGGER_EMERG,   /* 0	system is unusable */
+  LOGGER_ALERT,   /* 1	action must be taken immediately */
+  LOGGER_CRIT,    /* 2	critical conditions */
+  LOGGER_ERR,     /* 3 error conditions */
   LOGGER_WARNING, /* 4	warning conditions */
   LOGGER_NOTICE,  /* 5 normal but significant condition */
-  LOGGER_INFO,	   /* 6 informational */
-  LOGGER_DEBUG	 /*7 debug-level messages */
+  LOGGER_INFO,    /* 6 informational */
+  LOGGER_DEBUG    /*7 debug-level messages */
 };
 
 class Logger {

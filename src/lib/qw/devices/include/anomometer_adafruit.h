@@ -47,7 +47,7 @@
 
 namespace qw::devices {
 
- /*
+/*
   * The information on the Adafruit anomometer is written in a language
   * I don't know. I assume Chinese. But the digits are in arabic numerals.
   * One section has
@@ -60,11 +60,16 @@ namespace qw::devices {
   * 0-32.4 m/s  - I assume this is the speed range that correspondes to the output voltage range
   */
 
-constexpr float kAnonometerAdafruitMinVolts = .4;  // Minimum voltage, corresponds to 0 m/s
-constexpr float kAnomometerAdafruitConnectedVolts = .3;  // If below this assume not plugged in
-constexpr float kAnonometerAdafruitMaxVoltage = 2.0; // The maximum output voltage, corresponds to 32.4 m/s
-constexpr float kAnomometerAdafruitMaxMps = 32.4;  // Maximun m/s corresponds to 2.0 volts
-constexpr float kAnomometerAdafruitAccuracy = .33;  // Accuracy .33 m/s from label on device
+constexpr float kAnonometerAdafruitMinVolts =
+    .4;  // Minimum voltage, corresponds to 0 m/s
+constexpr float kAnomometerAdafruitConnectedVolts =
+    .3;  // If below this assume not plugged in
+constexpr float kAnonometerAdafruitMaxVoltage =
+    2.0;  // The maximum output voltage, corresponds to 32.4 m/s
+constexpr float kAnomometerAdafruitMaxMps =
+    32.4;  // Maximun m/s corresponds to 2.0 volts
+constexpr float kAnomometerAdafruitAccuracy =
+    .33;  // Accuracy .33 m/s from label on device
 constexpr float kAnomometerAdafruitMpsPerCount =
     kAnomometerAdafruitMaxMps /
     (qw::devices::kAds1015CountPerVolts *

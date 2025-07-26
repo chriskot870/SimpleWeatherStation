@@ -60,14 +60,14 @@
  * This device provides temperature and pressure data so include the interfaces.
  * The device makes temperature and pressure measurements so add those includes.
  */
-#include "qw/units/temperature/include/temperature.h"
-#include "qw/units/temperature/include/celsius.h"
-#include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/pressure/include/inches_mercury.h"
-#include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/pressure.h"
 #include "qw/units/pressure/include/pressure_measurement.h"
+#include "qw/units/temperature/include/celsius.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/kelvin.h"
+#include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
 
 /*
@@ -298,13 +298,17 @@ class Lps22DeviceData {
    * The time we read in the temperature
    */
   int16_t temperature_measurement_ = 0;
-  std::chrono::time_point<std::chrono::system_clock> temperature_measurement_system_time_;
-  std::chrono::time_point<std::chrono::steady_clock> temperature_measurement_steady_time_;
+  std::chrono::time_point<std::chrono::system_clock>
+      temperature_measurement_system_time_;
+  std::chrono::time_point<std::chrono::steady_clock>
+      temperature_measurement_steady_time_;
   std::chrono::milliseconds temperature_response_time;
 
   int32_t pressure_measurement_ = 0;
-  std::chrono::time_point<std::chrono::system_clock> pressure_measurement_system_time_;
-  std::chrono::time_point<std::chrono::steady_clock> pressure_measurement_steady_time_;
+  std::chrono::time_point<std::chrono::system_clock>
+      pressure_measurement_system_time_;
+  std::chrono::time_point<std::chrono::steady_clock>
+      pressure_measurement_steady_time_;
   std::chrono::milliseconds pressure_response_time;
 };
 
@@ -318,20 +322,23 @@ class Lps22 {
 
   std::expected<uint8_t, int> whoami();
 
-  std::expected<qw::units::TemperatureMeasurement, int> getTemperatureMeasurement();
+  std::expected<qw::units::TemperatureMeasurement, int>
+  getTemperatureMeasurement();
 
   std::expected<qw::units::PressureMeasurement, int> getPressureMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 
-  int setMeasurementInterval(std::chrono::milliseconds interval, Lps22hbReading_t reading);
+  int setMeasurementInterval(std::chrono::milliseconds interval,
+                             Lps22hbReading_t reading);
 
  private:
   /*
    * Private Variables
    */
   static std::mutex lps22_devices_lock;
-  static std::map<Lps22DeviceLocation, std::shared_ptr<Lps22DeviceData>> lps22_devices;
+  static std::map<Lps22DeviceLocation, std::shared_ptr<Lps22DeviceData>>
+      lps22_devices;
   /*
    * There can be multiple instances of this class.
    */
@@ -342,8 +349,10 @@ class Lps22 {
   I2cBus i2cbus_;          // The i2c bus used to transfer data
   uint8_t slave_address_;  // slave address for device on the bus
   atomic_uint64_t instance_measurement_count_ = 0;
-  std::chrono::milliseconds temperature_interval_ = kLps22DefaultMeasurementInterval;
-  std::chrono::milliseconds pressure_interval_ = kLps22DefaultMeasurementInterval;
+  std::chrono::milliseconds temperature_interval_ =
+      kLps22DefaultMeasurementInterval;
+  std::chrono::milliseconds pressure_interval_ =
+      kLps22DefaultMeasurementInterval;
 
   bool temperature_error_;
   bool temperature_valid_ = false;
@@ -376,8 +385,9 @@ class Lps22 {
 
   int getMeasurement();
 
-  bool measurementExpired(std::chrono::time_point<std::chrono::steady_clock> last_read_time,
-                          std::chrono::milliseconds interval);
+  bool measurementExpired(
+      std::chrono::time_point<std::chrono::steady_clock> last_read_time,
+      std::chrono::milliseconds interval);
 };
 
 }  // Namespace qw::devices

@@ -31,82 +31,82 @@
  * Right now it's pretty simple
  */
 
+#include "include/weather_station.h"
+#include "include/weather_station_config.h"
+#include "include/weather_underground_config.h"
 #include "qw/locking/include/locking_file.h"
 #include "qw/logger/include/logger.h"
-#include "qw/systemd/include/systemd.h"
-#include "weather_station.h"
-#include "weather_station_config.h"
-#include "weather_underground_config.h"
-#include "qw/systemd/include/sd_unit.h"
 #include "qw/systemd/include/sd_service_unit.h"
+#include "qw/systemd/include/sd_unit.h"
+#include "qw/systemd/include/systemd.h"
 
+#include "qw/devices/i2c/include/ads1015.h"
 #include "qw/devices/i2c/include/lps22.h"
 #include "qw/devices/i2c/include/sht4x.h"
-#include "qw/devices/i2c/include/ads1015.h"
 #include "qw/devices/include/anomometer_adafruit.h"
 
 #include "fmt/chrono.h"
 #include "fmt/format.h"
 #include "include/weather_underground.h"
 
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/pressure/include/millibar.h"
+#include "qw/units/speed/include/speed_measurement.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
-#include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/temperature/include/kelvin.h"
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/humidity/include/relative_humidity.h"
-#include "qw/units/speed/include/speed_measurement.h"
 
 #include "qw/weather/include/dewpoint.h"
 #include "qw/weather/include/windspeed_history.h"
 
 using fmt::format;
-using qw::devices::I2cBus;
-using qw::devices::I2cSht4x;
-using qw::devices::kSht4xI2cPrimaryAddress;
-using qw::devices::Lps22;
-using qw::devices::kLps22hbI2cPrimaryAddress;
-using qw::devices::I2cAds1015;
-using qw::devices::kAds1015I2cPrimaryAddress;
 using qw::devices::ADS1015_MUX_AIN0_GND;
 using qw::devices::Ads1015Config;
 using qw::devices::AnomometerAdafruit;
+using qw::devices::I2cAds1015;
+using qw::devices::I2cBus;
+using qw::devices::I2cSht4x;
+using qw::devices::kAds1015I2cPrimaryAddress;
+using qw::devices::kLps22hbI2cPrimaryAddress;
+using qw::devices::kSht4xI2cPrimaryAddress;
+using qw::devices::Lps22;
+using qw::logging::Logger;
+using qw::logging::logger;
+using qw::logging::LOGGER_DEBUG;
+using qw::logging::LOGGER_ERR;
+using qw::logging::LOGGER_INFO;
+using qw::logging::LOGGER_MODE_FILE;
+using qw::logging::LOGGER_MODE_JOURNAL;
+using qw::logging::LOGGER_MODE_NOLOGGING;
+using qw::systemd::SdBusError;
+using qw::systemd::SdServiceUnit;
+using qw::systemd::SdUnit;
+using qw::systemd::systemd_destination;
+using qw::systemd::systemd_quietwind_service_path;
+using qw::systemd::systemd_service_interface;
+using qw::systemd::systemd_unit_interface;
 using qw::units::Celsius;
 using qw::units::Fahrenheit;
 using qw::units::InchesMercury;
 using qw::units::Kelvin;
+using qw::units::KilometersPerHour;
+using qw::units::MilesPerHour;
 using qw::units::Millibar;
 using qw::units::RelativeHumidity;
-using qw::units::MilesPerHour;
-using qw::units::KilometersPerHour;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementTimeStamp;
-using qw::logging::Logger;
-using qw::logging::LOGGER_MODE_JOURNAL;
-using qw::logging::LOGGER_MODE_FILE;
-using qw::logging::LOGGER_MODE_NOLOGGING;
-using qw::logging::LOGGER_ERR;
-using qw::logging::LOGGER_INFO;
-using qw::logging::LOGGER_DEBUG;
-using qw::systemd::SdBusError;
-using qw::systemd::SdUnit;
-using qw::systemd::SdServiceUnit;
-using qw::systemd::systemd_destination;
-using qw::systemd::systemd_quietwind_service_path;
-using qw::systemd::systemd_unit_interface;
-using qw::systemd::systemd_service_interface;
 using qw::weather::dewPoint;
-using qw::weather::WindspeedHistory;
 using qw::weather::kInterval10m;
 using qw::weather::kInterval2m;
-using qw::logging::logger;
+using qw::weather::WindspeedHistory;
 using std::cout;
-using std::max;
-using std::min;
 using std::endl;
 using std::get;
 using std::holds_alternative;
 using std::ifstream;
+using std::max;
+using std::min;
 using std::ofstream;
 using std::string;
 using std::chrono::system_clock;
@@ -125,7 +125,8 @@ int main(int argc, char* argv[]) {
   int error;
   int c;
   bool in_systemd = false;
-  bool reporting_enabled = false;  // We are debugging so don't send the data to weather underground
+  bool reporting_enabled =
+      false;  // We are debugging so don't send the data to weather underground
   Ads1015Config value;
   WindspeedHistory ws_history;
 
@@ -133,12 +134,11 @@ int main(int argc, char* argv[]) {
     * If we have started from systemd then we always use
     * LOGGER_MODE_JOURNAL.
     */
-  SdUnit sd_qw_unit(systemd_destination,
-                       systemd_quietwind_service_path,
-                       systemd_unit_interface);
+  SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
+                    systemd_unit_interface);
   SdServiceUnit sd_qw_service_unit(systemd_destination,
-                       systemd_quietwind_service_path,
-                       systemd_service_interface);
+                                   systemd_quietwind_service_path,
+                                   systemd_service_interface);
 
   service_state = sd_qw_unit.getSubState();
   if (service_state.has_value() != true) {
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
   if (service_state == "running" && service_pid == getpid()) {
     in_systemd = true;
   }
-  
+
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
     logger.log(LOGGER_INFO, "Logging in Journal Mode");
@@ -204,7 +204,8 @@ int main(int argc, char* argv[]) {
               }
             }
             logger.setMode(LOGGER_MODE_FILE, fpath);
-            logger.log(LOGGER_INFO, format("Logging to file: {}", fpath.c_str()));
+            logger.log(LOGGER_INFO,
+                       format("Logging to file: {}", fpath.c_str()));
             break;
           }
         } else {
@@ -231,28 +232,28 @@ int main(int argc, char* argv[]) {
   WeatherStationConfig ws_config(weather_station_config);
   Json::Value json_config;
   ws_config.getRoot(json_config);
-  
 
-  string software_version = json_config["Software"]["Version"]["Major"].asString() + "." +
-                            json_config["Software"]["Version"]["Minor"].asString() + "." +
-                            json_config["Software"]["Version"]["Patchlevel"].asString();
+  string software_version =
+      json_config["Software"]["Version"]["Major"].asString() + "." +
+      json_config["Software"]["Version"]["Minor"].asString() + "." +
+      json_config["Software"]["Version"]["Patchlevel"].asString();
 
   logger.log(LOGGER_INFO, format("Software version {}", software_version));
   logger.log(LOGGER_INFO, "Checking Hardware");
-  logger.log(LOGGER_INFO, format("Model: {}",json_config["Hardware"]["Model"].asString()));
+  logger.log(LOGGER_INFO,
+             format("Model: {}", json_config["Hardware"]["Model"].asString()));
 
-  I2cBus i2c_bus = I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
-  if (i2c_bus.status() !=  qw::devices::I2CBUS_STATUS_OK) {
+  I2cBus i2c_bus =
+      I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
+  if (i2c_bus.status() != qw::devices::I2CBUS_STATUS_OK) {
     logger.log(LOGGER_ERR, "Initialization of I2C bus failed");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
     exit(1);
   }
-
-
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
 
@@ -260,7 +261,7 @@ int main(int argc, char* argv[]) {
   if (error != 0) {
     logger.log(LOGGER_ERR, "Initialization of lps22hb Failed");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -271,7 +272,7 @@ int main(int argc, char* argv[]) {
   if (x_whoami.has_value() != true) {
     logger.log(LOGGER_ERR, "Couldn't get Who am I value for lps22hb");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -289,7 +290,7 @@ int main(int argc, char* argv[]) {
   if (error != 0) {
     logger.log(LOGGER_ERR, "CHT4X reset failed");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -299,7 +300,7 @@ int main(int argc, char* argv[]) {
   if (x_serial_number.has_value() == false) {
     logger.log(LOGGER_ERR, "Getting SHT44 Serial Number failed");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -319,7 +320,7 @@ int main(int argc, char* argv[]) {
   if (ads_result.has_value() == false) {
     logger.log(LOGGER_ERR, "Getting ADS1015 Configuration Register");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -327,27 +328,31 @@ int main(int argc, char* argv[]) {
   }
   logger.log(LOGGER_INFO, "Ads 1015 Successfully read configuration register");
   value = ads_result.value();
-  logger.log(LOGGER_INFO, format("\tOs: {}\n\tMux: {}\n\tPga: {}\n\tMode: {}\n\tDr: {}\n\tCompMode: {}\n\tCompPol: {}\n\tCompLatch: {}\n\tCompQueue: {}\n",
-                      static_cast<uint8_t>(value.fields.os),
-                      static_cast<uint8_t>(value.fields.mux),
-                      static_cast<uint8_t>(value.fields.pga),
-                      static_cast<uint8_t>(value.fields.mode),
-                      static_cast<uint8_t>(value.fields.dr),
-                      static_cast<uint8_t>(value.fields.comp_mode),
-                      static_cast<uint8_t>(value.fields.comp_pol),
-                      static_cast<uint8_t>(value.fields.comp_latch),
-                      static_cast<uint8_t>(value.fields.comp_queue)
-                    ));
-  
+  logger.log(
+      LOGGER_INFO,
+      format(
+          "\tOs: {}\n\tMux: {}\n\tPga: {}\n\tMode: {}\n\tDr: {}\n\tCompMode: "
+          "{}\n\tCompPol: {}\n\tCompLatch: {}\n\tCompQueue: {}\n",
+          static_cast<uint8_t>(value.fields.os),
+          static_cast<uint8_t>(value.fields.mux),
+          static_cast<uint8_t>(value.fields.pga),
+          static_cast<uint8_t>(value.fields.mode),
+          static_cast<uint8_t>(value.fields.dr),
+          static_cast<uint8_t>(value.fields.comp_mode),
+          static_cast<uint8_t>(value.fields.comp_pol),
+          static_cast<uint8_t>(value.fields.comp_latch),
+          static_cast<uint8_t>(value.fields.comp_queue)));
+
   /*
    * Since the ADC is available define an annometer
    */
   AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
-  expected<SpeedMeasurement, int> wind_speed_measurement = anomometer.getMeasurement();
+  expected<SpeedMeasurement, int> wind_speed_measurement =
+      anomometer.getMeasurement();
   if (wind_speed_measurement.has_value() == false) {
     logger.log(LOGGER_ERR, "Unable to read anomometer speed");
     if (in_systemd == true) {
-      sleep(10); // Give the daemon a chance to register the log message
+      sleep(10);  // Give the daemon a chance to register the log message
       sd_qw_unit.Stop("replace");
       pause();
     }
@@ -362,26 +367,31 @@ int main(int argc, char* argv[]) {
   /*
    * Set the data_gather_interval
    */
-  int data_gathering_interval = json_config["Configuration"]["data_gathering_interval"].asInt();
+  int data_gathering_interval =
+      json_config["Configuration"]["data_gathering_interval"].asInt();
   /*
    * Get the Weather Underground configuration
    */
-  WeatherUndergroundConfig wu_config(json_config["WeatherUndegroundFile"].asString());
+  WeatherUndergroundConfig wu_config(
+      json_config["WeatherUndegroundFile"].asString());
   if (wu_config.exists() == false) {
     logger.log(LOGGER_INFO, "Can't get Weather Underground configuration info");
     exit(1);
   }
-  
+
   Json::Value wu_json_config;
   if (wu_config.getRoot(wu_json_config) == false) {
     logger.log(LOGGER_INFO,
-      format("Unable to parse Weather Underground config file: {}", json_config["WeatherUndegroundFile"].asString()));
-      exit(1);
+               format("Unable to parse Weather Underground config file: {}",
+                      json_config["WeatherUndegroundFile"].asString()));
+    exit(1);
   }
-  
-  if (wu_json_config.isMember("pwu_name") == false || wu_json_config.isMember("pwu_password") == false) {
-    logger.log(LOGGER_INFO, "Improperly formatted Weather Underground config file no authentication info");
 
+  if (wu_json_config.isMember("pwu_name") == false ||
+      wu_json_config.isMember("pwu_password") == false) {
+    logger.log(LOGGER_INFO,
+               "Improperly formatted Weather Underground config file no "
+               "authentication info");
   }
   string pwu_name = wu_json_config["pwu_name"].asString();
   string pwu_password = wu_json_config["pwu_password"].asString();
@@ -389,9 +399,9 @@ int main(int argc, char* argv[]) {
   WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
   int reporting_loop_interval = wu_default_report_interval;
   if (wu_json_config.isMember("report_interval") == true) {
-    reporting_loop_interval =
-      min(max(wu_report_interval_min, wu_json_config["report_interval"].asInt()),
-          wu_report_interval_max);
+    reporting_loop_interval = min(
+        max(wu_report_interval_min, wu_json_config["report_interval"].asInt()),
+        wu_report_interval_max);
   }
   /*
    * Initializing last reporting time to 2 reporting loops prior to now so a report is
@@ -403,8 +413,9 @@ int main(int argc, char* argv[]) {
    * Setup inotify to get notified when config file changes during poll
    */
   int inotify_fd = inotify_init();
-  int watch_fd =
-      inotify_add_watch(inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(), IN_MODIFY);
+  int watch_fd = inotify_add_watch(
+      inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(),
+      IN_MODIFY);
   pollfd fds[1];
   fds[0].fd = inotify_fd;
   fds[0].events = POLLIN;
@@ -436,12 +447,11 @@ int main(int argc, char* argv[]) {
         ws_history.add(x_anomometer.value());
       }
 
-      if ((now_time - last_report_time) >= std::chrono::milliseconds(reporting_loop_interval)) {
-
+      if ((now_time - last_report_time) >=
+          std::chrono::milliseconds(reporting_loop_interval)) {
         /*
          * We only need this information when we are going to make a report so get it now.
          */
- 
         auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
 
         auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
@@ -453,7 +463,7 @@ int main(int argc, char* argv[]) {
          * Put the raw data into the wu data
          */
         wu->setVarData("action", "updateraw");
-        //time_point<utc_clock> utc_time = utc_clock::now();
+        // time_point<utc_clock> utc_time = utc_clock::now();
         wu->setVarData("dateutc", "now");
         /*
          * Weather Underground wants fahrenheit
@@ -469,7 +479,8 @@ int main(int argc, char* argv[]) {
         }
 
         if (x_sht4x_humidity.has_value()) {
-          RelativeHumidity humidity = x_sht4x_humidity.value().relativeHumidityValue();
+          RelativeHumidity humidity =
+              x_sht4x_humidity.value().relativeHumidityValue();
           wu->setVarData("humidity", humidity.value());
         }
 
@@ -478,8 +489,7 @@ int main(int argc, char* argv[]) {
          */
         if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
           Celsius tempc = x_sht4x_temp.value().value();
-          RelativeHumidity humidity =
-            x_sht4x_humidity.value().value();
+          RelativeHumidity humidity = x_sht4x_humidity.value().value();
           Celsius dewptc = dewPoint(tempc, humidity);
           Fahrenheit dewptf = dewptc;
           wu->setVarData("dewptf", dewptf.value());
@@ -489,8 +499,7 @@ int main(int argc, char* argv[]) {
          * Weather Underground wants inches mercury
          */
         if (x_lps22_pressure.has_value()) {
-          InchesMercury pressure =
-            x_lps22_pressure.value().value();
+          InchesMercury pressure = x_lps22_pressure.value().value();
           wu->setVarData("baromin", pressure.value());
         }
 
@@ -532,7 +541,8 @@ int main(int argc, char* argv[]) {
         if (reporting_enabled == true) {
           auto errval = wu->sendData();
           if (errval.has_value() == false) {
-            logger.log(LOGGER_ERR, format("Send Data Failed: {}", errval.error()));
+            logger.log(LOGGER_ERR,
+                       format("Send Data Failed: {}", errval.error()));
           }
 
           string response = wu->getHttpResponse();
@@ -559,7 +569,8 @@ int main(int argc, char* argv[]) {
       if ((wu_config.getRoot(wu_json_config) == false) ||
           (wu_json_config.isMember("pwu_name") == false) ||
           (wu_json_config.isMember("pwu_password") == false)) {
-        logger.log(LOGGER_INFO, "Unable to parse Weather Underground config file");
+        logger.log(LOGGER_INFO,
+                   "Unable to parse Weather Underground config file");
       } else {
         pwu_name = wu_json_config["pwu_name"].asString();
         pwu_password = wu_json_config["pwu_password"].asString();
@@ -568,8 +579,8 @@ int main(int argc, char* argv[]) {
       reporting_loop_interval = wu_default_report_interval;
       if (wu_json_config.isMember("report_interval") == true) {
         reporting_loop_interval = min(
-          max(wu_report_interval_min, json_config["report_interval"].asInt()),
-          wu_report_interval_max);
+            max(wu_report_interval_min, json_config["report_interval"].asInt()),
+            wu_report_interval_max);
       }
     }
   }

@@ -29,20 +29,21 @@
 #ifndef SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
 #define SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
 
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 #include <cmath>
 #include <deque>
 #include <expected>
-#include <fmt/format.h>
-#include <fmt/chrono.h>
 
-#include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/speed_measurement.h"
 
 namespace qw::weather {
 
-constexpr std::chrono::seconds kMaxListTimeSpan(60 * 10);  // 10 minutes of samples
-constexpr std::chrono::seconds kInterval10m(60 * 10);  //
+constexpr std::chrono::seconds kMaxListTimeSpan(60 *
+                                                10);  // 10 minutes of samples
+constexpr std::chrono::seconds kInterval10m(60 * 10);
 constexpr std::chrono::seconds kInterval2m(60 * 2);
 
 class WindspeedHistory {
@@ -61,7 +62,8 @@ class WindspeedHistory {
 
   std::expected<qw::units::Speed, int> average(std::chrono::seconds time_span);
 
-  std::expected<qw::units::SpeedMeasurement, int> gust(std::chrono::seconds time_span);
+  std::expected<qw::units::SpeedMeasurement, int> gust(
+      std::chrono::seconds time_span);
 
  private:
   std::deque<qw::units::SpeedMeasurement> history_;

@@ -26,29 +26,27 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "weather_station_config.h"
+#include "include/weather_station_config.h"
 #include "qw/logger/include/logger.h"
 
+using qw::locking::LockingFile;
+using qw::logging::Logger;
+using qw::logging::logger;
 using std::ifstream;
 using std::ofstream;
 using std::string;
 using std::unique_ptr;
-using qw::logging::Logger;
-using qw::locking::LockingFile;
-using qw::logging::logger;
 
 WeatherStationConfig::WeatherStationConfig(const string& config_file)
     : config_file_(config_file) {}
 
 void WeatherStationConfig::setConfigFile(string config_file) {
-
   config_file_ = config_file;
 
   return;
 }
 
 bool WeatherStationConfig::exists() {
-
   std::filesystem::path fpath = config_file_;
   if (std::filesystem::exists(fpath) == false) {
     return false;
@@ -58,7 +56,6 @@ bool WeatherStationConfig::exists() {
 }
 
 bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
-
   Json::Reader json_config_reader;
   string lock_file = getLockFileName(config_file_);
 
@@ -83,7 +80,6 @@ bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
 }
 
 bool WeatherStationConfig::putRoot(Json::Value data) {
-
   string lock_file = getLockFileName(config_file_);
   LockingFile config_guard(lock_file);
   config_guard.lock();
@@ -121,7 +117,6 @@ bool WeatherStationConfig::putRoot(Json::Value data) {
 }
 
 string WeatherStationConfig::getLockFileName(string file) {
-
   std::filesystem::path file_path = file;
 
   string fname = file_path.filename();

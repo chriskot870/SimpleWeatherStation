@@ -36,28 +36,28 @@
 
 namespace qw::units {
 
-  /*
+/*
    * Need to pre-declare these for
    */
-  class MilesPerHour;
-  class KilometersPerHour;
-  class MetersPerSecond;
-  class Knots;
+class MilesPerHour;
+class KilometersPerHour;
+class MetersPerSecond;
+class Knots;
 /*
  * Our speed is based on .001 mile per hour
  */
 constexpr int speed_base_conversion_factor = 1000;
 constexpr float kMilesPerKilometer = .621371;
-constexpr float kKilometersPerMile = (1/kMilesPerKilometer);  // The inverse of above
+constexpr float kKilometersPerMile =
+    (1 / kMilesPerKilometer);  // The inverse of above
 constexpr float kMpsPerMph = 2.23694;
-constexpr float kMphPerMps = (1/kMpsPerMph);  // The inverse of above
+constexpr float kMphPerMps = (1 / kMpsPerMph);  // The inverse of above
 constexpr float kMphPerKnot = 1.15078;
-constexpr float kKnotPerMph = (1/kMphPerKnot);  // The inverse of above.
+constexpr float kKnotPerMph = (1 / kMphPerKnot);  // The inverse of above.
 const std::string speed_default_format = "{0:.2f}";
 
 class Speed {
  public:
-
   friend MilesPerHour;
   friend KilometersPerHour;
   friend MetersPerSecond;
@@ -109,7 +109,6 @@ class Speed {
 
  private:
   int64_t base_value_;
-
 };
 
 }  // Namespace qw::units

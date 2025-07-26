@@ -41,7 +41,8 @@ Celsius::Celsius() {}
 
 Celsius::Celsius(float temp) : Temperature(CelsiusToBase(temp)) {}
 
-Celsius::Celsius(float temp, string fmt_value) : Temperature(CelsiusToBase(temp)), fmt_value_(fmt_value) {}
+Celsius::Celsius(float temp, string fmt_value)
+    : Temperature(CelsiusToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
@@ -105,4 +106,4 @@ void Celsius::setFormat(string fmt_value) {
   return;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

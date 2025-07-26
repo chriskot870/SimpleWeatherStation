@@ -53,30 +53,6 @@ class InchesMercury : public Pressure {
 
   void setFormat(std::string fmt_value);
 
-  bool operator==(const InchesMercury& other) const;
-
-  bool operator!=(const InchesMercury& other) const;
-
-  bool operator<(const InchesMercury& other) const;
-
-  bool operator>(const InchesMercury& other) const;
-
-  bool operator<=(const InchesMercury& other) const;
-
-  bool operator>=(const InchesMercury& other) const;
-
-  std::strong_ordering operator<=> (const InchesMercury& other) const;
-
-  InchesMercury& operator=(const InchesMercury& other);
-
-  InchesMercury& operator+=(const InchesMercury& other);
-
-  InchesMercury& operator-=(const InchesMercury& other);
-
-  const InchesMercury operator+(const InchesMercury& other) const;
-
-  const InchesMercury operator-(const InchesMercury& other) const;
-
   /*
    * Supports implicit casting
    * hence the need for the predeclaration
@@ -84,7 +60,6 @@ class InchesMercury : public Pressure {
   operator Millibar() const;
 
  private:
-
   std::string fmt_value_ = pressure_default_format;
 
   int InchesMercuryToBase(float temp);
@@ -92,7 +67,6 @@ class InchesMercury : public Pressure {
   float BaseToInchesMercury(int base);
 
   void setBase(int64_t base_value);
-
 };
 
 }  // namespace qw::units

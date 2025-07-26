@@ -60,12 +60,12 @@
  * This device has temperature and relative humidity sensors so add the units
  * and measurements.
  */
-#include "qw/units/temperature/include/temperature.h"
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/humidity/include/relative_humidity_measurement.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/kelvin.h"
-#include "qw/units/humidity/include/relative_humidity.h"
-#include "qw/units/humidity/include/relative_humidity_measurement.h"
+#include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
 
 /*
@@ -81,8 +81,8 @@ namespace qw::devices {
 constexpr uint8_t kSht4xI2cPrimaryAddress = 0x44;
 constexpr uint8_t kSht4xI2cSecondaryAddress = 0x45;
 
-const std::vector<uint8_t> sht4x_slave_address_options = {kSht4xI2cPrimaryAddress,
-                                                     kSht4xI2cSecondaryAddress};
+const std::vector<uint8_t> sht4x_slave_address_options = {
+    kSht4xI2cPrimaryAddress, kSht4xI2cSecondaryAddress};
 
 constexpr std::chrono::milliseconds kDefaultMeasurementInterval(
     2000); /* The number of msecs that a reading is good */
@@ -257,12 +257,16 @@ class Sht4xDeviceData {
    * The time we read in the temperature
    */
   uint16_t temperature_measurement_ = 0;
-  std::chrono::time_point<std::chrono::system_clock> temperature_measurement_system_time_;
-  std::chrono::time_point<std::chrono::steady_clock> temperature_measurement_steady_time_;
+  std::chrono::time_point<std::chrono::system_clock>
+      temperature_measurement_system_time_;
+  std::chrono::time_point<std::chrono::steady_clock>
+      temperature_measurement_steady_time_;
 
   uint16_t humidity_measurement_ = 0;
-  std::chrono::time_point<std::chrono::system_clock> humidity_measurement_system_time_;
-  std::chrono::time_point<std::chrono::steady_clock> humidity_measurement_steady_time_;
+  std::chrono::time_point<std::chrono::system_clock>
+      humidity_measurement_system_time_;
+  std::chrono::time_point<std::chrono::steady_clock>
+      humidity_measurement_steady_time_;
 };
 
 class I2cSht4x {
@@ -277,13 +281,16 @@ class I2cSht4x {
 
   int softReset();
 
-  std::expected<qw::units::TemperatureMeasurement, int> getTemperatureMeasurement();
+  std::expected<qw::units::TemperatureMeasurement, int>
+  getTemperatureMeasurement();
 
-  std::expected<qw::units::RelativeHumidityMeasurement, int> getRelativeHumidityMeasurement();
+  std::expected<qw::units::RelativeHumidityMeasurement, int>
+  getRelativeHumidityMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);
 
-  int setMeasurementInterval(std::chrono::milliseconds interval, Sht4xReading_t reading);
+  int setMeasurementInterval(std::chrono::milliseconds interval,
+                             Sht4xReading_t reading);
 
   int error_code();
 
@@ -294,7 +301,8 @@ class I2cSht4x {
     * Private Data
     */
   static std::mutex sht4x_devices_lock;
-  static std::map<Sht4xDeviceLocation, std::shared_ptr<Sht4xDeviceData>> sht4x_devices;
+  static std::map<Sht4xDeviceLocation, std::shared_ptr<Sht4xDeviceData>>
+      sht4x_devices;
 
   Sht4xDeviceLocation device_;
   std::shared_ptr<Sht4xDeviceData> device_data_ = nullptr;
@@ -308,8 +316,10 @@ class I2cSht4x {
   I2cBus i2cbus_;
 
   // interval between making a measurement per reading type
-  std::chrono::milliseconds temperature_measurement_interval_ = kDefaultMeasurementInterval;
-  std::chrono::milliseconds humidity_measurement_interval_ = kDefaultMeasurementInterval;
+  std::chrono::milliseconds temperature_measurement_interval_ =
+      kDefaultMeasurementInterval;
+  std::chrono::milliseconds humidity_measurement_interval_ =
+      kDefaultMeasurementInterval;
 
   // Serial Number
   uint32_t serial_number_ = 0;
@@ -322,8 +332,9 @@ class I2cSht4x {
    */
   int getMeasurement(Sht4xMeasurmentMode mode);
 
-  bool measurementExpired(std::chrono::time_point<std::chrono::steady_clock> last_read_time,
-                          std::chrono::milliseconds interval);
+  bool measurementExpired(
+      std::chrono::time_point<std::chrono::steady_clock> last_read_time,
+      std::chrono::milliseconds interval);
 };
 
 }  // Namespace qw::devices

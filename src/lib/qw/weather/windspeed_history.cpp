@@ -26,28 +26,28 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <expected>
-#include <algorithm>
-#include "qw/logger/include/logger.h"
 #include "qw/weather/include/windspeed_history.h"
+#include <algorithm>
+#include <expected>
+#include "qw/logger/include/logger.h"
 
-using std::expected;
-using std::unexpected;
-using std::sort;
 using fmt::format;
-using qw::units::Speed;
+using qw::logging::logger;
 using qw::units::MilesPerHour;
+using qw::units::Speed;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementClock;
 using qw::units::SpeedMeasurementTimeStamp;
-using qw::logging::logger;
+using std::expected;
+using std::sort;
+using std::unexpected;
 
 namespace qw::weather {
 
 WindspeedHistory::WindspeedHistory() {}
 
 void WindspeedHistory::setMaximumTime(std::chrono::seconds time_span) {
-  
+
   maximum_time_ = time_span;
 
   /*
@@ -59,7 +59,7 @@ void WindspeedHistory::setMaximumTime(std::chrono::seconds time_span) {
 }
 
 std::chrono::seconds WindspeedHistory::getMaximumTime() {
-  
+
   return maximum_time_;
 }
 
@@ -122,16 +122,17 @@ void WindspeedHistory::add(SpeedMeasurement speed) {
    * THis way when we read from the back we get the newest times. As a time moves
    * to the front it gets removed by prune.
    */
-  sort(history_.rbegin(), history_.rend(), [](SpeedMeasurement a, SpeedMeasurement b) {
-    /*
+  sort(history_.rbegin(), history_.rend(),
+       [](SpeedMeasurement a, SpeedMeasurement b) {
+         /*
      * We want the older times near the front when going in reverse order.
      * So, if a.time() > b.time() return true.
      */
-    if (a.time() > b.time()) {
-      return true;
-    }
-    return false;
-  } );
+         if (a.time() > b.time()) {
+           return true;
+         }
+         return false;
+       });
 
   return;
 }
@@ -149,7 +150,7 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
     return unexpected(ENODATA);
   }
 
-   /*
+  /*
    * Iterate through the list backwards, which is from newest measurement.
    */
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
@@ -170,12 +171,13 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
       Speed speed = (*it).value();
       total += speed;
     } else {
-        break;
+      break;
     }
   }
 
   if (count == 0) {
-    logger.log(LOG_ERR, fmt::format("WindspeedHistory Average: Divide by zero"));
+    logger.log(LOG_ERR,
+               fmt::format("WindspeedHistory Average: Divide by zero"));
     return unexpected(ENOTSUP);
   }
 
@@ -184,7 +186,8 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
   return ave_mph;
 }
 
-expected<SpeedMeasurement, int> WindspeedHistory::gust(std::chrono::seconds time_span) {
+expected<SpeedMeasurement, int> WindspeedHistory::gust(
+    std::chrono::seconds time_span) {
 
   prune();
 
@@ -208,7 +211,7 @@ expected<SpeedMeasurement, int> WindspeedHistory::gust(std::chrono::seconds time
      * If this value is greater then the maximum, make it the maximum
      */
     if ((*it).value() > max_measurement.value()) {
-        max_measurement = (*it);
+      max_measurement = (*it);
     }
   }
 
@@ -226,7 +229,8 @@ void WindspeedHistory::prune() {
    * element that is less than or equal to the maximum_time or there
    * are no elements left in the history.
    */
-  while((history_.empty() != true) && ((current_time - history_.front().time()) > maximum_time_)) {
+  while ((history_.empty() != true) &&
+         ((current_time - history_.front().time()) > maximum_time_)) {
     history_.pop_front();
   }
 

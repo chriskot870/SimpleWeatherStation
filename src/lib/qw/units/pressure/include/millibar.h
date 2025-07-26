@@ -60,7 +60,6 @@ class Millibar : public Pressure {
   float BaseToMillibar(int base);
 
   void setBase(int64_t base_value);
-
 };
 
 }  // Namespace qw::units
