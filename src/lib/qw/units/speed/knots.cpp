@@ -71,7 +71,7 @@ int64_t Knots::KnotsToBase(float knots) {
  */
 float Knots::BaseToKnots(int base) {
 
-  float knots = ((float)base / speed_base_conversion_factor) * kKnotPerMph;
+  float knots = (static_cast<float>(base) / speed_base_conversion_factor) * kKnotPerMph;
 
   return knots;
 }

@@ -61,7 +61,7 @@ int Millibar::MillibarToBase(float mb) {
 
 float Millibar::BaseToMillibar(int base) {
 
-  float value = (float)base / pressure_base_conversion_factor;
+  float value = static_cast<float>(base) / pressure_base_conversion_factor;
 
   return value;
 }

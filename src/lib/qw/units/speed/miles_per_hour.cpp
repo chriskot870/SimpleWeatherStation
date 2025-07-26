@@ -66,7 +66,7 @@ int MilesPerHour::MilesPerHourToBase(float mph) {
 
 float MilesPerHour::BaseToMilesPerHour(int64_t base) {
 
-  float mph = ((float)base / speed_base_conversion_factor);
+  float mph = (static_cast<float>(base) / speed_base_conversion_factor);
 
   return mph;
 }

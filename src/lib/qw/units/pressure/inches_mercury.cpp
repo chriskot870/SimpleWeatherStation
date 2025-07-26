@@ -66,7 +66,7 @@ int InchesMercury::InchesMercuryToBase(float inhg) {
 float InchesMercury::BaseToInchesMercury(int base) {
 
   float inhg =
-      (((float)base / pressure_base_conversion_factor) * inHg_sea_level) /
+      ((static_cast<float>(base) / pressure_base_conversion_factor) * inHg_sea_level) /
       mb_sea_level;
 
   return inhg;

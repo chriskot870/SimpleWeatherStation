@@ -67,7 +67,7 @@ int Celsius::CelsiusToBase(float temp) {
 
 float Celsius::BaseToCelsius(int base) {
 
-  float temp = (float)base / temperature_base_conversion_factor;
+  float temp = static_cast<float>(base) / temperature_base_conversion_factor;
 
   return temp;
 }

@@ -73,7 +73,7 @@ int64_t KilometersPerHour::KilometersPerHourToBase(float kph) {
  */
 float KilometersPerHour::BaseToKilometersPerHour(int base) {
 
-  float mph = ((float)base / speed_base_conversion_factor) * kKilometersPerMile;
+  float mph = (static_cast<float>(base) / speed_base_conversion_factor) * kKilometersPerMile;
 
   return mph;
 }

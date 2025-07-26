@@ -68,7 +68,7 @@ int Kelvin::KelvinToBase(float temp) {
 
 float Kelvin::BaseToKelvin(int base) {
 
-  float value = ((float)base + temperature_celsius_kelvin_offset) /
+  float value = (static_cast<float>(base) + temperature_celsius_kelvin_offset) /
                 temperature_base_conversion_factor;
 
   return value;

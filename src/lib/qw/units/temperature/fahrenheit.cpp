@@ -66,7 +66,7 @@ int Fahrenheit::FahrenheitToBase(float temp) {
 float Fahrenheit::BaseToFahrenheit(int base) {
 
   float value =
-      ((((float)base / temperature_base_conversion_factor) * 9) / 5) + 32;
+      (((static_cast<float>(base) / temperature_base_conversion_factor) * 9) / 5) + 32;
 
   return value;
 }

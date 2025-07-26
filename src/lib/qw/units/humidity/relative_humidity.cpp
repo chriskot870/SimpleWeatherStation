@@ -60,7 +60,7 @@ RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
  */
 float RelativeHumidity::value() {
 
-  float value = ((float)base_value_ / rh_base_conversion_factor);
+  float value = (static_cast<float>(base_value_)/ rh_base_conversion_factor);
 
   return value;
 }

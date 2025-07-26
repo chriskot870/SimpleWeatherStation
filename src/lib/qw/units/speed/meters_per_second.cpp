@@ -73,7 +73,7 @@ int64_t MetersPerSecond::MetersPerSecondToBase(float mps) {
  */
 float MetersPerSecond::BaseToMetersPerSecond(int base) {
 
-  float mps = ((float)base / speed_base_conversion_factor) * kMpsPerMph;
+  float mps = (static_cast<float>(base) / speed_base_conversion_factor) * kMpsPerMph;
 
   return mps;
 }
