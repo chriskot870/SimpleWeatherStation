@@ -93,9 +93,12 @@ using qw::units::Kelvin;
 using qw::units::KilometersPerHour;
 using qw::units::MilesPerHour;
 using qw::units::Millibar;
+using qw::units::PressureMeasurement;
 using qw::units::RelativeHumidity;
+using qw::units::RelativeHumidityMeasurement;
 using qw::units::SpeedMeasurement;
 using qw::units::SpeedMeasurementTimeStamp;
+using qw::units::TemperatureMeasurement;
 using qw::weather::dewPoint;
 using qw::weather::kInterval10m;
 using qw::weather::kInterval2m;
@@ -113,6 +116,123 @@ using std::string_view;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::chrono::utc_clock;
+
+expected<bool, SdBusError> isRunningInSystemd() {
+  expected<string, SdBusError> service_state;
+  std::expected<uint32_t, SdBusError> service_pid;
+
+  SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
+                    systemd_unit_interface);
+  SdServiceUnit sd_qw_service_unit(systemd_destination,
+                                   systemd_quietwind_service_path,
+                                   systemd_service_interface);
+
+  service_state = sd_qw_unit.getSubState();
+  if (service_state.has_value() != true) {
+    return unexpected(service_state.error());
+  }
+
+  service_pid = sd_qw_service_unit.getMainPID();
+  if (service_pid.has_value() != true) {
+    return unexpected(service_pid.error());
+  }
+
+  if (service_state == "running" && service_pid == getpid()) {
+    return true;
+  }
+
+  return false;
+}
+
+WeatherUnderground* processWuData(string pwu_name, string pwu_password,
+                                  expected<TemperatureMeasurement, int> temp1,
+                                  expected<TemperatureMeasurement, int> temp2,
+                                  expected<PressureMeasurement, int> pressure,
+                                  expected<RelativeHumidityMeasurement, int> rh,
+                                  expected<Fahrenheit, int> dewpoint,
+                                  expected<SpeedMeasurement, int> windspeed,
+                                  WindspeedHistory wind_history) {
+  WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
+  /*
+         * Put the raw data into the wu data
+         */
+  wu->setVarData("action", "updateraw");
+  // time_point<utc_clock> utc_time = utc_clock::now();
+  wu->setVarData("dateutc", "now");
+  /*
+         * Weather Underground wants fahrenheit
+         */
+  if (temp1.has_value()) {
+    /*
+           * The SHT4x is supposed to be more accurate so use it
+           */
+    Fahrenheit tempf = temp1.value().value();
+    wu->setVarData("tempf", tempf.value());
+  }
+  if (temp2.has_value()) {
+    Fahrenheit temp2f = temp2.value().value();
+    wu->setVarData("temp2f", temp2f.value());
+  }
+
+  if (rh.has_value()) {
+    RelativeHumidity humidity = rh.value().relativeHumidityValue();
+    wu->setVarData("humidity", humidity.value());
+  }
+
+  /*
+   * If there are valid temperature and relative humidity then add a dewpoint
+   */
+  if (dewpoint.has_value()) {
+    wu->setData("dewptf", dewpoint.value().value());
+  }
+
+  /*
+   * Weather Underground wants inches mercury
+   */
+  if (pressure.has_value()) {
+    InchesMercury inches = pressure.value().value();
+    wu->setVarData("baromin", inches.value());
+  }
+
+  /*
+         * Weather Underground wants speed in mph
+         */
+  if (windspeed.has_value()) {
+    MilesPerHour wind_mph = windspeed.value().value();
+    wu->setVarData("windspeedmph", wind_mph.value());
+  }
+  if (wind_history.countOverPeriod(kInterval2m) > 0) {
+    expected<MilesPerHour, int> ave = wind_history.average(kInterval2m);
+    if (ave.has_value() == true) {
+      wu->setVarData("windspdmph_avg2m", ave.value().value());
+    }
+    expected<SpeedMeasurement, int> gust = wind_history.gust(kInterval2m);
+    if (gust.has_value() == true) {
+      MilesPerHour mph = gust.value().value();
+      wu->setVarData("windgustmph", mph.value());
+    }
+  }
+  if (wind_history.countOverPeriod(kInterval10m) > 0) {
+    expected<SpeedMeasurement, int> gust = wind_history.gust(kInterval10m);
+    if (gust.has_value() == true) {
+      MilesPerHour mph = gust.value().value();
+      wu->setVarData("windgustmph_10m", mph.value());
+    }
+  }
+
+  return wu;
+}
+
+void terminate(bool in_systemd) {
+  if (in_systemd == true) {
+    SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
+                      systemd_unit_interface);
+    sleep(10);  // Give the daemon a chance to register the log message
+    sd_qw_unit.stop("replace");
+    pause();
+  }
+  exit(1);
+}
 
 int main(int argc, char* argv[]) {
   string temperature;
@@ -137,25 +257,16 @@ int main(int argc, char* argv[]) {
     */
   SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
                     systemd_unit_interface);
-  SdServiceUnit sd_qw_service_unit(systemd_destination,
-                                   systemd_quietwind_service_path,
-                                   systemd_service_interface);
 
-  service_state = sd_qw_unit.getSubState();
-  if (service_state.has_value() != true) {
-    logger.log(LOGGER_ERR, "Can't get substate of quietwind weather service");
+  expected<bool, SdBusError> isParentSystemd = isRunningInSystemd();
+
+  if (isParentSystemd.has_value() != true) {
+    logger.log(LOG_CRIT, format("{} : {}", isParentSystemd.error().code,
+                                *isParentSystemd.error().message));
     exit(1);
   }
 
-  service_pid = sd_qw_service_unit.getMainPID();
-  if (service_pid.has_value() != true) {
-    logger.log(LOGGER_INFO, "Can't get main pid of quietwind weather service");
-    exit(1);
-  }
-
-  if (service_state == "running" && service_pid == getpid()) {
-    in_systemd = true;
-  }
+  in_systemd == isParentSystemd.value();
 
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
@@ -248,12 +359,7 @@ int main(int argc, char* argv[]) {
       I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
   if (i2c_bus.status() != qw::devices::I2CBUS_STATUS_OK) {
     logger.log(LOGGER_ERR, "Initialization of I2C bus failed");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
 
   Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
@@ -261,23 +367,13 @@ int main(int argc, char* argv[]) {
   error = lps22.init();
   if (error != 0) {
     logger.log(LOGGER_ERR, "Initialization of lps22hb Failed");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
 
   x_whoami = lps22.whoAmI();
   if (x_whoami.has_value() != true) {
     logger.log(LOGGER_ERR, "Couldn't get Who am I value for lps22hb");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
   logger.log(LOGGER_INFO,
              format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
@@ -290,22 +386,12 @@ int main(int argc, char* argv[]) {
   error = sht4x.softReset();
   if (error != 0) {
     logger.log(LOGGER_ERR, "CHT4X reset failed");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
   x_serial_number = sht4x.getSerialNumber();
   if (x_serial_number.has_value() == false) {
     logger.log(LOGGER_ERR, "Getting SHT44 Serial Number failed");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
   logger.log(LOGGER_INFO,
              format("SHT44 Serial Number: {}", x_serial_number.value()));
@@ -320,29 +406,10 @@ int main(int argc, char* argv[]) {
   expected<Ads1015Config, int> ads_result = ads1015.inspectConfigRegister();
   if (ads_result.has_value() == false) {
     logger.log(LOGGER_ERR, "Getting ADS1015 Configuration Register");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
   logger.log(LOGGER_INFO, "Ads 1015 Successfully read configuration register");
   value = ads_result.value();
-  logger.log(
-      LOGGER_INFO,
-      format(
-          "\tOs: {}\n\tMux: {}\n\tPga: {}\n\tMode: {}\n\tDr: {}\n\tCompMode: "
-          "{}\n\tCompPol: {}\n\tCompLatch: {}\n\tCompQueue: {}\n",
-          static_cast<uint8_t>(value.fields.os),
-          static_cast<uint8_t>(value.fields.mux),
-          static_cast<uint8_t>(value.fields.pga),
-          static_cast<uint8_t>(value.fields.mode),
-          static_cast<uint8_t>(value.fields.dr),
-          static_cast<uint8_t>(value.fields.comp_mode),
-          static_cast<uint8_t>(value.fields.comp_pol),
-          static_cast<uint8_t>(value.fields.comp_latch),
-          static_cast<uint8_t>(value.fields.comp_queue)));
 
   /*
    * Since the ADC is available define an annometer
@@ -352,12 +419,7 @@ int main(int argc, char* argv[]) {
       anomometer.getMeasurement();
   if (wind_speed_measurement.has_value() == false) {
     logger.log(LOGGER_ERR, "Unable to read anomometer speed");
-    if (in_systemd == true) {
-      sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.stop("replace");
-      pause();
-    }
-    exit(1);
+    terminate(in_systemd);
   }
 
   /*
@@ -385,7 +447,7 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_INFO,
                format("Unable to parse Weather Underground config file: {}",
                       json_config["WeatherUndegroundFile"].asString()));
-    exit(1);
+    terminate(in_systemd);
   }
 
   if (wu_json_config.isMember("pwu_name") == false ||
@@ -462,76 +524,21 @@ int main(int argc, char* argv[]) {
         auto x_lps22_temp = lps22.getTemperatureMeasurement();
 
         auto x_lps22_pressure = lps22.getPressureMeasurement();
+
+        expected<Fahrenheit, int> dewptf;
+        if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
+          dewptf = dewPoint(x_sht4x_temp.value().value(),
+                            x_sht4x_humidity.value().value());
+        } else {
+          dewptf = unexpected(ENODATA);
+        }
         /*
          * Put the raw data into the wu data
          */
-        wu->setVarData("action", "updateraw");
-        // time_point<utc_clock> utc_time = utc_clock::now();
-        wu->setVarData("dateutc", "now");
-        /*
-         * Weather Underground wants fahrenheit
-         */
-        if (x_sht4x_temp.has_value()) {
-          /*
-           * The SHT4x is supposed to be more accurate so use it
-           */
-          Fahrenheit tempf = x_sht4x_temp.value().value();
-          wu->setVarData("tempf", tempf.value());
-          Fahrenheit temp2f = x_lps22_temp.value().value();
-          wu->setVarData("temp2f", temp2f.value());
-        }
-
-        if (x_sht4x_humidity.has_value()) {
-          RelativeHumidity humidity =
-              x_sht4x_humidity.value().relativeHumidityValue();
-          wu->setVarData("humidity", humidity.value());
-        }
-
-        /*
-         * If there are valid temperature and relative humidity then add a dewpoint
-         */
-        if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-          Celsius tempc = x_sht4x_temp.value().value();
-          RelativeHumidity humidity = x_sht4x_humidity.value().value();
-          Celsius dewptc = dewPoint(tempc, humidity);
-          Fahrenheit dewptf = dewptc;
-          wu->setVarData("dewptf", dewptf.value());
-        }
-
-        /*
-         * Weather Underground wants inches mercury
-         */
-        if (x_lps22_pressure.has_value()) {
-          InchesMercury pressure = x_lps22_pressure.value().value();
-          wu->setVarData("baromin", pressure.value());
-        }
-
-        /*
-         * Weather Underground wants speed in mph
-         */
-        if (x_anomometer.has_value()) {
-          MilesPerHour wind_mph = x_anomometer.value().value();
-          wu->setVarData("windspeedmph", wind_mph.value());
-        }
-        if (ws_history.countOverPeriod(kInterval2m) > 0) {
-          expected<MilesPerHour, int> ave = ws_history.average(kInterval2m);
-          if (ave.has_value() == true) {
-            wu->setVarData("windspdmph_avg2m", ave.value().value());
-          }
-          expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval2m);
-          if (gust.has_value() == true) {
-            MilesPerHour mph = gust.value().value();
-            wu->setVarData("windgustmph", mph.value());
-          }
-        }
-        if (ws_history.countOverPeriod(kInterval10m) > 0) {
-          expected<SpeedMeasurement, int> gust = ws_history.gust(kInterval10m);
-          if (gust.has_value() == true) {
-            MilesPerHour mph = gust.value().value();
-            wu->setVarData("windgustmph_10m", mph.value());
-          }
-        }
-
+        WeatherUnderground* wu =
+            processWuData(pwu_name, pwu_password, x_sht4x_temp, x_lps22_temp,
+                          x_lps22_pressure, x_sht4x_humidity, dewptf,
+                          x_anomometer, ws_history);
         /*
          * debug to check out the string
          */
@@ -553,6 +560,7 @@ int main(int argc, char* argv[]) {
           logger.log(LOGGER_INFO, response);
         }
         wu->reset();
+        delete wu;
       }
     }
 

@@ -58,7 +58,7 @@ enum SdBusType { SD_BUS_TYPE_SYSTEM, SD_BUS_TYPE_USER };
 
 struct SdBusError {
   /*
-   * Mae sure these have some values when created
+   * Make sure these have some values when created
    */
   SdBusErrorType type = SD_BUS_NO_ERROR;
   int code = 0;
