@@ -26,6 +26,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <compare>
+#include <string>
+
 #include "qw/units/pressure/include/pressure.h"
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/pressure/include/millibar.h"
@@ -43,49 +46,42 @@ Pressure::Pressure() {}
 Pressure::Pressure(int64_t base_value) : base_value_(base_value) {}
 
 bool Pressure::operator==(const Pressure& other) const {
-
   bool value = (base_value_ == other.base_value_);
 
   return value;
 }
 
 bool Pressure::operator!=(const Pressure& other) const {
-
   bool value = (base_value_ != other.base_value_);
 
   return value;
 }
 
 bool Pressure::operator<(const Pressure& other) const {
-
   bool value = (base_value_ < other.base_value_);
 
   return value;
 }
 
 bool Pressure::operator>(const Pressure& other) const {
-
   bool value = (base_value_ > other.base_value_);
 
   return value;
 }
 
 bool Pressure::operator<=(const Pressure& other) const {
-
   bool value = (base_value_ <= other.base_value_);
 
   return value;
 }
 
 bool Pressure::operator>=(const Pressure& other) const {
-
   bool value = (base_value_ >= other.base_value_);
 
   return value;
 }
 
 strong_ordering Pressure::operator<=> (const Pressure& other) const {
-
   /*
    * The <=> returns a std::strong_ordering type.
    * Either ::less, ::equal, or ::greater
@@ -99,7 +95,6 @@ strong_ordering Pressure::operator<=> (const Pressure& other) const {
  * Assignment operators
  */
 Pressure& Pressure::operator=(const Pressure& other) {
-
   /*
    * Guard against self assignement
    */
@@ -117,14 +112,12 @@ Pressure& Pressure::operator=(const Pressure& other) {
 }
 
 Pressure& Pressure::operator+=(const Pressure& other) {
-
   base_value_ += other.base_value_;
 
   return *this;
 }
 
 Pressure& Pressure::operator-=(const Pressure& other) {
-
   base_value_ -= other.base_value_;
 
   return *this;
@@ -134,7 +127,6 @@ Pressure& Pressure::operator-=(const Pressure& other) {
  * Arithmetic operations
  */
 const Pressure Pressure::operator+(const Pressure& other) const {
-
   Pressure result = *this;
 
   result.base_value_ += other.base_value_;
@@ -143,7 +135,6 @@ const Pressure Pressure::operator+(const Pressure& other) const {
 }
 
 const Pressure Pressure::operator-(const Pressure& other) const {
-
   Pressure result = *this;
 
   result.base_value_ -= other.base_value_;
@@ -152,7 +143,6 @@ const Pressure Pressure::operator-(const Pressure& other) const {
 }
 
 const Pressure Pressure::operator/(const int& other) const {
-
   Pressure result = *this;
 
   result.base_value_ /= other;
@@ -166,7 +156,6 @@ const Pressure Pressure::operator/(const int& other) const {
  * Pressure * int but not int * Pressure
  */
 const Pressure Pressure::operator*(const int& other) const {
-
   Pressure result = *this;
 
   result.base_value_ *= other;
@@ -178,7 +167,6 @@ const Pressure Pressure::operator*(const int& other) const {
  * Intrinsic casting to pressure units
  */
 Pressure::operator Millibar() const {
-
   Millibar mbar;
   mbar.setBase(base_value_);
 
@@ -186,7 +174,6 @@ Pressure::operator Millibar() const {
 }
 
 Pressure::operator InchesMercury() const {
-
   InchesMercury inches;
   inches.setBase(base_value_);
 

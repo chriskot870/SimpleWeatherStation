@@ -31,6 +31,12 @@
  */
 #include "include/weather_underground.h"
 
+#include <expected>
+#include <map>
+#include <string>
+
+using std::string;
+
 /*
  * Any filed that matches the pattern of the key has the associated properties
  */
@@ -116,14 +122,13 @@ map<string, FieldType> wu_fields = {
 WeatherUnderground::WeatherUnderground(string id, string password)
     : id_(id), password_(password) {}
 
-size_t WeatherUnderground::WriteCallback(void* contents, size_t size,
+size_t WeatherUnderground::writeCallback(void* contents, size_t size,
                                          size_t nmemb, void* userp) {
-  ((std::string*)userp)->append((char*)contents, size * nmemb);
+  (reinterpret_cast<string*>(userp))->append(reinterpret_cast<char*>(contents), size * nmemb);
   return size * nmemb;
 }
 
 expected<bool, int> WeatherUnderground::sendData() {
-
   /*
    * We need to check that ID and PASSWORD are NOT in the map
    */
@@ -154,7 +159,7 @@ expected<bool, int> WeatherUnderground::sendData() {
    */
   curl_easy_setopt(curl, CURLOPT_URL, http_get_request_.c_str());
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-                   WeatherUnderground::WriteCallback);
+                   WeatherUnderground::writeCallback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_);
 
   /*
@@ -366,10 +371,9 @@ expected<bool, int> WeatherUnderground::setData(string field, float value) {
 
 expected<bool, int> WeatherUnderground::setData(string field,
                                                 system_clock value) {
-
   /*
-     * Check if the field is on the wu fields list
-     */
+   * Check if the field is on the wu fields list
+   */
   if (wu_fields.contains(field) == false) {
     return unexpected(EINVAL);
   }
@@ -396,7 +400,6 @@ expected<bool, int> WeatherUnderground::setData(string field,
 }
 
 void WeatherUnderground::reset() {
-
   wu_data_.clear();
   wu_number_data_.clear();
   wu_text_data_.clear();
@@ -416,7 +419,7 @@ string WeatherUnderground::buildHttpRequest() {
   addData("PASSWORD", password_);
 
   /*
-   * Now walk through the url data map and create the urk escaped get string.
+   * Now walk through the url data map and create the url escaped get string.
    */
   for (auto [field, value] : wu_data_) {
     url_get_string += format("&{}={}", field, value.url_data);
@@ -425,29 +428,26 @@ string WeatherUnderground::buildHttpRequest() {
   /*
    * Put the URL pieces together
    */
-  string url_http_string = wu_url + "?" + url_get_string;
+  string url_http_string(wu_url);
+  url_http_string += "?" + url_get_string;
 
   return url_http_string;
 }
 
 string WeatherUnderground::getHttpRequest() {
-
   return http_get_request_;
 }
 
 void WeatherUnderground::clearHttpRequest() {
-
   http_get_request_.clear();
   return;
 }
 
 string WeatherUnderground::getHttpResponse() {
-
   return *response_;
 }
 
 void WeatherUnderground::clearHttpResponse() {
-
   response_->clear();
 
   return;

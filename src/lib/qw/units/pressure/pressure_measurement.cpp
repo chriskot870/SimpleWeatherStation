@@ -25,6 +25,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <chrono>
 
 #include "qw/units/pressure/include/pressure_measurement.h"
 
@@ -52,4 +53,4 @@ time_point<system_clock> PressureMeasurement::time() {
   return time_;
 }
 
-}  // Namespace qw_units
+}  // namespace qw::units

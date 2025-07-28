@@ -29,10 +29,10 @@
 
 #include "qw/units/temperature/include/celsius.h"
 
-#include <fmt/format.h>
-#include <math.h>
 #include <compare>
 #include <string>
+
+#include "fmt/format.h"
 
 using std::string;
 using std::strong_ordering;
@@ -44,36 +44,32 @@ namespace qw::units {
  */
 Celsius::Celsius() {}
 
-Celsius::Celsius(float temp) : Temperature(CelsiusToBase(temp)) {}
+Celsius::Celsius(float temp) : Temperature(celsiusToBase(temp)) {}
 
 Celsius::Celsius(float temp, string fmt_value)
-    : Temperature(CelsiusToBase(temp)), fmt_value_(fmt_value) {}
+    : Temperature(celsiusToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float Celsius::value() {
-
-  return BaseToCelsius(base_value_);
+  return baseToCelsius(base_value_);
 }
 
-int Celsius::CelsiusToBase(float temp) {
-
+int64_t Celsius::celsiusToBase(float temp) {
   float f = temp * temperature_base_conversion_factor;
   int value = round(f);
 
   return value;
 }
 
-float Celsius::BaseToCelsius(int base) {
-
+float Celsius::baseToCelsius(int base) {
   float temp = static_cast<float>(base) / temperature_base_conversion_factor;
 
   return temp;
 }
 
 void Celsius::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -84,7 +80,6 @@ void Celsius::setBase(int64_t base_value) {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Celsius::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -95,7 +90,6 @@ string Celsius::toString() {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Celsius::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -105,7 +99,6 @@ string Celsius::toString(string fmt_value) {
  * Set the format to use for this instanace
  */
 void Celsius::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

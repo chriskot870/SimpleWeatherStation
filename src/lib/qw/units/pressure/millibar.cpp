@@ -28,6 +28,11 @@
 
 #include "qw/units/pressure/include/millibar.h"
 
+#include <compare>
+#include <string>
+
+#include "fmt/format.h"
+
 using fmt::format;
 using std::string;
 using std::strong_ordering;
@@ -39,35 +44,31 @@ namespace qw::units {
  */
 Millibar::Millibar() {}
 
-Millibar::Millibar(float mb) : Pressure(MillibarToBase(mb)) {}
+Millibar::Millibar(float mb) : Pressure(millibarToBase(mb)) {}
 
 Millibar::Millibar(float mb, string fmt_value)
-    : Pressure(MillibarToBase(mb)), fmt_value_(fmt_value) {}
+    : Pressure(millibarToBase(mb)), fmt_value_(fmt_value) {}
 
 /*
  * Data manpulation routines
  */
 float Millibar::value() {
-
-  return BaseToMillibar(base_value_);
+  return baseToMillibar(base_value_);
 }
 
-int Millibar::MillibarToBase(float mb) {
-
+int Millibar::millibarToBase(float mb) {
   int value = round(mb * pressure_base_conversion_factor);
 
   return value;
 }
 
-float Millibar::BaseToMillibar(int base) {
-
+float Millibar::baseToMillibar(int base) {
   float value = static_cast<float>(base) / pressure_base_conversion_factor;
 
   return value;
 }
 
 void Millibar::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -78,7 +79,6 @@ void Millibar::setBase(int64_t base_value) {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Millibar::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -89,14 +89,12 @@ string Millibar::toString() {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Millibar::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }
 
 void Millibar::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

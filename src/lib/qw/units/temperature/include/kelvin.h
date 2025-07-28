@@ -36,7 +36,6 @@
 namespace qw::units {
 
 class Kelvin : public Temperature {
-
   friend Temperature;
 
  public:
@@ -44,7 +43,7 @@ class Kelvin : public Temperature {
 
   explicit Kelvin(float temp);
 
-  explicit Kelvin(float temp, std::string fmt_value);
+  Kelvin(float temp, std::string fmt_value);
 
   float value();
 
@@ -55,15 +54,15 @@ class Kelvin : public Temperature {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = temperature_default_format;
+  std::string fmt_value_ = std::string(temperature_default_format);
 
-  int KelvinToBase(float temp);
+  int64_t kelvinToBase(float temp);
 
-  float BaseToKelvin(int base);
+  float baseToKelvin(int base);
 
   void setBase(int64_t base_value);
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_KELVIN_H_

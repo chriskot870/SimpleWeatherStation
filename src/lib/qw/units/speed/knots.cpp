@@ -27,9 +27,10 @@
  */
 #include "qw/units/speed/include/knots.h"
 
-#include <string>
 #include <compare>
-#include <fmt/format.h>
+#include <string>
+
+#include "fmt/format.h"
 
 using std::string;
 using std::strong_ordering;
@@ -41,26 +42,24 @@ namespace qw::units {
  */
 Knots::Knots() {}
 
-Knots::Knots(float knt) : Speed(KnotsToBase(knt)) {}
+Knots::Knots(float knt) : Speed(knotsToBase(knt)) {}
 
 Knots::Knots(float knt, string fmt_value)
-    : Speed(KnotsToBase(knt)), fmt_value_(fmt_value) {}
+    : Speed(knotsToBase(knt)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float Knots::value() {
-
-  return BaseToKnots(base_value_);
+  return baseToKnots(base_value_);
 }
 
 /*
  * For every mile per hour there are 100 base units.
  * So convert knots to miles per hour. Then convert to base units.
  */
-int64_t Knots::KnotsToBase(float knots) {
-
-  int value = round(knots * kMphPerKnot * speed_base_conversion_factor);
+int64_t Knots::knotsToBase(float knots) {
+  int64_t value = round(knots * kMphPerKnot * speed_base_conversion_factor);
 
   return value;
 }
@@ -69,15 +68,13 @@ int64_t Knots::KnotsToBase(float knots) {
  * Convert the base value to miles per hour.
  * Then convert miles per hour to knots
  */
-float Knots::BaseToKnots(int base) {
-
+float Knots::baseToKnots(int base) {
   float knots = (static_cast<float>(base) / speed_base_conversion_factor) * kKnotPerMph;
 
   return knots;
 }
 
 void Knots::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -87,7 +84,6 @@ void Knots::setBase(int64_t base_value) {
  * Use the default format
  */
 string Knots::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -97,7 +93,6 @@ string Knots::toString() {
  * Use the provided format instead of one in private variable
  */
 string Knots::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -107,7 +102,6 @@ string Knots::toString(string fmt_value) {
  * Set the format for this instance
  */
 void Knots::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

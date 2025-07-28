@@ -35,7 +35,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>
+#include <expected>  // Cpplint is wrong to think this is a c system header // NOLINT
 #include <map>
 #include <memory>
 #include <vector>

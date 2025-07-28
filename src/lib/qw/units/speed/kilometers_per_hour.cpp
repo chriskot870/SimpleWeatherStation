@@ -27,9 +27,10 @@
  */
 #include "qw/units/speed/include/kilometers_per_hour.h"
 
-#include <string>
 #include <compare>
-#include <fmt/format.h>
+#include <string>
+
+#include "fmt/format.h"
 
 using fmt::format;
 using std::string;
@@ -43,26 +44,24 @@ namespace qw::units {
 KilometersPerHour::KilometersPerHour() {}
 
 KilometersPerHour::KilometersPerHour(float kph)
-    : Speed(KilometersPerHourToBase(kph)) {}
+    : Speed(kilometersPerHourToBase(kph)) {}
 
 KilometersPerHour::KilometersPerHour(float kph, string fmt_value)
-    : Speed(KilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
+    : Speed(kilometersPerHourToBase(kph)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float KilometersPerHour::value() {
-
-  return BaseToKilometersPerHour(base_value_);
+  return baseToKilometersPerHour(base_value_);
 }
 
 /*
  * For every mile per hour there are 100 base units.
  * So, convert kph to mph than apply the base conversion factor.
  */
-int64_t KilometersPerHour::KilometersPerHourToBase(float kph) {
-
-  int value = round((kph * kMilesPerKilometer) * speed_base_conversion_factor);
+int64_t KilometersPerHour::kilometersPerHourToBase(float kph) {
+  int64_t value = round((kph * kMilesPerKilometer) * speed_base_conversion_factor);
 
   return value;
 }
@@ -71,15 +70,13 @@ int64_t KilometersPerHour::KilometersPerHourToBase(float kph) {
  * Divide the base level by speed base conversion factor to get to miles.
  * Then convert miles to kilometers.
  */
-float KilometersPerHour::BaseToKilometersPerHour(int base) {
-
+float KilometersPerHour::baseToKilometersPerHour(int base) {
   float mph = (static_cast<float>(base) / speed_base_conversion_factor) * kKilometersPerMile;
 
   return mph;
 }
 
 void KilometersPerHour::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -89,7 +86,6 @@ void KilometersPerHour::setBase(int64_t base_value) {
  * Use the default format
  */
 string KilometersPerHour::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -99,7 +95,6 @@ string KilometersPerHour::toString() {
  * Use the provided format instead of one in private variable
  */
 string KilometersPerHour::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -109,7 +104,6 @@ string KilometersPerHour::toString(string fmt_value) {
  * Set the format for this instance
  */
 void KilometersPerHour::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

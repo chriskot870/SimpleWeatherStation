@@ -37,11 +37,12 @@
  * and error.
  */
 
-#ifndef SRC_LIB_DEVICES_QW_ANOMOMETER_ADAFRUIT_H_
-#define SRC_LIB_DEVICES_QW_ANOMOMETER_ADAFRUIT_H_
+#ifndef SRC_LIB_QW_DEVICES_INCLUDE_ANOMOMETER_ADAFRUIT_H_
+#define SRC_LIB_QW_DEVICES_INCLUDE_ANOMOMETER_ADAFRUIT_H_
+
+#include <expected>  // cpplint is wrong about this being c system header // NOLINT
 
 #include "qw/devices/i2c/include/ads1015.h"
-
 #include "qw/units/speed/include/speed_measurement.h"
 
 namespace qw::devices {
@@ -97,4 +98,4 @@ class AnomometerAdafruit {
 
 }  // namespace qw::devices
 
-#endif  // SRC_LIB_QW_DEVICES_ANOMOMETER_ADAFRUIT_H_
+#endif  // SRC_LIB_QW_DEVICES_INCLUDE_ANOMOMETER_ADAFRUIT_H_

@@ -30,6 +30,7 @@
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_KNOTS_H_
 
 #include <string>
+#include <string_view>
 
 #include "qw/units/speed/include/speed.h"
 
@@ -42,7 +43,7 @@ class Knots : public Speed {
  public:
   Knots();
 
-  Knots(float temp);
+  explicit Knots(float temp);
 
   Knots(float temp, std::string fmt_value);
 
@@ -55,11 +56,11 @@ class Knots : public Speed {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = std::string(speed_default_format);
 
-  int64_t KnotsToBase(float temp);
+  int64_t knotsToBase(float temp);
 
-  float BaseToKnots(int base);
+  float baseToKnots(int base);
 
   void setBase(int64_t base_value);
 };

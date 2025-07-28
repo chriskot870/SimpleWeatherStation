@@ -29,7 +29,7 @@
 #include "qw/devices/include/anomometer_adafruit.h"
 
 #include <chrono>
-#include <expected>
+#include <expected>  // Cpplint thinks this is c system header // NOLINT
 
 #include "qw/devices/i2c/include/ads1015.h"
 #include "qw/units/speed/include/meters_per_second.h"
@@ -51,7 +51,6 @@ AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux)
     : adc_(adc), mux_(mux) {}
 
 expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
-
   expected<int16_t, int> reading = adc_.getReading(mux_);
   if (reading.has_value() == false) {
     return unexpected(EIO);

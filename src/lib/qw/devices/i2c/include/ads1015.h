@@ -36,12 +36,14 @@
 #define SRC_LIB_QW_DEVICES_I2C_INCLUDE_ADS1015_H_
 
 #include <errno.h>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>
+#include <expected>  // Lint incorrectly counts this as a C system header // NOLINT
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "qw/devices/i2c/include/i2cbus.h"
@@ -161,7 +163,7 @@ typedef enum {
   ADS1015_DR_1600_SPS,    // 100 : 1600SPS (Default)
   ADS1015_DR_2400_SPS,    // 101 : 2400SPS
   ADS1015_DR_3300_SPS_1,  // 110 : 3300SPS
-  ADS1015_DR_3300_SPS_2,  // 111 : 3300SPS
+  ADS1015_DR_3300_SPS_2   // 111 : 3300SPS
 } Ads1015DrType;
 
 /*
@@ -172,7 +174,6 @@ constexpr uint8_t kAds1015CompModeShift = 4;
 typedef enum {
   ADS1015_COMP_MODE_TRADITIONAL,  // 0 : Traditional comparator with hysteresis (Default)
   ADS1015_COMP_MODE_WINDOW  // 1 : Window comparator
-
 } Ads1015CompModeType;
 
 /*

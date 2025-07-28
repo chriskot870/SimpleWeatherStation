@@ -43,7 +43,7 @@ class RelativeHumidity {
  public:
   RelativeHumidity();
 
-  RelativeHumidity(float rh);
+  explicit RelativeHumidity(float rh);
 
   RelativeHumidity(float rh, std::string fmt_value);
 
@@ -88,6 +88,6 @@ class RelativeHumidity {
   std::string fmt_value_ = relative_humidity_default_format;
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_H_

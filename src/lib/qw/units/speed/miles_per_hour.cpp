@@ -27,9 +27,10 @@
  */
 #include "qw/units/speed/include/miles_per_hour.h"
 
-#include <string>
 #include <compare>
-#include <fmt/format.h>
+#include <string>
+
+#include "fmt/format.h"
 
 using std::string;
 using std::strong_ordering;
@@ -41,38 +42,34 @@ namespace qw::units {
  */
 MilesPerHour::MilesPerHour() {}
 
-MilesPerHour::MilesPerHour(float mph) : Speed(MilesPerHourToBase(mph)) {}
+MilesPerHour::MilesPerHour(float mph) : Speed(milesPerHourToBase(mph)) {}
 
 MilesPerHour::MilesPerHour(float mph, string fmt_value)
-    : Speed(MilesPerHourToBase(mph)), fmt_value_(fmt_value) {}
+    : Speed(milesPerHourToBase(mph)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float MilesPerHour::value() {
-
-  return BaseToMilesPerHour(base_value_);
+  return baseToMilesPerHour(base_value_);
 }
 
 /*
  * For every mile per hour there are speed_base_conversion_factor base units.
  */
-int MilesPerHour::MilesPerHourToBase(float mph) {
-
+int MilesPerHour::milesPerHourToBase(float mph) {
   int value = round(mph * speed_base_conversion_factor);
 
   return value;
 }
 
-float MilesPerHour::BaseToMilesPerHour(int64_t base) {
-
+float MilesPerHour::baseToMilesPerHour(int64_t base) {
   float mph = (static_cast<float>(base) / speed_base_conversion_factor);
 
   return mph;
 }
 
 void MilesPerHour::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -82,7 +79,6 @@ void MilesPerHour::setBase(int64_t base_value) {
  * Use the default format
  */
 string MilesPerHour::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -92,7 +88,6 @@ string MilesPerHour::toString() {
  * Use the provided format instead of one in private variable
  */
 string MilesPerHour::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -102,7 +97,6 @@ string MilesPerHour::toString(string fmt_value) {
  * Set the format for this instance
  */
 void MilesPerHour::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

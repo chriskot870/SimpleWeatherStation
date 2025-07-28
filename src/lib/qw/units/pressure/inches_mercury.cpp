@@ -28,6 +28,9 @@
 
 #include "qw/units/pressure/include/inches_mercury.h"
 
+#include <compare>
+#include <string>
+
 using std::string;
 using std::strong_ordering;
 
@@ -39,32 +42,29 @@ namespace qw::units {
 InchesMercury::InchesMercury() {}
 
 InchesMercury::InchesMercury(float temp)
-    : Pressure(InchesMercuryToBase(temp)) {}
+    : Pressure(inchesMercuryToBase(temp)) {}
 
 InchesMercury::InchesMercury(float temp, string fmt_value)
-    : Pressure(InchesMercuryToBase(temp)), fmt_value_(fmt_value) {}
+    : Pressure(inchesMercuryToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float InchesMercury::value() {
-
-  return BaseToInchesMercury(base_value_);
+  return baseToInchesMercury(base_value_);
 }
 
 /*
  * I am using a base of milli-millibars as a base unit
  */
-int InchesMercury::InchesMercuryToBase(float inhg) {
-
+int InchesMercury::inchesMercuryToBase(float inhg) {
   int value = round(((inhg * mb_sea_level) / inHg_sea_level) *
                     pressure_base_conversion_factor);
 
   return value;
 }
 
-float InchesMercury::BaseToInchesMercury(int base) {
-
+float InchesMercury::baseToInchesMercury(int base) {
   float inhg =
       ((static_cast<float>(base) / pressure_base_conversion_factor) * inHg_sea_level) /
       mb_sea_level;
@@ -73,7 +73,6 @@ float InchesMercury::BaseToInchesMercury(int base) {
 }
 
 void InchesMercury::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -84,7 +83,6 @@ void InchesMercury::setBase(int64_t base_value) {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string InchesMercury::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -95,7 +93,6 @@ string InchesMercury::toString() {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string InchesMercury::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -105,7 +102,6 @@ string InchesMercury::toString(string fmt_value) {
  * Set the format for this instance
  */
 void InchesMercury::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

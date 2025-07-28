@@ -40,31 +40,28 @@ namespace qw::units {
 /*
  * Constructor routines
  */
-Fahrenheit::Fahrenheit(){};
+Fahrenheit::Fahrenheit() {}
 
-Fahrenheit::Fahrenheit(float temp) : Temperature(FahrenheitToBase(temp)) {}
+Fahrenheit::Fahrenheit(float temp) : Temperature(fahrenheitToBase(temp)) {}
 
 Fahrenheit::Fahrenheit(float temp, string fmt_value)
-    : Temperature(FahrenheitToBase(temp)), fmt_value_(fmt_value) {}
+    : Temperature(fahrenheitToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float Fahrenheit::value() {
-
-  return BaseToFahrenheit(base_value_);
+  return baseToFahrenheit(base_value_);
 }
 
-int Fahrenheit::FahrenheitToBase(float temp) {
-
+int64_t Fahrenheit::fahrenheitToBase(float temp) {
   float f = (((temp - 32) * 5) / 9) * temperature_base_conversion_factor;
   int value = round(f);
 
   return value;
 }
 
-float Fahrenheit::BaseToFahrenheit(int base) {
-
+float Fahrenheit::baseToFahrenheit(int base) {
   float value =
       (((static_cast<float>(base) / temperature_base_conversion_factor) * 9) / 5) + 32;
 
@@ -72,7 +69,6 @@ float Fahrenheit::BaseToFahrenheit(int base) {
 }
 
 void Fahrenheit::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -83,7 +79,6 @@ void Fahrenheit::setBase(int64_t base_value) {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Fahrenheit::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -94,7 +89,6 @@ string Fahrenheit::toString() {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Fahrenheit::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -104,7 +98,6 @@ string Fahrenheit::toString(string fmt_value) {
  * Set the format for this specific instance
  */
 void Fahrenheit::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

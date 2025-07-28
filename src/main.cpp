@@ -30,15 +30,17 @@
  * The main program to show the data.
  * Right now it's pretty simple
  */
-#include "include/weather_station.h"
 
 #include <expected>
 #include <filesystem>
 #include <fstream>
 #include <string>
-#include <fmt/chrono.h>
-#include <fmt/format.h>
+#include <string_view>
 
+#include "fmt/chrono.h"
+#include "fmt/format.h"
+
+#include "include/weather_station.h"
 #include "include/weather_station_config.h"
 #include "include/weather_underground_config.h"
 #include "qw/locking/include/locking_file.h"
@@ -107,6 +109,7 @@ using std::max;
 using std::min;
 using std::ofstream;
 using std::string;
+using std::string_view;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::chrono::utc_clock;
@@ -247,7 +250,7 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_ERR, "Initialization of I2C bus failed");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);
@@ -260,18 +263,18 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_ERR, "Initialization of lps22hb Failed");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);
   }
 
-  x_whoami = lps22.whoami();
+  x_whoami = lps22.whoAmI();
   if (x_whoami.has_value() != true) {
     logger.log(LOGGER_ERR, "Couldn't get Who am I value for lps22hb");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);
@@ -289,7 +292,7 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_ERR, "CHT4X reset failed");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);
@@ -299,7 +302,7 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_ERR, "Getting SHT44 Serial Number failed");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);
@@ -319,7 +322,7 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_ERR, "Getting ADS1015 Configuration Register");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);
@@ -351,7 +354,7 @@ int main(int argc, char* argv[]) {
     logger.log(LOGGER_ERR, "Unable to read anomometer speed");
     if (in_systemd == true) {
       sleep(10);  // Give the daemon a chance to register the log message
-      sd_qw_unit.Stop("replace");
+      sd_qw_unit.stop("replace");
       pause();
     }
     exit(1);

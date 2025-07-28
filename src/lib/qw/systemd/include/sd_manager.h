@@ -29,21 +29,22 @@
 #ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_H_
 #define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_MANAGER_H_
 
-#include "qw/systemd/include/systemd.h"
-
 #include <expected>
 #include <string>
+#include <string_view>
+
+#include "qw/systemd/include/systemd.h"
 
 namespace qw::systemd {
 
 class SdManager {
  public:
-  SdManager(std::string destination, std::string path, std::string interface);
+  SdManager(std::string_view destination, std::string_view path, std::string_view interface);
 
-  std::expected<std::string, SdBusError> StartUnit(std::string name, std::string mode);
+  std::expected<std::string, SdBusError> startUnit(std::string name, std::string mode);
 
-  std::expected<std::string, SdBusError> StopUnit(std::string name, std::string mode);
-  
+  std::expected<std::string, SdBusError> stopUnit(std::string name, std::string mode);
+
  private:
   /*
    * local variables

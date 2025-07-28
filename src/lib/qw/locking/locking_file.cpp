@@ -35,7 +35,6 @@ namespace qw::locking {
 LockingFile::LockingFile(string lockfile) : lockfile_(lockfile) {}
 
 bool LockingFile::lock() {
-
   fd_ = open(lockfile_.c_str(), O_RDONLY | O_CREAT,
              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   if (fd_ == -1) {
@@ -51,7 +50,6 @@ bool LockingFile::lock() {
 }
 
 void LockingFile::unlock() {
-
   if (fd_ != -1) {
     close(fd_);
     fd_ = -1;
@@ -60,7 +58,6 @@ void LockingFile::unlock() {
 }
 
 LockingFile::~LockingFile() {
-
   unlock();
 }
 

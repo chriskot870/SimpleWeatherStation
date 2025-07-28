@@ -60,6 +60,6 @@ class SpeedMeasurement {
   SpeedMeasurementTimeStamp time_;
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_MEASUREMENT_H_

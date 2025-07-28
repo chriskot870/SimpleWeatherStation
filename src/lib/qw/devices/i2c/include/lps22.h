@@ -44,17 +44,23 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstdint>
+#include <cstring>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstdint>
-#include <cstring>
-#include <expected>
+#include <expected>  // Lint incorrectly counts this as a C header // NOLINT
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
+
+/*
+ * This is an i2c bus device so add the i2cbus.h
+ */
+#include "qw/devices/i2c/include/i2cbus.h"
 
 /*
  * This device provides temperature and pressure data so include the interfaces.
@@ -69,11 +75,6 @@
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
-
-/*
- * This is an i2c bus device so add the i2cbus.h
- */
-#include "i2cbus.h"
 
 namespace qw::devices {
 
@@ -320,7 +321,7 @@ class Lps22 {
 
   int init();
 
-  std::expected<uint8_t, int> whoami();
+  std::expected<uint8_t, int> whoAmI();
 
   std::expected<qw::units::TemperatureMeasurement, int>
   getTemperatureMeasurement();
@@ -390,6 +391,6 @@ class Lps22 {
       std::chrono::milliseconds interval);
 };
 
-}  // Namespace qw::devices
+}  // namespace qw::devices
 
 #endif  // SRC_LIB_QW_DEVICES_I2C_INCLUDE_LPS22_H_

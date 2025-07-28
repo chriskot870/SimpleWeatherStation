@@ -33,20 +33,23 @@
 #ifndef SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 #define SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 
-#include <curl/curl.h>
-#include <fmt/chrono.h>
-#include <fmt/format.h>
+#include <cstring>
+
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <cstring>
-#include <expected>
+#include <expected>  // cpplint thinks this is a c system header // NOLINT
 #include <list>
 #include <map>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
+
+#include "curl/curl.h"
+#include "fmt/chrono.h"
+#include "fmt/format.h"
 
 using fmt::format;
 using std::expected;
@@ -56,15 +59,16 @@ using std::map;
 using std::regex;
 using std::regex_match;
 using std::string;
+using std::string_view;
 using std::unexpected;
 using std::variant;
 using std::vector;
 using std::chrono::system_clock;
 
-const string wu_url =
+constexpr string_view wu_url =
     "https://weatherstation.wunderground.com/weatherstation/"
     "updateweatherstation.php";
-constexpr string url_separater = "&";
+constexpr string_view url_separater = "&";
 
 /*
  * These are the fields that weather underground recognizes
@@ -125,7 +129,7 @@ class WeatherUnderground {
  public:
   WeatherUnderground(string id, string password);
 
-  static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
+  static size_t writeCallback(void* contents, size_t size, size_t nmemb,
                               void* userp);
 
   expected<bool, int> setVarData(

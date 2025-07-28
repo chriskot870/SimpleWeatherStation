@@ -36,7 +36,6 @@
 namespace qw::units {
 
 class Fahrenheit : public Temperature {
-
   friend Temperature;
 
  public:
@@ -55,15 +54,15 @@ class Fahrenheit : public Temperature {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = temperature_default_format;
+  std::string fmt_value_ = std::string(temperature_default_format);
 
-  int FahrenheitToBase(float temp);
+  int64_t fahrenheitToBase(float temp);
 
-  float BaseToFahrenheit(int base);
+  float baseToFahrenheit(int base);
 
   void setBase(int64_t base_value);
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_FAHRENHEIT_H_

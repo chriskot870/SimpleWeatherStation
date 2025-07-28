@@ -29,8 +29,9 @@
 #include "qw/weather/include/windspeed_history.h"
 
 #include <algorithm>
-#include <expected>
-#include <fmt/format.h>
+#include <expected>  // cpplint thinks this is a c system header // NOLINT
+
+#include "fmt/format.h"
 
 #include "qw/logger/include/logger.h"
 
@@ -50,7 +51,6 @@ namespace qw::weather {
 WindspeedHistory::WindspeedHistory() {}
 
 void WindspeedHistory::setMaximumTime(std::chrono::seconds time_span) {
-
   maximum_time_ = time_span;
 
   /*
@@ -62,7 +62,6 @@ void WindspeedHistory::setMaximumTime(std::chrono::seconds time_span) {
 }
 
 std::chrono::seconds WindspeedHistory::getMaximumTime() {
-
   return maximum_time_;
 }
 
@@ -99,7 +98,6 @@ size_t WindspeedHistory::countOverPeriod(std::chrono::seconds time_span) {
 }
 
 void WindspeedHistory::add(SpeedMeasurement speed) {
-
   /*
    * We take every opportunity to keep the list small
    * so clean up measurements that are out of range before
@@ -158,7 +156,6 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
    */
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
   for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
-
     /*
      * If it is within the time stamp add the value
      */
@@ -222,7 +219,6 @@ expected<SpeedMeasurement, int> WindspeedHistory::gust(
 }
 
 void WindspeedHistory::prune() {
-
   SpeedMeasurementTimeStamp current_time = SpeedMeasurementClock::now();
 
   /*

@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_LOCKING_LOCKING_FILE_H_
-#define SRC_LIB_QW_LOCKING_LOCKING_FILE_H_
+#ifndef SRC_LIB_QW_LOCKING_INCLUDE_LOCKING_FILE_H_
+#define SRC_LIB_QW_LOCKING_INCLUDE_LOCKING_FILE_H_
 
 #include <fcntl.h>
 #include <sys/file.h>
@@ -37,9 +37,8 @@
 namespace qw::locking {
 
 class LockingFile {
-
  public:
-  LockingFile(std::string lockfile);
+  explicit LockingFile(std::string lockfile);
 
   bool lock();
 
@@ -54,4 +53,4 @@ class LockingFile {
 
 }  // namespace qw::locking
 
-#endif  // SRC_LIB_QW_LOCKING_LOCKING_FILE_H_
+#endif  // SRC_LIB_QW_LOCKING_INCLUDE_LOCKING_FILE_H_

@@ -30,19 +30,19 @@
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_MILES_PER_HOUR_H_
 
 #include <string>
+#include <string_view>
 
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {
 
 class MilesPerHour : public Speed {
-
   friend Speed;
 
  public:
   MilesPerHour();
 
-  MilesPerHour(float mph);
+  explicit MilesPerHour(float mph);
 
   MilesPerHour(float mph, std::string fmt_value);
 
@@ -55,11 +55,11 @@ class MilesPerHour : public Speed {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = std::string(speed_default_format);
 
-  int MilesPerHourToBase(float mph);
+  int milesPerHourToBase(float mph);
 
-  float BaseToMilesPerHour(int64_t base);
+  float baseToMilesPerHour(int64_t base);
 
   void setBase(int64_t base_value);
 };

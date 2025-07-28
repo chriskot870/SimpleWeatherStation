@@ -42,32 +42,29 @@ namespace qw::units {
 /*
  * Constructor routines
  */
-Kelvin::Kelvin(){};
+Kelvin::Kelvin() {}
 
-Kelvin::Kelvin(float temp) : Temperature(KelvinToBase(temp)) {}
+Kelvin::Kelvin(float temp) : Temperature(kelvinToBase(temp)) {}
 
 Kelvin::Kelvin(float temp, string fmt_value)
-    : Temperature(KelvinToBase(temp)), fmt_value_(fmt_value) {}
+    : Temperature(kelvinToBase(temp)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float Kelvin::value() {
-
-  return BaseToKelvin(base_value_);
+  return baseToKelvin(base_value_);
 }
 
-int Kelvin::KelvinToBase(float temp) {
-
+int64_t Kelvin::kelvinToBase(float temp) {
   float f = ((temp - temperature_celsius_kelvin_offset) *
              temperature_base_conversion_factor);
-  int value = round(f);
+  int64_t value = round(f);
 
   return value;
 }
 
-float Kelvin::BaseToKelvin(int base) {
-
+float Kelvin::baseToKelvin(int base) {
   float value = (static_cast<float>(base) + temperature_celsius_kelvin_offset) /
                 temperature_base_conversion_factor;
 
@@ -75,7 +72,6 @@ float Kelvin::BaseToKelvin(int base) {
 }
 
 void Kelvin::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -86,7 +82,6 @@ void Kelvin::setBase(int64_t base_value) {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Kelvin::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -96,7 +91,6 @@ string Kelvin::toString() {
  * Use the provided format
  */
 string Kelvin::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -106,7 +100,6 @@ string Kelvin::toString(string fmt_value) {
  * Set the format for this instance
  */
 void Kelvin::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

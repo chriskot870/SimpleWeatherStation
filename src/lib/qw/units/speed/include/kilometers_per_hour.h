@@ -26,23 +26,23 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
-#define SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
+#ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
+#define SRC_LIB_QW_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
 
 #include <string>
+#include <string_view>
 
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {
 
 class KilometersPerHour : public Speed {
-
   friend Speed;
 
  public:
   KilometersPerHour();
 
-  KilometersPerHour(float kph);
+  explicit KilometersPerHour(float kph);
 
   KilometersPerHour(float kph, std::string fmt_value);
 
@@ -55,15 +55,15 @@ class KilometersPerHour : public Speed {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = std::string(speed_default_format);
 
-  int64_t KilometersPerHourToBase(float kph);
+  int64_t kilometersPerHourToBase(float kph);
 
-  float BaseToKilometersPerHour(int base);
+  float baseToKilometersPerHour(int base);
 
   void setBase(int64_t base_value);
 };
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_
+#endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_KILOMETERS_PER_HOUR_H_

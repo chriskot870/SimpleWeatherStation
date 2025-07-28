@@ -28,20 +28,23 @@
 
 #include "qw/systemd/include/sd_service_unit.h"
 
-#include <fmt/format.h>
 #include <expected>
 #include <string>
+#include <string_view>
 #include <variant>
+
+#include "fmt/format.h"
 
 using fmt::format;
 using std::expected;
 using std::string;
+using std::string_view;
 using std::unexpected;
 using std::variant;
 
 namespace qw::systemd {
 
-SdServiceUnit::SdServiceUnit(string destination, string path, string interface)
+SdServiceUnit::SdServiceUnit(string_view destination, string_view path, string_view interface)
     : destination_(destination), path_(path), interface_(interface) {}
 
 /*

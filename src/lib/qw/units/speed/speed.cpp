@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string>
 #include <compare>
+#include <string>
 
 #include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/kilometers_per_hour.h"
@@ -48,49 +48,42 @@ Speed::Speed() {}
 Speed::Speed(int64_t base_value) : base_value_(base_value) {}
 
 bool Speed::operator==(const Speed& other) const {
-
   bool value = (base_value_ == other.base_value_);
 
   return value;
 }
 
 bool Speed::operator!=(const Speed& other) const {
-
   bool value = (base_value_ != other.base_value_);
 
   return value;
 }
 
 bool Speed::operator<(const Speed& other) const {
-
   bool value = (base_value_ < other.base_value_);
 
   return value;
 }
 
 bool Speed::operator>(const Speed& other) const {
-
   bool value = (base_value_ > other.base_value_);
 
   return value;
 }
 
 bool Speed::operator<=(const Speed& other) const {
-
   bool value = (base_value_ <= other.base_value_);
 
   return value;
 }
 
 bool Speed::operator>=(const Speed& other) const {
-
   bool value = (base_value_ >= other.base_value_);
 
   return value;
 }
 
 strong_ordering Speed::operator<=> (const Speed& other) const {
-
   /*
    * The <=> returns a std::strong_ordering type.
    * Either ::less, ::equal, or ::greater
@@ -104,7 +97,6 @@ strong_ordering Speed::operator<=> (const Speed& other) const {
  * Assignment operators
  */
 Speed& Speed::operator=(const Speed& other) {
-
   /*
    * Guard against self assignement
    */
@@ -122,14 +114,12 @@ Speed& Speed::operator=(const Speed& other) {
 }
 
 Speed& Speed::operator+=(const Speed& other) {
-
   base_value_ += other.base_value_;
 
   return *this;
 }
 
 Speed& Speed::operator-=(const Speed& other) {
-
   base_value_ -= other.base_value_;
 
   return *this;
@@ -139,7 +129,6 @@ Speed& Speed::operator-=(const Speed& other) {
  * Arithmetic operations
  */
 const Speed Speed::operator+(const Speed& other) const {
-
   Speed result = *this;
 
   result.base_value_ += other.base_value_;
@@ -148,7 +137,6 @@ const Speed Speed::operator+(const Speed& other) const {
 }
 
 const Speed Speed::operator-(const Speed& other) const {
-
   Speed result = *this;
 
   result.base_value_ -= other.base_value_;
@@ -157,7 +145,6 @@ const Speed Speed::operator-(const Speed& other) const {
 }
 
 const Speed Speed::operator/(const int& other) const {
-
   Speed result = *this;
 
   result.base_value_ /= other;
@@ -171,7 +158,6 @@ const Speed Speed::operator/(const int& other) const {
  * Speeed * int but not int * Speed
  */
 const Speed Speed::operator*(const int& other) const {
-
   Speed result = *this;
 
   result.base_value_ *= other;
@@ -183,7 +169,6 @@ const Speed Speed::operator*(const int& other) const {
  * Intrinsic casting to speed units
  */
 Speed::operator MilesPerHour() const {
-
   MilesPerHour mph;
   mph.setBase(base_value_);
 
@@ -191,7 +176,6 @@ Speed::operator MilesPerHour() const {
 }
 
 Speed::operator KilometersPerHour() const {
-
   KilometersPerHour kph;
   kph.setBase(base_value_);
 
@@ -199,7 +183,6 @@ Speed::operator KilometersPerHour() const {
 }
 
 Speed::operator MetersPerSecond() const {
-
   MetersPerSecond mps;
   mps.setBase(base_value_);
 
@@ -207,7 +190,6 @@ Speed::operator MetersPerSecond() const {
 }
 
 Speed::operator Knots() const {
-
   Knots knots;
   knots.setBase(base_value_);
 

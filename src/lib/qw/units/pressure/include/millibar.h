@@ -29,18 +29,19 @@
 #ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_MILLIBAR_H_
 #define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_MILLIBAR_H_
 
+#include <string>
+
 #include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
 
 class Millibar : public Pressure {
-
   friend Pressure;
 
  public:
   Millibar();
 
-  Millibar(float temp);
+  explicit Millibar(float temp);
 
   Millibar(float temp, std::string fmt_value);
 
@@ -55,13 +56,13 @@ class Millibar : public Pressure {
  private:
   std::string fmt_value_ = pressure_default_format;
 
-  int MillibarToBase(float mb);
+  int millibarToBase(float mb);
 
-  float BaseToMillibar(int base);
+  float baseToMillibar(int base);
 
   void setBase(int64_t base_value);
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_MILLIBAR_H_

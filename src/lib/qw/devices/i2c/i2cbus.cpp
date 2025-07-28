@@ -34,11 +34,12 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstdint>
+#include <cstring>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstdint>
-#include <cstring>
 #include <mutex>
 #include <string>
 
@@ -77,15 +78,13 @@ I2cBus::I2cBus(string bus_device_name) : bus_device_name_(bus_device_name) {
   status_ = I2CBUS_STATUS_OK;
 
   return;
-};
+}
 
 string I2cBus::busName() {
-
   return bus_device_name_;
 }
 
 I2cBusStatus I2cBus::status() {
-
   return status_;
 }
 
@@ -170,7 +169,7 @@ int I2cBus::transferDataFromRegisters(uint8_t slave_address, uint8_t reg,
   }
 
   /*
-   * Write the first regiater
+   * Write the first register
    */
   fetch_serial_com[0].addr = slave_address;
   fetch_serial_com[0].flags = 0; /* Do a write to define the first register */

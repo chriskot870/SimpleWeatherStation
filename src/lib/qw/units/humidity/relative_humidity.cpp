@@ -28,6 +28,11 @@
 
 #include "qw/units/humidity/include/relative_humidity.h"
 
+#include <expected>
+#include <string>
+
+#include "fmt/format.h"
+
 using fmt::format;
 using std::string;
 using std::strong_ordering;
@@ -40,14 +45,12 @@ namespace qw::units {
 RelativeHumidity::RelativeHumidity() {}
 
 RelativeHumidity::RelativeHumidity(float rh) {
-
   base_value_ = round(rh * rh_base_conversion_factor);
 
   return;
 }
 
 RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
-
   base_value_ = round(rh * rh_base_conversion_factor);
 
   fmt_value_ = fmt_value;
@@ -59,7 +62,6 @@ RelativeHumidity::RelativeHumidity(float rh, string fmt_value) {
  * Data manipulation routnes
  */
 float RelativeHumidity::value() {
-
   float value = (static_cast<float>(base_value_)/ rh_base_conversion_factor);
 
   return value;
@@ -70,7 +72,6 @@ float RelativeHumidity::value() {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string RelativeHumidity::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -81,56 +82,48 @@ string RelativeHumidity::toString() {
  * Use "fmt" so it doesn't get confused with fmt::format
  */
 string RelativeHumidity::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }
 
 void RelativeHumidity::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;
 }
 
 bool RelativeHumidity::operator==(const RelativeHumidity& other) const {
-
   bool value = (base_value_ == other.base_value_);
 
   return value;
 }
 
 bool RelativeHumidity::operator!=(const RelativeHumidity& other) const {
-
   bool value = (base_value_ != other.base_value_);
 
   return value;
 }
 
 bool RelativeHumidity::operator<(const RelativeHumidity& other) const {
-
   bool value = (base_value_ < other.base_value_);
 
   return value;
 }
 
 bool RelativeHumidity::operator>(const RelativeHumidity& other) const {
-
   bool value = (base_value_ > other.base_value_);
 
   return value;
 }
 
 bool RelativeHumidity::operator<=(const RelativeHumidity& other) const {
-
   bool value = (base_value_ <= other.base_value_);
 
   return value;
 }
 
 bool RelativeHumidity::operator>=(const RelativeHumidity& other) const {
-
   bool value = (base_value_ >= other.base_value_);
 
   return value;
@@ -138,14 +131,12 @@ bool RelativeHumidity::operator>=(const RelativeHumidity& other) const {
 
 strong_ordering RelativeHumidity::operator<=>
     (const RelativeHumidity& other) const {
-
   strong_ordering value = (base_value_ <=> other.base_value_);
 
   return value;
 }
 
 RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
-
   /*
    * Guard against self assignement
    */
@@ -163,14 +154,12 @@ RelativeHumidity& RelativeHumidity::operator=(const RelativeHumidity& other) {
 }
 
 RelativeHumidity& RelativeHumidity::operator+=(const RelativeHumidity& other) {
-
   base_value_ += other.base_value_;
 
   return *this;
 }
 
 RelativeHumidity& RelativeHumidity::operator-=(const RelativeHumidity& other) {
-
   base_value_ -= other.base_value_;
 
   return *this;

@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_LOGGER_LOGGER_H_
-#define SRC_LIB_QW_LOGGER_LOGGER_H_
+#ifndef SRC_LIB_QW_LOGGER_INCLUDE_LOGGER_H_
+#define SRC_LIB_QW_LOGGER_INCLUDE_LOGGER_H_
 
 #include <syslog.h>
 #include <systemd/sd-journal.h>
@@ -50,11 +50,11 @@ enum LoggerMode {
  * These must match syslog.h values
  */
 enum LoggerPriority {
-  LOGGER_EMERG,   /* 0	system is unusable */
-  LOGGER_ALERT,   /* 1	action must be taken immediately */
-  LOGGER_CRIT,    /* 2	critical conditions */
+  LOGGER_EMERG,   /* 0 system is unusable */
+  LOGGER_ALERT,   /* 1 action must be taken immediately */
+  LOGGER_CRIT,    /* 2 critical conditions */
   LOGGER_ERR,     /* 3 error conditions */
-  LOGGER_WARNING, /* 4	warning conditions */
+  LOGGER_WARNING, /* 4 warning conditions */
   LOGGER_NOTICE,  /* 5 normal but significant condition */
   LOGGER_INFO,    /* 6 informational */
   LOGGER_DEBUG    /*7 debug-level messages */
@@ -94,4 +94,4 @@ extern Logger logger;
 
 }  // namespace qw::logging
 
-#endif  // SRC_LIB_QW_LOGGER_LOGGER_H_
+#endif  // SRC_LIB_QW_LOGGER_INCLUDE_LOGGER_H_

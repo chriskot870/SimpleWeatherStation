@@ -35,10 +35,15 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>
+#include <expected>  // Lint incorrectly counts this as a C header // NOLINT
 #include <map>
 #include <memory>
 #include <vector>
+
+/*
+ * This is an i2c bus device so add the i2cbus.h
+ */
+#include "qw/devices/i2c/include/i2cbus.h"
 
 using std::atomic_bool;
 using std::expected;
@@ -69,16 +74,16 @@ I2cAds1015::I2cAds1015(I2cBus i2cbus, uint8_t slave_address)
     : i2cbus_(i2cbus), slave_address_(slave_address) {
 
   /*
-     * Check that the i2c bus name is a valid name
-     */
+   * Check that the i2c bus name is a valid name
+   */
   if (i2cbus.busName().compare(0, i2c_devicename_prefix.size(),
                                i2c_devicename_prefix) != 0) {
     return;
   }
 
   /*
-     * Check that slave address is valid
-     */
+   * Check that slave address is valid
+   */
   auto item = find(ads1015_slave_address_options.begin(),
                    ads1015_slave_address_options.end(), slave_address_);
   if (item == ads1015_slave_address_options.end()) {
@@ -86,48 +91,48 @@ I2cAds1015::I2cAds1015(I2cBus i2cbus, uint8_t slave_address)
   }
 
   /*
-     * If the names are valid, Create the device
-     */
+   * If the names are valid, Create the device
+   */
   device_.bus_name_ = i2cbus.busName();
   device_.slave_address_ = slave_address;
 
   /*
-     * If the device is already on the list then some other instance has
-     * validated it and we don't need to add it to the list
-     */
+  * If the device is already on the list then some other instance has
+  * validated it and we don't need to add it to the list
+  */
   lock_guard<mutex> guard_devices(ads1015_devices_lock);
   if (ads1015_devices.contains(device_) == true) {
     /*
-       * Some previous instance has added the device to the devices list
-       */
+     * Some previous instance has added the device to the devices list
+     */
     device_data_ = ads1015_devices[device_];
     return;
   }
 
   /*
-     * Create a DeviceData
-     * 
-     * TODO: I should be using make_shared but it doesn't compile.
-     */
+   * Create a DeviceData
+   * 
+   * TODO: I should be using make_shared but it doesn't compile.
+   */
   device_data_ = shared_ptr<Ads1015DeviceData>(new Ads1015DeviceData());
 
   /*
-     * See if we can read the configuration register
-     */
+   * See if we can read the configuration register
+   */
   expected<Ads1015Config, int> x_return = readConfigRegister();
   if (x_return.has_value() == false) {
     /*
-       * I can't get the configuration register so we asume the device is not there.
-       * This causes all other routines to call an ENODEV error
-       */
+     * I can't get the configuration register so we asume the device is not there.
+     * This causes all other routines to call an ENODEV error
+     */
     device_data_.reset();
     // delete device_data_;
     // device_data_ = nullptr;
     return;
   }
   /*
-     * Set the default settings in the local configuration
-     */
+   * Set the default settings in the local configuration
+   */
   setDefaultConfiguration();
 
   return;
@@ -138,103 +143,86 @@ uint8_t I2cAds1015::deviceAddress() {
 }
 
 void I2cAds1015::setMultiplexor(Ads1015MuxType multiplexor) {
-
   configuration_.fields.mux = multiplexor;
 
   return;
 }
 
 Ads1015MuxType I2cAds1015::getMultiplexor() {
-
   return configuration_.fields.mux;
 }
 
 void I2cAds1015::setProgrammableGainAmplifier(Ads1015PgaType gain) {
-
   configuration_.fields.pga = gain;
 
   return;
 }
 
 Ads1015PgaType I2cAds1015::getProgrammableGainAmplifier() {
-
   return configuration_.fields.pga;
 }
 
 void I2cAds1015::setMode(Ads1015ModeType mode) {
-
   configuration_.fields.mode = mode;
 
   return;
 }
 
 Ads1015ModeType I2cAds1015::getMode() {
-
   return configuration_.fields.mode;
 }
 
 void I2cAds1015::setDataRate(Ads1015DrType rate) {
-
   configuration_.fields.dr = rate;
 
   return;
 }
 
 Ads1015DrType I2cAds1015::getDataRate() {
-
   return configuration_.fields.dr;
 }
 
 void I2cAds1015::setComparatorMode(Ads1015CompModeType comp_mode) {
-
   configuration_.fields.comp_mode = comp_mode;
 
   return;
 }
 
 Ads1015CompModeType I2cAds1015::getComparatorMode() {
-
   return configuration_.fields.comp_mode;
 }
 
 void I2cAds1015::setComparatorPolarityType(Ads1015CompPolarityType comp_pol) {
-
   configuration_.fields.comp_pol = comp_pol;
 
   return;
 }
 
 Ads1015CompPolarityType I2cAds1015::getComparatorPolarityType() {
-
   return configuration_.fields.comp_pol;
 }
 
 void I2cAds1015::setComparatorLatching(Ads1015CompLatchType comp_latch) {
-
   configuration_.fields.comp_latch = comp_latch;
 
   return;
 }
 
 Ads1015CompLatchType I2cAds1015::getComparatorLatching() {
-
   return configuration_.fields.comp_latch;
 }
 
 void I2cAds1015::setComparatorQueue(Ads1015CompQueueType comp_queue) {
-
   configuration_.fields.comp_queue = comp_queue;
 
   return;
 }
 
 Ads1015CompQueueType I2cAds1015::getComparatorQueue() {
-
   return configuration_.fields.comp_queue;
 }
 
 void I2cAds1015::setDefaultConfiguration() {
-
   configuration_.fields.os = ADS1015_OS_NO_EFFECT_BUSY;
   configuration_.fields.mux = ADS1015_MUX_AIN0_AIN1;
   configuration_.fields.pga = ADS1015_PGA_2048V;
@@ -262,15 +250,14 @@ expected<Ads1015Config, int> I2cAds1015::readConfigRegister() {
   }
 
   /*
-     * Take care of endianness
-     */
+   * Take care of endianness
+   */
   config_reg.register_value = config_data[0] << 8 | config_data[1];
 
   return config_reg;
 }
 
 expected<Ads1015Config, int> I2cAds1015::inspectConfigRegister() {
-
   expected<Ads1015Config, int> result;
 
   result = readConfigRegister();
@@ -287,8 +274,8 @@ expected<bool, int> I2cAds1015::writeConfigRegister(Ads1015Config config) {
   uint16_t config_reg;
 
   /*
-     * We send high byte first
-     */
+   * We send high byte first
+   */
   config_data[0] = (config.register_value & 0xFF00) >> 8;
   config_data[1] = config.register_value & 0x00FF;
 

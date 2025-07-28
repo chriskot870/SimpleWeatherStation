@@ -58,6 +58,6 @@ class TemperatureMeasurement {
   std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_MEASUREMENT_H_

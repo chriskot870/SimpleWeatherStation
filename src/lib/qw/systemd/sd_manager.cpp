@@ -36,20 +36,21 @@
 using fmt::format;
 using std::expected;
 using std::string;
+using std::string_view;
 using std::unexpected;
 using std::variant;
 
 namespace qw::systemd {
 
-SdManager::SdManager(string destination, string path, string interface)
+SdManager::SdManager(string_view destination, string_view path, string_view interface)
     : destination_(destination), path_(path), interface_(interface) {}
 
 /*
- * StartUnit(in  s name,
+ * startUnit(in  s name,
  *           in  s mode,
  *           out o job);
  */
-expected<string, SdBusError> SdManager::StartUnit(string name, string mode) {
+expected<string, SdBusError> SdManager::startUnit(string name, string mode) {
   sd_bus_error error = SD_BUS_ERROR_NULL;
   sd_bus_message* m = NULL;
   sd_bus* bus = NULL;
@@ -121,7 +122,7 @@ expected<string, SdBusError> SdManager::StartUnit(string name, string mode) {
   }
   string output(job);
 
-  //free(job);
+  // free(job);
   /*
    * return the string result
    */
@@ -129,11 +130,11 @@ expected<string, SdBusError> SdManager::StartUnit(string name, string mode) {
 }
 
 /*
- * StopUnit(in  s name,
+ * stopUnit(in  s name,
  *          in  s mode,
  *          out o job);
  */
-expected<string, SdBusError> SdManager::StopUnit(string name, string mode) {
+expected<string, SdBusError> SdManager::stopUnit(string name, string mode) {
   sd_bus_error error = SD_BUS_ERROR_NULL;
   sd_bus_message* m = NULL;
   sd_bus* bus = NULL;
@@ -205,7 +206,7 @@ expected<string, SdBusError> SdManager::StopUnit(string name, string mode) {
   }
   string output(job);
 
-  //free(job);
+  // free(job);
 
   /*
    * return the string result

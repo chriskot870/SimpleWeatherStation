@@ -35,7 +35,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>
+#include <expected>  // Cpplint is wrong about this being a C system header // NOLINT
 #include <map>
 #include <memory>
 #include <vector>
@@ -119,7 +119,7 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
    */
   device_data_ = shared_ptr<Lps22DeviceData>(new Lps22DeviceData());
 
-  expected<uint8_t, int> x_return = whoami();
+  expected<uint8_t, int> x_return = whoAmI();
   if (x_return.has_value() == false) {
     /*
      * I can't get the whoami so reset device_data_ to nullptr
@@ -149,17 +149,19 @@ Lps22::Lps22(I2cBus i2cbus, uint8_t slave_address)
 /*
  * Return the whoami value on the device
  */
-expected<uint8_t, int> Lps22::whoami() {
+expected<uint8_t, int> Lps22::whoAmI() {
   int retval;
   uint8_t who_am_i;
 
   if (device_data_ == nullptr) {
     return unexpected(retval);
   }
-  lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
-                                                     * device lock will be unlcoked when
-                                                     * guard's destruct routine gets called
-                                                     */
+
+  /* get the device lock
+   * device lock will be unlcoked when
+   * guard's destruct routine gets called
+   */
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
 
   retval = i2cbus_.transferDataFromRegisters(slave_address_, kLps22hbWhoAmI,
                                              &who_am_i, sizeof(who_am_i));
@@ -178,10 +180,12 @@ int Lps22::reset() {
   if (device_data_ == nullptr) {
     return ENODEV;
   }
-  lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
-                                                     * device lock will be unlcoked when
-                                                     * guard's destruct routine gets called
-                                                     */
+
+  /* get the device lock
+   * device lock will be unlcoked when
+   * guard's destruct routine gets called
+   */
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
   /*
    * Now send a software reset
    */
@@ -275,7 +279,7 @@ int Lps22::init() {
    * Make sure this is the correct device at the expected I2C address
    * It is assumed we can always get the whoami value.
    */
-  x_return = whoami();
+  x_return = whoAmI();
   /*
    * If I can't do a whoami we probably have the wrong device so
    * clear device_data_
@@ -338,10 +342,13 @@ int Lps22::getMeasurement() {
   if (device_data_ == nullptr) {
     return ENODEV;
   }
-  lock_guard<recursive_mutex> guard(device_data_->lock_); /* get the device lock
-                                                     * device lock will be unlocked when
-                                                     * guard's destruct routine gets called
-                                                     */
+
+  /*
+   * Start a measurement by sending a one shot command
+   * We need to read in control register 2 and set the
+   */
+  lock_guard<recursive_mutex> guard(device_data_->lock_);
+
   /*
    * Start a measurement by sending a one shot command
    * We need to read in control register 2 and set the one shot bit.
@@ -377,7 +384,6 @@ int Lps22::getMeasurement() {
   for (temp_available_count = 1;
        temp_available_count <= kLps22WaitResponseLoopCount;
        temp_available_count++) {
-
     /*
      * Add a sleep to allow the command to execute on the device
      */

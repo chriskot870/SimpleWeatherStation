@@ -46,8 +46,7 @@ namespace qw::logging {
 Logger::Logger() {}
 
 void Logger::log(int priority, string message) {
-
-  if ( priority > max_priority_reporting_) {
+  if (priority > max_priority_reporting_) {
     return;
   }
   switch (mode_) {
@@ -66,12 +65,9 @@ void Logger::log(int priority, string message) {
 }
 
 void Logger::setMode(LoggerMode mode) {
-
   mode_ = mode;
 
   if (mode == LOGGER_MODE_FILE) {
-    if (log_path_ == "")
-      ;
     if ((log_path_ != "") && (log_stream_.is_open() == true)) {
       if (cout.rdbuf() == log_stream_.rdbuf()) {
         /*
@@ -88,7 +84,6 @@ void Logger::setMode(LoggerMode mode) {
 }
 
 void Logger::setMode(LoggerMode mode, path log_path) {
-
   mode_ = mode;
 
   /*
@@ -131,24 +126,20 @@ void Logger::setMode(LoggerMode mode, path log_path) {
 }
 
 LoggerMode Logger::getMode() {
-
   return mode_;
 }
 
 void Logger::setMaxPriorityReporting(LoggerPriority priority) {
-
   max_priority_reporting_ = priority;
 
   return;
 }
 
 LoggerPriority Logger::getMaxPriorityReporting() {
-
   return max_priority_reporting_;
 }
 
 Logger::~Logger() {
-
   /*
    * If the log_strem_.rdbuf() is the same as cout.rdbuf()
    * Put the old cout_buffer_ back to cout.

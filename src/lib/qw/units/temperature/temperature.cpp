@@ -28,8 +28,8 @@
 
 #include "qw/units/temperature/include/temperature.h"
 
-#include <string>
 #include <compare>
+#include <string>
 
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
@@ -48,49 +48,42 @@ Temperature::Temperature() {}
 Temperature::Temperature(int64_t base_value) : base_value_(base_value) {}
 
 bool Temperature::operator==(const Temperature& other) const {
-
   bool value = (base_value_ == other.base_value_);
 
   return value;
 }
 
 bool Temperature::operator!=(const Temperature& other) const {
-
   bool value = (base_value_ != other.base_value_);
 
   return value;
 }
 
 bool Temperature::operator<(const Temperature& other) const {
-
   bool value = (base_value_ < other.base_value_);
 
   return value;
 }
 
 bool Temperature::operator>(const Temperature& other) const {
-
   bool value = (base_value_ > other.base_value_);
 
   return value;
 }
 
 bool Temperature::operator<=(const Temperature& other) const {
-
   bool value = (base_value_ <= other.base_value_);
 
   return value;
 }
 
 bool Temperature::operator>=(const Temperature& other) const {
-
   bool value = (base_value_ >= other.base_value_);
 
   return value;
 }
 
 strong_ordering Temperature::operator<=> (const Temperature& other) const {
-
   /*
    * The <=> returns a std::strong_ordering type.
    * Either ::less, ::equal, or ::greater
@@ -104,7 +97,6 @@ strong_ordering Temperature::operator<=> (const Temperature& other) const {
  * Assignment operators
  */
 Temperature& Temperature::operator=(const Temperature& other) {
-
   /*
    * Guard against self assignement
    */
@@ -122,14 +114,12 @@ Temperature& Temperature::operator=(const Temperature& other) {
 }
 
 Temperature& Temperature::operator+=(const Temperature& other) {
-
   base_value_ += other.base_value_;
 
   return *this;
 }
 
 Temperature& Temperature::operator-=(const Temperature& other) {
-
   base_value_ -= other.base_value_;
 
   return *this;
@@ -139,7 +129,6 @@ Temperature& Temperature::operator-=(const Temperature& other) {
  * Arithmetic operations
  */
 const Temperature Temperature::operator+(const Temperature& other) const {
-
   Temperature result = *this;
 
   result.base_value_ += other.base_value_;
@@ -148,7 +137,6 @@ const Temperature Temperature::operator+(const Temperature& other) const {
 }
 
 const Temperature Temperature::operator-(const Temperature& other) const {
-
   Temperature result = *this;
 
   result.base_value_ -= other.base_value_;
@@ -157,7 +145,6 @@ const Temperature Temperature::operator-(const Temperature& other) const {
 }
 
 const Temperature Temperature::operator/(const int& other) const {
-
   Temperature result = *this;
 
   result.base_value_ /= other;
@@ -171,7 +158,6 @@ const Temperature Temperature::operator/(const int& other) const {
  * Speeed * int but not int * Temperature
  */
 const Temperature Temperature::operator*(const int& other) const {
-
   Temperature result = *this;
 
   result.base_value_ *= other;
@@ -183,7 +169,6 @@ const Temperature Temperature::operator*(const int& other) const {
  * Intrinsic casting to speed units
  */
 Temperature::operator Fahrenheit() const {
-
   Fahrenheit f;
   f.setBase(base_value_);
 
@@ -191,7 +176,6 @@ Temperature::operator Fahrenheit() const {
 }
 
 Temperature::operator Celsius() const {
-
   Celsius c;
   c.setBase(base_value_);
 
@@ -199,7 +183,6 @@ Temperature::operator Celsius() const {
 }
 
 Temperature::operator Kelvin() const {
-
   Kelvin k;
   k.setBase(base_value_);
 

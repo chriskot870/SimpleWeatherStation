@@ -29,22 +29,22 @@
 #ifndef SRC_LIB_QW_SYSTEMD_INCLUDE_SD_UNIT_H_
 #define SRC_LIB_QW_SYSTEMD_INCLUDE_SD_UNIT_H_
 
-#include "qw/systemd/include/systemd.h"
-
 #include <expected>
 #include <string>
+
+#include "qw/systemd/include/systemd.h"
 
 namespace qw::systemd {
 
 class SdUnit {
  public:
-  SdUnit(std::string destination, std::string path, std::string interface);
+  SdUnit(std::string_view destination, std::string_view path, std::string_view interface);
   /*
    * Methods this application can use
    */
-  std::expected<std::string, SdBusError> Start(std::string mode);
+  std::expected<std::string, SdBusError> start(std::string mode);
 
-  std::expected<std::string, SdBusError> Stop(std::string mode);
+  std::expected<std::string, SdBusError> stop(std::string mode);
 
   /*
    * Properties this application needs

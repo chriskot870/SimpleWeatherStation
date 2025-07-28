@@ -30,18 +30,20 @@
 #define SRC_LIB_QW_SYSTEMD_INCLUDE_SYSTEMD_H_
 
 #include <systemd/sd-bus.h>
+
 #include <array>
-#include <expected>
+#include <expected>  // cpplint thinks this is a c system header // NOLINT
 #include <string>
+#include <string_view>
 #include <variant>
 
 namespace qw::systemd {
 
-const std::string systemd_destination = "org.freedesktop.systemd1";
-const std::string systemd_quietwind_service_path =
+constexpr std::string_view systemd_destination = "org.freedesktop.systemd1";
+constexpr std::string_view systemd_quietwind_service_path =
     "/org/freedesktop/systemd1/unit/quietwind_2eweather_2eservice";
-const std::string systemd_unit_interface = "org.freedesktop.systemd1.Unit";
-const std::string systemd_service_interface =
+constexpr std::string_view systemd_unit_interface = "org.freedesktop.systemd1.Unit";
+constexpr std::string_view  systemd_service_interface =
     "org.freedesktop.systemd1.Service";
 
 enum SdBusErrorType {
@@ -129,7 +131,7 @@ union SdBusNumericResult {
 
 class SdBus {
  public:
-  SdBus(SdBusType type);
+  explicit SdBus(SdBusType type);
 
   SdBusType type_;
 };
@@ -159,7 +161,6 @@ class SdBusInterface {
 };
 
 class SdBusMethod {
-
  public:
   SdBusMethod(std::string name, std::string signature, std::string result_value,
               std::string flags, const SdBusInterface& sdbus_interface);

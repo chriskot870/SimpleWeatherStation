@@ -26,11 +26,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
-#define SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
+#ifndef SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_H_
+#define SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_H_
 
 #include <compare>
 #include <string>
+#include <string_view>
 
 namespace qw::units {
 
@@ -52,7 +53,7 @@ constexpr float kMpsPerMph = 2.23694;
 constexpr float kMphPerMps = (1 / kMpsPerMph);  // The inverse of above
 constexpr float kMphPerKnot = 1.15078;
 constexpr float kKnotPerMph = (1 / kMphPerKnot);  // The inverse of above.
-const std::string speed_default_format = "{0:.2f}";
+const std::string_view speed_default_format = "{0:.2f}";
 
 class Speed {
  public:
@@ -109,6 +110,6 @@ class Speed {
   int64_t base_value_;
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_INCLUDE_SPEED_H_
+#endif  // SRC_LIB_QW_UNITS_SPEED_INCLUDE_SPEED_H_

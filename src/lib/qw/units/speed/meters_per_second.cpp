@@ -27,9 +27,10 @@
  */
 #include "qw/units/speed/include/meters_per_second.h"
 
-#include <string>
 #include <compare>
-#include <fmt/format.h>
+#include <string>
+
+#include "fmt/format.h"
 
 using std::string;
 using std::strong_ordering;
@@ -42,17 +43,16 @@ namespace qw::units {
 MetersPerSecond::MetersPerSecond() {}
 
 MetersPerSecond::MetersPerSecond(float mps)
-    : Speed(MetersPerSecondToBase(mps)) {}
+    : Speed(metersPerSecondToBase(mps)) {}
 
 MetersPerSecond::MetersPerSecond(float mps, string fmt_value)
-    : Speed(MetersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
+    : Speed(metersPerSecondToBase(mps)), fmt_value_(fmt_value) {}
 
 /*
  * Data manipulation routines
  */
 float MetersPerSecond::value() {
-
-  return BaseToMetersPerSecond(base_value_);
+  return baseToMetersPerSecond(base_value_);
 }
 
 /*
@@ -60,9 +60,8 @@ float MetersPerSecond::value() {
  * Convert the meters per second to miles per hour.
  * Then convert the miles per hour to the base.
  */
-int64_t MetersPerSecond::MetersPerSecondToBase(float mps) {
-
-  int value = round((mps * kMphPerMps) * speed_base_conversion_factor);
+int64_t MetersPerSecond::metersPerSecondToBase(float mps) {
+  int64_t value = round((mps * kMphPerMps) * speed_base_conversion_factor);
 
   return value;
 }
@@ -71,15 +70,13 @@ int64_t MetersPerSecond::MetersPerSecondToBase(float mps) {
  * Convert the base to miles per hour.
  * Then convert the miles per hour to meters per second.
  */
-float MetersPerSecond::BaseToMetersPerSecond(int base) {
-
+float MetersPerSecond::baseToMetersPerSecond(int base) {
   float mps = (static_cast<float>(base) / speed_base_conversion_factor) * kMpsPerMph;
 
   return mps;
 }
 
 void MetersPerSecond::setBase(int64_t base_value) {
-
   base_value_ = base_value;
 
   return;
@@ -89,7 +86,6 @@ void MetersPerSecond::setBase(int64_t base_value) {
  * Use the default format
  */
 string MetersPerSecond::toString() {
-
   string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
@@ -99,7 +95,6 @@ string MetersPerSecond::toString() {
  * Use the provided format instead of one in private variable
  */
 string MetersPerSecond::toString(string fmt_value) {
-
   string data = format(fmt::runtime(fmt_value), value());
 
   return data;
@@ -109,7 +104,6 @@ string MetersPerSecond::toString(string fmt_value) {
  * Set the format for this instance
  */
 void MetersPerSecond::setFormat(string fmt_value) {
-
   fmt_value_ = fmt_value;
 
   return;

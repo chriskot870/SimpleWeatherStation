@@ -29,8 +29,9 @@
 #ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 #define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
 
-#include <string>
 #include <compare>
+#include <string>
+#include <string_view>
 
 namespace qw::units {
 
@@ -47,10 +48,9 @@ class Kelvin;
  */
 constexpr int temperature_base_conversion_factor = 1000;
 constexpr float temperature_celsius_kelvin_offset = 273.15;
-const std::string temperature_default_format = "{0:.2f}";
+const std::string_view temperature_default_format = "{0:.2f}";
 
 class Temperature {
-
   friend Fahrenheit;
   friend Celsius;
   friend Kelvin;
@@ -102,6 +102,6 @@ class Temperature {
   int64_t base_value_;
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_

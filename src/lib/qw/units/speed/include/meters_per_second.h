@@ -30,19 +30,19 @@
 #define SRC_LIB_QW_UNITS_SPEED_INCLUDE_METERS_PER_SECOND_H_
 
 #include <string>
+#include <string_view>
 
 #include "qw/units/speed/include/speed.h"
 
 namespace qw::units {
 
 class MetersPerSecond : public Speed {
-
   friend Speed;
 
  public:
   MetersPerSecond();
 
-  MetersPerSecond(float temp);
+  explicit MetersPerSecond(float temp);
 
   MetersPerSecond(float temp, std::string fmt_value);
 
@@ -55,11 +55,11 @@ class MetersPerSecond : public Speed {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = speed_default_format;
+  std::string fmt_value_ = std::string(speed_default_format);
 
-  int64_t MetersPerSecondToBase(float temp);
+  int64_t metersPerSecondToBase(float temp);
 
-  float BaseToMetersPerSecond(int base);
+  float baseToMetersPerSecond(int base);
 
   void setBase(int64_t base_value);
 };

@@ -54,9 +54,8 @@ enum I2cBusStatus {
 constexpr std::string i2c_devicename_prefix = "/dev/i2c-";
 
 class I2cBus {
-
  public:
-  I2cBus(std::string bus_name);
+  explicit I2cBus(std::string bus_name);
 
   /*
    * This is for use with devices that use a command/result model. This writes a
@@ -102,11 +101,11 @@ class I2cBus {
 
   std::string bus_device_name_;
 
-  unsigned long i2c_functions_ = 0;
+  uint64_t i2c_functions_ = 0;
 
   I2cBusStatus status_ = I2CBUS_STATUS_OK;
 };
 
-}  // Namespace qw::devices
+}  // namespace qw::devices
 
 #endif  // SRC_LIB_QW_DEVICES_I2C_INCLUDE_I2CBUS_H_

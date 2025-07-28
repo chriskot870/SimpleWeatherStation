@@ -33,6 +33,7 @@
 #define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_MEASUREMENT_H_
 
 #include <chrono>
+
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/pressure.h"
@@ -58,6 +59,6 @@ class PressureMeasurement {
   std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_MEASUREMENT_H_

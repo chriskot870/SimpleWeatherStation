@@ -29,19 +29,20 @@
 #ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
 #define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
 
+#include <string>
+
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
 
 class InchesMercury : public Pressure {
-
   friend Pressure;
 
  public:
   InchesMercury();
 
-  InchesMercury(float temp);
+  explicit InchesMercury(float temp);
 
   InchesMercury(float temp, std::string fmt_value);
 
@@ -62,9 +63,9 @@ class InchesMercury : public Pressure {
  private:
   std::string fmt_value_ = pressure_default_format;
 
-  int InchesMercuryToBase(float temp);
+  int inchesMercuryToBase(float temp);
 
-  float BaseToInchesMercury(int base);
+  float baseToInchesMercury(int base);
 
   void setBase(int64_t base_value);
 };

@@ -41,7 +41,7 @@ class Celsius : public Temperature {
  public:
   Celsius();
 
-  Celsius(float temp);
+  explicit Celsius(float temp);
 
   Celsius(float temp, std::string fmt_value);
 
@@ -54,18 +54,18 @@ class Celsius : public Temperature {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = temperature_default_format;
+  std::string fmt_value_ = std::string(temperature_default_format);
 
   /*
    * Here we want all the conversion to and from base to the
    */
-  int CelsiusToBase(float temp);
+  int64_t celsiusToBase(float temp);
 
-  float BaseToCelsius(int base);
+  float baseToCelsius(int base);
 
   void setBase(int64_t base_value);
 };
 
-}  // Namespace qw::units
+}  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_CELSIUS_H_

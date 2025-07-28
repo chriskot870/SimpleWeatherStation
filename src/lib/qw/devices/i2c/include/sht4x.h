@@ -42,19 +42,23 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstring>
-#include <expected>
+#include <expected>  // Lint incorrectly counts this as a C header // NOLINT
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include "i2cbus.h"
+/*
+ * This is an i2c bus device so add the i2cbus.h
+ */
+#include "qw/devices/i2c/include/i2cbus.h"
 
 /*
  * This device has temperature and relative humidity sensors so add the units
@@ -67,11 +71,6 @@
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
-
-/*
- * This is an i2c bus device so add the i2cbus.h
- */
-#include "i2cbus.h"
 
 namespace qw::devices {
 
@@ -252,17 +251,21 @@ class Sht4xDeviceData {
   std::recursive_mutex lock_ = {};
   uint64_t read_total_ = 0;
   std::atomic_bool initialized = false;
+  uint16_t temperature_measurement_ = 0;
 
   /*
    * The time we read in the temperature
    */
-  uint16_t temperature_measurement_ = 0;
   std::chrono::time_point<std::chrono::system_clock>
       temperature_measurement_system_time_;
   std::chrono::time_point<std::chrono::steady_clock>
       temperature_measurement_steady_time_;
 
   uint16_t humidity_measurement_ = 0;
+
+  /*
+   * The time we read in the humidity
+   */
   std::chrono::time_point<std::chrono::system_clock>
       humidity_measurement_system_time_;
   std::chrono::time_point<std::chrono::steady_clock>
@@ -337,6 +340,6 @@ class I2cSht4x {
       std::chrono::milliseconds interval);
 };
 
-}  // Namespace qw::devices
+}  // namespace qw::devices
 
 #endif  // SRC_LIB_QW_DEVICES_I2C_INCLUDE_SHT4X_H_

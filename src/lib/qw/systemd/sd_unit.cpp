@@ -28,14 +28,17 @@
 
 #include "qw/systemd/include/sd_unit.h"
 
-#include <fmt/format.h>
 #include <expected>
 #include <string>
+#include <string_view>
 #include <variant>
+
+#include "fmt/format.h"
 
 using fmt::format;
 using std::expected;
 using std::string;
+using std::string_view;
 using std::unexpected;
 using std::variant;
 
@@ -43,7 +46,7 @@ namespace qw::systemd {
 /*
  * Constructor
  */
-SdUnit::SdUnit(string destination, string path, string interface)
+SdUnit::SdUnit(string_view destination, string_view path, string_view interface)
     : destination_(destination), path_(path), interface_(interface) {}
 
 /*
@@ -51,10 +54,10 @@ SdUnit::SdUnit(string destination, string path, string interface)
  */
 
 /*
- * Start(in  s mode,
+ * start(in  s mode,
  *       out o job);
  */
-expected<string, SdBusError> SdUnit::Start(string mode) {
+expected<string, SdBusError> SdUnit::start(string mode) {
   sd_bus_error error = SD_BUS_ERROR_NULL;
   sd_bus_message* m = NULL;
   sd_bus* bus = NULL;
@@ -133,10 +136,10 @@ expected<string, SdBusError> SdUnit::Start(string mode) {
 }
 
 /*
- * Stop(in  s mode,
+ * stop(in  s mode,
  *      out o job);
  */
-expected<string, SdBusError> SdUnit::Stop(string mode) {
+expected<string, SdBusError> SdUnit::stop(string mode) {
   sd_bus_error error = SD_BUS_ERROR_NULL;
   sd_bus_message* m = NULL;
   sd_bus* bus = NULL;
