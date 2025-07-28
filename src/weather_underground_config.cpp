@@ -59,7 +59,7 @@ bool WeatherUndergroundConfig::initialize() {
   Json::Value initial_data;
   Json::Reader initial_config_reader;
 
-  if (initial_config_reader.parse(wu_default_config, initial_data) == false) {
+  if (initial_config_reader.parse(string(wu_default_config), initial_data) == false) {
     logger.log(LOG_ERR,
                "Failed to parse config Weather Undergroubd config file.");
     return false;
@@ -136,7 +136,7 @@ string WeatherUndergroundConfig::getLockFileName(string file) {
 
   string fname = file_path.filename();
 
-  string lock_file = lock_directory + fname + lock_file_suffix;
+  string lock_file = string(lock_directory) + fname + string(lock_file_suffix);
 
   return lock_file;
 }

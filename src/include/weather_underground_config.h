@@ -29,6 +29,9 @@
 #ifndef SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
 #define SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
 
+#include <string>
+#include <string_view>
+
 #include "weather_station.h"
 
 constexpr int wu_default_report_interval = 300000;
@@ -38,7 +41,7 @@ constexpr int wu_report_interval_max =
 /*
  * The ReportInterval is in milliseconds. 300000 = 5 minutes
  */
-const std::string wu_default_config = R"({
+const std::string_view wu_default_config = R"({
     "WeatherUnderground": {
         "pwu_name": "KTXROANO168",
         "pwu_password": "HW0SG8q3"
@@ -48,7 +51,7 @@ const std::string wu_default_config = R"({
 
 class WeatherUndergroundConfig {
  public:
-  WeatherUndergroundConfig(const string& config_file);
+  explicit WeatherUndergroundConfig(const string& config_file);
 
   bool exists();
 

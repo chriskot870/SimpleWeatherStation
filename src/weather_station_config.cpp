@@ -121,7 +121,8 @@ string WeatherStationConfig::getLockFileName(string file) {
 
   string fname = file_path.filename();
 
-  string lock_file = lock_directory + fname + lock_file_suffix;
+  string lock_file(lock_directory);
+  lock_file += fname + string(lock_file_suffix);
 
   return lock_file;
 }

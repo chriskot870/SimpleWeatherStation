@@ -42,17 +42,17 @@
 
 #include "include/weather_station.h"
 #include "include/weather_station_config.h"
+#include "include/weather_underground.h"
 #include "include/weather_underground_config.h"
+#include "qw/devices/i2c/include/ads1015.h"
+#include "qw/devices/i2c/include/lps22.h"
+#include "qw/devices/i2c/include/sht4x.h"
+#include "qw/devices/include/anomometer_adafruit.h"
 #include "qw/locking/include/locking_file.h"
 #include "qw/logger/include/logger.h"
 #include "qw/systemd/include/sd_service_unit.h"
 #include "qw/systemd/include/sd_unit.h"
 #include "qw/systemd/include/systemd.h"
-#include "qw/devices/i2c/include/ads1015.h"
-#include "qw/devices/i2c/include/lps22.h"
-#include "qw/devices/i2c/include/sht4x.h"
-#include "qw/devices/include/anomometer_adafruit.h"
-#include "include/weather_underground.h"
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/speed/include/miles_per_hour.h"
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
           /*
            * It has a colon so see if it is just "file:"
            */
-          if (value == (args_log_mode_file + ":")) {
+          if (value == (string(args_log_mode_file) + ":")) {
             logger.setMode(LOGGER_MODE_FILE);
             logger.log(LOG_INFO, "Logging in File Mode to cout");
             break;
@@ -414,7 +414,9 @@ int main(int argc, char* argv[]) {
    * Setup inotify to get notified when config file changes during poll
    */
   int inotify_fd = inotify_init();
-  int watch_fd = inotify_add_watch(
+  int inotify_ws_watch_d =
+      inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
+  int inotify_wu_watch_d = inotify_add_watch(
       inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(),
       IN_MODIFY);
   pollfd fds[1];

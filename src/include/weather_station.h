@@ -43,23 +43,25 @@
 #include <sys/types.h>
 #include <systemd/sd-journal.h>
 #include <unistd.h>
+
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
+#include <string_view>
 #include <variant>
 
 #include "qw/locking/include/locking_file.h"
 #include "qw/logger/include/logger.h"
 #include "qw/systemd/include/systemd.h"
 
-const std::string args_log_mode_journal = "journal";
-const std::string args_log_mode_file = "file";
-const std::string args_log_mode_nologging = "none";
+constexpr std::string_view args_log_mode_journal = "journal";
+constexpr std::string_view args_log_mode_file = "file";
+constexpr std::string_view args_log_mode_nologging = "none";
 
-const std::string lock_directory = "/run/lock/";
-const std::string lock_file_suffix = ".lock";
+constexpr std::string_view lock_directory = "/run/lock/";
+constexpr std::string_view lock_file_suffix = ".lock";
 
 #endif  // SRC_INCLUDE_WEATHER_STATION_H_
