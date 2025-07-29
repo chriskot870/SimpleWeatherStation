@@ -434,11 +434,6 @@ int main(int argc, char* argv[]) {
   logger.log(LOGGER_INFO, "Starting");
 
   /*
-   * Set the data_gather_interval
-   */
-  int data_gathering_interval =
-      json_config["Configuration"]["data_gathering_interval"].asInt();
-  /*
    * Get the Weather Underground configuration
    */
   WeatherUndergroundConfig wu_config(
@@ -448,14 +443,30 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  Json::Value wu_json_config;
-  if (wu_config.getRoot(wu_json_config) == false) {
+  Json::Value ws_writable_json_config;
+  if (wu_config.getRoot(ws_writable_json_config) == false) {
     logger.log(LOGGER_INFO,
                format("Unable to parse Weather Underground config file: {}",
                       json_config["WeatherUndegroundFile"].asString()));
     terminate(in_systemd);
   }
 
+  /*
+   * Get the Configuration section out of the Json tree
+   */
+  Json::Value ws_json_configuration = ws_writable_json_config["Configuration"];
+  /*
+   * Set the data_gather_interval
+   */
+  int data_gathering_interval =
+      min(max(ws_data_gathering_interval_min,
+              ws_json_configuration["data_gathering_interval"].asInt()),
+          ws_data_gathering_interval_max);
+
+  /*
+   * Get the WeatherUnderground section of the Json tree
+   */
+  Json::Value wu_json_config = ws_writable_json_config["WeatherUnderground"];
   if (wu_json_config.isMember("pwu_name") == false ||
       wu_json_config.isMember("pwu_password") == false) {
     logger.log(LOGGER_INFO,

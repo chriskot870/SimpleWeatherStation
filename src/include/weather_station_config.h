@@ -38,7 +38,12 @@
 
 #include "./weather_station.h"
 
-constexpr std::string_view weather_station_config = "/usr/local/qw/etc/ws_config.json";
+constexpr std::string_view weather_station_config =
+    "/usr/local/qw/etc/ws_config.json";
+constexpr int ws_data_gathering_interval_min =
+    2500;  // 2.5 seconds is minimum gathering interval
+constexpr int ws_data_gathering_interval_max =
+    60000;  // 60 seconds is maximum gathering interval
 
 class WeatherStationConfig {
  public:

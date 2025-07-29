@@ -1,7 +1,13 @@
 {
+  "WeatherUnderground": {
     "comment": "Configuration info for Weather Undergrouind. This is writable",
     "pwu_name": "KTXROANO168",
     "pwu_password": "HW0SG8q3",
     "report_interval_comment": "Interval to report data in milliseconds",
     "report_interval": 300000
+  },
+  "Configuration": {
+    "data_gather_interval_comment": "Interval to gather data in milliseconds",
+    "data_gathering_interval": 10000
+  }
 }

@@ -1,9 +1,5 @@
 {
    "WeatherUndegroundFile": "/usr/local/qw/etc/ws_wu_config.json",
-   "Configuration": {
-      "data_gather_interval_comment": "Interval to gather data in milliseconds",
-      "data_gathering_interval": 10000
-   },
    "Software": {
       "Version": {
          "Major": 0,
