@@ -144,15 +144,15 @@ expected<bool, SdBusError> isRunningInSystemd() {
   return false;
 }
 
-WeatherUnderground* processWuData(string pwu_name, string pwu_password,
-                                  expected<TemperatureMeasurement, int> temp1,
-                                  expected<TemperatureMeasurement, int> temp2,
-                                  expected<PressureMeasurement, int> pressure,
-                                  expected<RelativeHumidityMeasurement, int> rh,
-                                  expected<Fahrenheit, int> dewpoint,
-                                  expected<SpeedMeasurement, int> windspeed,
-                                  WindspeedHistory wind_history) {
-  WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
+void processWuData(
+    WeatherUnderground* wu, const expected<TemperatureMeasurement, int>& temp1,
+    const expected<TemperatureMeasurement, int>& temp2,
+    const expected<PressureMeasurement, int>& pressure,
+    const expected<RelativeHumidityMeasurement, int>& rh,
+    const expected<Fahrenheit, int>& dewpoint,
+    const expected<SpeedMeasurement, int>& windspeed,
+    WindspeedHistory*
+        wind_history) {  // the history changes with function calls so use a pointer
   /*
          * Put the raw data into the wu data
          */
@@ -166,16 +166,19 @@ WeatherUnderground* processWuData(string pwu_name, string pwu_password,
     /*
            * The SHT4x is supposed to be more accurate so use it
            */
-    Fahrenheit tempf = temp1.value().value();
+    TemperatureMeasurement temp_measurement = temp1.value();
+    Fahrenheit tempf = temp_measurement.value();
     wu->setVarData("tempf", tempf.value());
   }
   if (temp2.has_value()) {
-    Fahrenheit temp2f = temp2.value().value();
+    TemperatureMeasurement temp_measurement = temp1.value();
+    Fahrenheit temp2f = temp_measurement.value();
     wu->setVarData("temp2f", temp2f.value());
   }
 
   if (rh.has_value()) {
-    RelativeHumidity humidity = rh.value().relativeHumidityValue();
+    RelativeHumidityMeasurement humidity_measurement = rh.value();
+    RelativeHumidity humidity = humidity_measurement.relativeHumidityValue();
     wu->setVarData("humidity", humidity.value());
   }
 
@@ -183,14 +186,16 @@ WeatherUnderground* processWuData(string pwu_name, string pwu_password,
    * If there are valid temperature and relative humidity then add a dewpoint
    */
   if (dewpoint.has_value()) {
-    wu->setData("dewptf", dewpoint.value().value());
+    Fahrenheit dew_temp = dewpoint.value();
+    wu->setData("dewptf", dew_temp.value());
   }
 
   /*
    * Weather Underground wants inches mercury
    */
   if (pressure.has_value()) {
-    InchesMercury inches = pressure.value().value();
+    PressureMeasurement pressure_measurement = pressure.value();
+    InchesMercury inches = pressure_measurement.value();
     wu->setVarData("baromin", inches.value());
   }
 
@@ -198,29 +203,30 @@ WeatherUnderground* processWuData(string pwu_name, string pwu_password,
          * Weather Underground wants speed in mph
          */
   if (windspeed.has_value()) {
-    MilesPerHour wind_mph = windspeed.value().value();
+    SpeedMeasurement wind_speed_measurement = windspeed.value();
+    MilesPerHour wind_mph = wind_speed_measurement.value();
     wu->setVarData("windspeedmph", wind_mph.value());
   }
-  if (wind_history.countOverPeriod(kInterval2m) > 0) {
-    expected<MilesPerHour, int> ave = wind_history.average(kInterval2m);
+  if (wind_history->countOverPeriod(kInterval2m) > 0) {
+    expected<MilesPerHour, int> ave = wind_history->average(kInterval2m);
     if (ave.has_value() == true) {
       wu->setVarData("windspdmph_avg2m", ave.value().value());
     }
-    expected<SpeedMeasurement, int> gust = wind_history.gust(kInterval2m);
+    expected<SpeedMeasurement, int> gust = wind_history->gust(kInterval2m);
     if (gust.has_value() == true) {
       MilesPerHour mph = gust.value().value();
       wu->setVarData("windgustmph", mph.value());
     }
   }
-  if (wind_history.countOverPeriod(kInterval10m) > 0) {
-    expected<SpeedMeasurement, int> gust = wind_history.gust(kInterval10m);
+  if (wind_history->countOverPeriod(kInterval10m) > 0) {
+    expected<SpeedMeasurement, int> gust = wind_history->gust(kInterval10m);
     if (gust.has_value() == true) {
       MilesPerHour mph = gust.value().value();
       wu->setVarData("windgustmph_10m", mph.value());
     }
   }
 
-  return wu;
+  return;
 }
 
 void terminate(bool in_systemd) {
@@ -535,10 +541,8 @@ int main(int argc, char* argv[]) {
         /*
          * Put the raw data into the wu data
          */
-        WeatherUnderground* wu =
-            processWuData(pwu_name, pwu_password, x_sht4x_temp, x_lps22_temp,
-                          x_lps22_pressure, x_sht4x_humidity, dewptf,
-                          x_anomometer, ws_history);
+        processWuData(wu, x_sht4x_temp, x_lps22_temp, x_lps22_pressure,
+                      x_sht4x_humidity, dewptf, x_anomometer, &ws_history);
         /*
          * debug to check out the string
          */
