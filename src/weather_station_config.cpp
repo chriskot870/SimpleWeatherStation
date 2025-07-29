@@ -27,6 +27,12 @@
  */
 
 #include "include/weather_station_config.h"
+
+#include <string>
+
+#include "fmt/format.h"
+#include "jsoncpp/json/json.h"
+
 #include "qw/logger/include/logger.h"
 
 using qw::locking::LockingFile;
@@ -36,6 +42,11 @@ using std::ifstream;
 using std::ofstream;
 using std::string;
 using std::unique_ptr;
+using fmt::format;
+using Json::parseFromStream;
+using Json::CharReaderBuilder;
+using Json::StreamWriterBuilder;
+using Json::StreamWriter;
 
 WeatherStationConfig::WeatherStationConfig(const string& config_file)
     : config_file_(config_file) {}
@@ -55,8 +66,9 @@ bool WeatherStationConfig::exists() {
   return true;
 }
 
-bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
-  Json::Reader json_config_reader;
+bool WeatherStationConfig::getRoot(Json::Value *root) {
+  CharReaderBuilder builder;
+  string errors;
   string lock_file = getLockFileName(config_file_);
 
   LockingFile config_guard(lock_file);
@@ -68,9 +80,9 @@ bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
     exit(1);
   }
 
-  if (json_config_reader.parse(config_file_stream, ws_json_config) == false) {
+  if (parseFromStream(builder, config_file_stream, root, &errors) == false) {
     logger.log(LOG_ERR,
-               "Failed to parse config Weather Undergroubd gonfig file.");
+               format("Failed to parse config Weather Underground config file: {}", errors));
     return false;
   }
   config_file_stream.close();
@@ -79,7 +91,7 @@ bool WeatherStationConfig::getRoot(Json::Value& ws_json_config) {
   return true;
 }
 
-bool WeatherStationConfig::putRoot(Json::Value data) {
+bool WeatherStationConfig::putRoot(const Json::Value& data) {
   string lock_file = getLockFileName(config_file_);
   LockingFile config_guard(lock_file);
   config_guard.lock();
@@ -96,7 +108,7 @@ bool WeatherStationConfig::putRoot(Json::Value data) {
   /*
    * Define how we are going to build the json file
    */
-  Json::StreamWriterBuilder builder;
+  StreamWriterBuilder builder;
   builder["commentStyle"] = "None";
   builder["indentation"] = "   ";  // or "\t" for tabs
 
@@ -104,7 +116,7 @@ bool WeatherStationConfig::putRoot(Json::Value data) {
    * Get a stream writer pointer and do the wite.
    * unique_ptr will get free'd when it goes out of scope.
    */
-  unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+  unique_ptr<StreamWriter> writer(builder.newStreamWriter());
   writer->write(data, &config_file_stream);
 
   /*

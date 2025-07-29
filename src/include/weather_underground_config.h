@@ -32,6 +32,8 @@
 #include <string>
 #include <string_view>
 
+#include "jsoncpp/json/json.h"
+
 #include "weather_station.h"
 
 constexpr int wu_default_report_interval = 300000;
@@ -57,11 +59,11 @@ class WeatherUndergroundConfig {
 
   bool initialize();
 
-  void setConfigFile(string config_file);
+  void setConfigFile(const string& config_file);
 
-  bool getRoot(Json::Value& ws_access);
+  bool getRoot(Json::Value *root);
 
-  bool putRoot(Json::Value data);
+  bool putRoot(const Json::Value& data);
 
  private:
   std::string getLockFileName(string file);

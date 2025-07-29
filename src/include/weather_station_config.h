@@ -55,9 +55,9 @@ class WeatherStationConfig {
 
   void setConfigFile(const string& config_file);
 
-  bool getRoot(Json::Value& ws_access);
+  bool getRoot(Json::Value *root);
 
-  bool putRoot(Json::Value data);
+  bool putRoot(const Json::Value& data);
 
  private:
   string getLockFileName(string file);

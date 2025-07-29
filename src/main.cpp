@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
    */
   WeatherStationConfig ws_config(weather_station_config.data());
   Json::Value json_config;
-  ws_config.getRoot(json_config);
+  ws_config.getRoot(&json_config);
 
   string software_version =
       json_config["Software"]["Version"]["Major"].asString() + "." +
@@ -440,11 +440,11 @@ int main(int argc, char* argv[]) {
       json_config["WeatherUndegroundFile"].asString());
   if (wu_config.exists() == false) {
     logger.log(LOGGER_INFO, "Can't get Weather Underground configuration info");
-    exit(1);
+    terminate(in_systemd);
   }
 
   Json::Value ws_writable_json_config;
-  if (wu_config.getRoot(ws_writable_json_config) == false) {
+  if (wu_config.getRoot(&ws_writable_json_config) == false) {
     logger.log(LOGGER_INFO,
                format("Unable to parse Weather Underground config file: {}",
                       json_config["WeatherUndegroundFile"].asString()));
@@ -592,7 +592,7 @@ int main(int argc, char* argv[]) {
        * changed. Or the authentication was invalid. So, we have to
        * get a new username and password and then gather more data.
        */
-      if ((wu_config.getRoot(wu_json_config) == false) ||
+      if ((wu_config.getRoot(&wu_json_config) == false) ||
           (wu_json_config.isMember("pwu_name") == false) ||
           (wu_json_config.isMember("pwu_password") == false)) {
         logger.log(LOGGER_INFO,

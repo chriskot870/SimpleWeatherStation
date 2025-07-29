@@ -36,11 +36,14 @@ using std::ifstream;
 using std::ofstream;
 using std::string;
 using std::unique_ptr;
+using Json::CharReaderBuilder;
+using Json::CharReader;
+using Json::parseFromStream;
 
 WeatherUndergroundConfig::WeatherUndergroundConfig(const string& config_file)
     : config_file_(config_file) {}
 
-void WeatherUndergroundConfig::setConfigFile(string config_file) {
+void WeatherUndergroundConfig::setConfigFile(const string& config_file) {
   config_file_ = config_file;
 
   return;
@@ -70,8 +73,9 @@ bool WeatherUndergroundConfig::initialize() {
   return val;
 }
 
-bool WeatherUndergroundConfig::getRoot(Json::Value& ws_json_config) {
-  Json::Reader json_config_reader;
+bool WeatherUndergroundConfig::getRoot(Json::Value *root) {
+  CharReaderBuilder builder;
+  string errors;
   string lock_file = getLockFileName(config_file_);
 
   LockingFile config_guard(lock_file);
@@ -83,7 +87,7 @@ bool WeatherUndergroundConfig::getRoot(Json::Value& ws_json_config) {
     return false;
   }
 
-  if (json_config_reader.parse(config_file_stream, ws_json_config) == false) {
+  if (parseFromStream(builder, config_file_stream, root, &errors) == false) {
     logger.log(LOG_ERR,
                "Failed to parse config Weather Undergroubd config file.");
     return false;
@@ -94,7 +98,7 @@ bool WeatherUndergroundConfig::getRoot(Json::Value& ws_json_config) {
   return true;
 }
 
-bool WeatherUndergroundConfig::putRoot(Json::Value data) {
+bool WeatherUndergroundConfig::putRoot(const Json::Value& data) {
   string lock_file = getLockFileName(config_file_);
   LockingFile config_guard(lock_file);
   config_guard.lock();
