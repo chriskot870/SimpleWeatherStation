@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
   /*
    * Load the configuration file
    */
-  WeatherStationConfig ws_config(weather_station_config);
+  WeatherStationConfig ws_config(weather_station_config.data());
   Json::Value json_config;
   ws_config.getRoot(json_config);
 
@@ -483,7 +483,7 @@ int main(int argc, char* argv[]) {
    */
   int inotify_fd = inotify_init();
   int inotify_ws_watch_d =
-      inotify_add_watch(inotify_fd, weather_station_config.c_str(), IN_MODIFY);
+      inotify_add_watch(inotify_fd, weather_station_config.data(), IN_MODIFY);
   int inotify_wu_watch_d = inotify_add_watch(
       inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(),
       IN_MODIFY);

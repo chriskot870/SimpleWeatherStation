@@ -40,7 +40,7 @@ using std::unique_ptr;
 WeatherStationConfig::WeatherStationConfig(const string& config_file)
     : config_file_(config_file) {}
 
-void WeatherStationConfig::setConfigFile(string config_file) {
+void WeatherStationConfig::setConfigFile(const string& config_file) {
   config_file_ = config_file;
 
   return;

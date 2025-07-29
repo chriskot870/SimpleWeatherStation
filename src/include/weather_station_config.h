@@ -33,19 +33,22 @@
 #ifndef SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
 #define SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
 
+#include <string>
+#include <string_view>
+
 #include "./weather_station.h"
 
-const std::string weather_station_config = "/usr/local/qw/etc/ws_config.json";
+constexpr std::string_view weather_station_config = "/usr/local/qw/etc/ws_config.json";
 
 class WeatherStationConfig {
  public:
   WeatherStationConfig();
 
-  WeatherStationConfig(const string& config_file);
+  explicit WeatherStationConfig(const string& config_file);
 
   bool exists();
 
-  void setConfigFile(string config_file);
+  void setConfigFile(const string& config_file);
 
   bool getRoot(Json::Value& ws_access);
 
