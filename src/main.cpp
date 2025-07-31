@@ -230,55 +230,8 @@ void processWuData(
   return;
 }
 
-void terminate(bool in_systemd) {
-  if (in_systemd == true) {
-    SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
-                      systemd_unit_interface);
-    sleep(10);  // Give the daemon a chance to register the log message
-    sd_qw_unit.stop("replace");
-    pause();
-  }
-  exit(1);
-}
-
-int main(int argc, char* argv[]) {
-  string temperature;
-  string humidity;
-  float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
-  string time_string;
-  std::expected<uint8_t, int> x_whoami;
-  std::expected<uint32_t, int> x_serial_number;
-  std::expected<string, SdBusError> service_state;
-  std::expected<uint32_t, SdBusError> service_pid;
-  int error;
+void parseCommandLine(int argc, char **argv, bool parse_log) {
   int c;
-  bool in_systemd = false;
-  bool reporting_enabled =
-      false;  // We are debugging so don't send the data to weather underground
-  Ads1015Config value;
-  WindspeedHistory ws_history;
-
-  /*
-    * If we have started from systemd then we always use
-    * LOGGER_MODE_JOURNAL.
-    */
-  SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
-                    systemd_unit_interface);
-
-  expected<bool, SdBusError> isParentSystemd = isRunningInSystemd();
-
-  if (isParentSystemd.has_value() != true) {
-    logger.log(LOG_CRIT, format("{} : {}", isParentSystemd.error().code,
-                                *isParentSystemd.error().message));
-    exit(1);
-  }
-
-  in_systemd == isParentSystemd.value();
-
-  if (in_systemd == true) {
-    logger.setMode(LOGGER_MODE_JOURNAL);
-    logger.log(LOGGER_INFO, "Logging in Journal Mode");
-  }
   /*
    * Determine the logging mode from parameters
    */
@@ -290,7 +243,7 @@ int main(int argc, char* argv[]) {
          * mode will already have been set to LOGGER_MODE_JOURNAL.
          * We ignore any command line option.
          */
-        if (in_systemd == true) {
+        if (parse_log == true) {
           break;
         }
         string value = optarg;
@@ -343,6 +296,60 @@ int main(int argc, char* argv[]) {
           break;
         }
     }
+  }
+}
+
+void terminate(bool in_systemd) {
+  if (in_systemd == true) {
+    SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
+                      systemd_unit_interface);
+    sleep(10);  // Give the daemon a chance to register the log message
+    sd_qw_unit.stop("replace");
+    pause();
+  }
+  exit(1);
+}
+
+int main(int argc, char* argv[]) {
+  string temperature;
+  string humidity;
+  float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
+  string time_string;
+  std::expected<uint8_t, int> x_whoami;
+  std::expected<uint32_t, int> x_serial_number;
+  std::expected<string, SdBusError> service_state;
+  std::expected<uint32_t, SdBusError> service_pid;
+  int error;
+  int c;
+  bool in_systemd = false;
+  bool reporting_enabled =
+      false;  // We are debugging so don't send the data to weather underground
+  Ads1015Config value;
+  WindspeedHistory ws_history;
+
+  /*
+    * If we have started from systemd then we always use
+    * LOGGER_MODE_JOURNAL.
+    */
+  SdUnit sd_qw_unit(systemd_destination, systemd_quietwind_service_path,
+                    systemd_unit_interface);
+
+  expected<bool, SdBusError> isParentSystemd = isRunningInSystemd();
+
+  if (isParentSystemd.has_value() != true) {
+    logger.log(LOG_CRIT, format("{} : {}", isParentSystemd.error().code,
+                                *isParentSystemd.error().message));
+    exit(1);
+  }
+
+  in_systemd == isParentSystemd.value();
+
+  if (in_systemd == true) {
+    logger.setMode(LOGGER_MODE_JOURNAL);
+    logger.log(LOGGER_INFO, "Logging in Journal Mode");
+    parseCommandLine(argc, argv, false);
+  } else {
+    parseCommandLine(argc, argv, true);
   }
 
   /*
@@ -493,8 +500,7 @@ int main(int argc, char* argv[]) {
    * Initializing last reporting time to 2 reporting loops prior to now so a report is
    * sent on first pass.
    */
-  auto reporting_interval = reporting_loop_interval;
-  auto last_report_time = system_clock::now() - (reporting_interval * 2);
+  auto last_report_time = system_clock::now() - (reporting_loop_interval * 2);
   /*
    * Setup inotify to get notified when config file changes during poll
    */
