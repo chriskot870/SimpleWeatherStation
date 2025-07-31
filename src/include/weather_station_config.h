@@ -58,7 +58,7 @@ class WeatherStationConfig {
   bool exists();
 
   std::expected<string, int> configurableFileName();
-  
+
   void setConfigFile(const string& config_file);
 
   std::expected<bool, int> load();
