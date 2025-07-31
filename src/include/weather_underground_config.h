@@ -29,6 +29,7 @@
 #ifndef SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
 #define SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
 
+#include <chrono>
 #include <string>
 #include <string_view>
 
@@ -36,13 +37,16 @@
 
 #include "weather_station.h"
 
-constexpr int wu_default_report_interval = 300000;
-constexpr int wu_report_interval_min = 2500;  // 2.5 seconds in milliseconds
-constexpr int wu_report_interval_max =
-    ((60 * 60) * 1000);  // 1 hour in milliseconds
 /*
  * The ReportInterval is in milliseconds. 300000 = 5 minutes
  */
+constexpr std::chrono::milliseconds wu_default_report_interval =
+    std::chrono::milliseconds(300000);
+constexpr std::chrono::milliseconds wu_report_interval_min =
+    std::chrono::milliseconds(2500);  // 2.5 seconds in milliseconds
+constexpr std::chrono::milliseconds wu_report_interval_max =
+    std::chrono::milliseconds(((60 * 60) * 1000));  // 1 hour in milliseconds
+
 const std::string_view wu_default_config = R"({
     "WeatherUnderground": {
         "pwu_name": "KTXROANO168",
@@ -61,7 +65,7 @@ class WeatherUndergroundConfig {
 
   void setConfigFile(const string& config_file);
 
-  bool getRoot(Json::Value *root);
+  bool getRoot(Json::Value* root);
 
   bool putRoot(const Json::Value& data);
 

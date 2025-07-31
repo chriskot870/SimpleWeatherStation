@@ -6,7 +6,7 @@
     "report_interval_comment": "Interval to report data in milliseconds",
     "report_interval": 300000
   },
-  "Configuration": {
+  "DataAcquisition": {
     "data_gather_interval_comment": "Interval to gather data in milliseconds",
     "data_gathering_interval": 10000
   }

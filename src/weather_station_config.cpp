@@ -28,6 +28,10 @@
 
 #include "include/weather_station_config.h"
 
+#include <errno.h>
+
+#include <chrono>
+#include <expected>
 #include <string>
 
 #include "fmt/format.h"
@@ -35,18 +39,21 @@
 
 #include "qw/logger/include/logger.h"
 
+using fmt::format;
+using Json::CharReaderBuilder;
+using Json::parseFromStream;
+using Json::StreamWriter;
+using Json::StreamWriterBuilder;
 using qw::locking::LockingFile;
 using qw::logging::Logger;
 using qw::logging::logger;
+using std::expected;
 using std::ifstream;
 using std::ofstream;
 using std::string;
+using std::unexpected;
 using std::unique_ptr;
-using fmt::format;
-using Json::parseFromStream;
-using Json::CharReaderBuilder;
-using Json::StreamWriterBuilder;
-using Json::StreamWriter;
+using std::chrono::milliseconds;
 
 WeatherStationConfig::WeatherStationConfig(const string& config_file)
     : config_file_(config_file) {}
@@ -66,7 +73,7 @@ bool WeatherStationConfig::exists() {
   return true;
 }
 
-bool WeatherStationConfig::getRoot(Json::Value *root) {
+expected<bool, int> WeatherStationConfig::load() {
   CharReaderBuilder builder;
   string errors;
   string lock_file = getLockFileName(config_file_);
@@ -77,16 +84,45 @@ bool WeatherStationConfig::getRoot(Json::Value *root) {
   ifstream config_file_stream(config_file_);
   if (config_file_stream.is_open() == false) {
     logger.log(LOG_ERR, "Failed to open the WU config file.");
-    exit(1);
+    return (unexpected(errno));
   }
 
-  if (parseFromStream(builder, config_file_stream, root, &errors) == false) {
-    logger.log(LOG_ERR,
-               format("Failed to parse config Weather Underground config file: {}", errors));
-    return false;
+  if (parseFromStream(builder, config_file_stream, &read_only_json_, &errors) ==
+      false) {
+    logger.log(
+        LOG_ERR,
+        format("Failed to parse config Weather Underground config file: {}",
+               errors));
+    return (unexpected(ENODATA));
   }
   config_file_stream.close();
   config_guard.unlock();
+
+  /*
+   * Now look for the writable configuration file
+   */
+  string w_fname = read_only_json_["WeatherUndergroundFile"].asString();
+  lock_file = getLockFileName(config_file_);
+  LockingFile w_guard(lock_file);
+
+  w_guard.lock();
+  ifstream w_config_file_stream(w_fname);
+  if (w_config_file_stream.is_open() == false) {
+    logger.log(LOG_ERR,
+               format("Failed to open the WS config file: {}", w_fname));
+    return (unexpected(errno));
+  }
+
+  if (parseFromStream(builder, config_file_stream, &writable_json_, &errors) ==
+      false) {
+    logger.log(
+        LOG_ERR,
+        format("Failed to parse config Weather Underground config file: {}",
+               errors));
+    return (unexpected(ENODATA));
+  }
+  w_config_file_stream.close();
+  w_guard.unlock();
 
   return true;
 }
@@ -126,6 +162,74 @@ bool WeatherStationConfig::putRoot(const Json::Value& data) {
   config_guard.unlock();
 
   return true;
+}
+
+std::expected<string, int> WeatherStationConfig::configurableFileName() {
+  string fname = read_only_json_["WeatherUndergroundFile"].asString();
+
+  return fname;
+}
+
+expected<string, int> WeatherStationConfig::softwareVersion() {
+  string version =
+      read_only_json_["Software"]["Version"]["Major"].asString() + "." +
+      read_only_json_["Software"]["Version"]["Minor"].asString() + "." +
+      read_only_json_["Software"]["Version"]["Patchlevel"].asString();
+
+  return version;
+}
+
+expected<string, int> WeatherStationConfig::model() {
+  string model = read_only_json_["Hardware"]["Model"].asString();
+
+  return model;
+}
+
+expected<string, int> WeatherStationConfig::i2cBusName() {
+  string bus_name =
+      read_only_json_["Hardware"]["I2c"]["Bus"]["name"].asString();
+
+  return bus_name;
+}
+
+expected<uint8_t, int> WeatherStationConfig::i2cDeviceAddress(string device) {
+  int addr =
+      read_only_json_["Hardware"]["I2c"]["Bus"]["device_addresses"][device]
+          .asInt();
+
+  return addr;
+}
+
+expected<milliseconds, int> WeatherStationConfig::getDataAcquisitionInterval() {
+  int data =
+      writable_json_["DataAcquisition"]["data_gathering_interval"].asInt();
+
+  milliseconds msecs = milliseconds(msecs);
+
+  return msecs;
+}
+
+expected<string, int> WeatherStationConfig::getWuPwuName() {
+  string pwu_name = writable_json_["WeatherUnderground"]["pwu_name"].asString();
+
+  return pwu_name;
+}
+
+std::expected<string, int> WeatherStationConfig::getWuPwuPassword() {
+  string pwu_password =
+      writable_json_["WeatherUnderground"]["pwu_password"].asString();
+
+  return pwu_password;
+}
+
+std::expected<std::chrono::milliseconds, int>
+WeatherStationConfig::getWuReportInterval() {
+  int interval_count =
+      writable_json_["WeatherUnderground"]["report_interval"].asInt();
+
+  milliseconds interval = milliseconds(interval_count);
+
+  return interval;
 }
 
 string WeatherStationConfig::getLockFileName(string file) {

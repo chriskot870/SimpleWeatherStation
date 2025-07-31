@@ -33,17 +33,21 @@
 #ifndef SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
 #define SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
 
+#include <expected>
 #include <string>
 #include <string_view>
+#include <chrono>
 
 #include "./weather_station.h"
 
 constexpr std::string_view weather_station_config =
     "/usr/local/qw/etc/ws_config.json";
-constexpr int ws_data_gathering_interval_min =
-    2500;  // 2.5 seconds is minimum gathering interval
-constexpr int ws_data_gathering_interval_max =
-    60000;  // 60 seconds is maximum gathering interval
+constexpr std::chrono::milliseconds ws_data_gathering_interval_default =
+    std::chrono::milliseconds(10000);  // 10 seconds for default interval
+constexpr std::chrono::milliseconds ws_data_gathering_interval_min =
+    std::chrono::milliseconds(2500);  // 2.5 seconds is minimum gathering interval
+constexpr std::chrono::milliseconds ws_data_gathering_interval_max =
+    std::chrono::milliseconds(60000);  // 60 seconds is maximum gathering interval
 
 class WeatherStationConfig {
  public:
@@ -53,16 +57,37 @@ class WeatherStationConfig {
 
   bool exists();
 
+  std::expected<string, int> configurableFileName();
+  
   void setConfigFile(const string& config_file);
 
-  bool getRoot(Json::Value *root);
+  std::expected<bool, int> load();
 
   bool putRoot(const Json::Value& data);
+
+  std::expected<string, int> softwareVersion();
+
+  std::expected<string, int> model();
+
+  std::expected<string, int> i2cBusName();
+
+  std::expected<uint8_t, int> i2cDeviceAddress(string device);
+
+  std::expected<std::chrono::milliseconds, int> getDataAcquisitionInterval();
+
+  std::expected<string, int> getWuPwuName();
+
+  std::expected<string, int> getWuPwuPassword();
+
+  std::expected<std::chrono::milliseconds, int> getWuReportInterval();
 
  private:
   string getLockFileName(string file);
 
   string config_file_;
+
+  Json::Value read_only_json_;
+  Json::Value writable_json_;
 };
 
 #endif  // SRC_INCLUDE_WEATHER_STATION_CONFIG_H_

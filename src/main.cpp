@@ -113,6 +113,7 @@ using std::min;
 using std::ofstream;
 using std::string;
 using std::string_view;
+using std::chrono::milliseconds;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::chrono::utc_clock;
@@ -348,27 +349,43 @@ int main(int argc, char* argv[]) {
    * Load the configuration file
    */
   WeatherStationConfig ws_config(weather_station_config.data());
-  Json::Value json_config;
-  ws_config.getRoot(&json_config);
+  expected<bool, int> load = ws_config.load();
+  if (load.has_value() != true) {
+    logger.log(LOG_CRIT, format("Unable to load configuration file {}: {}",
+                                weather_station_config.data(), load.error()));
+    terminate(in_systemd);
+  }
 
-  string software_version =
-      json_config["Software"]["Version"]["Major"].asString() + "." +
-      json_config["Software"]["Version"]["Minor"].asString() + "." +
-      json_config["Software"]["Version"]["Patchlevel"].asString();
-
-  logger.log(LOGGER_INFO, format("Software version {}", software_version));
+  expected<string, int> version = ws_config.softwareVersion();
+  if (load.has_value() != true) {
+    logger.log(LOGGER_INFO, "Unable to determine Software Version");
+  } else {
+    logger.log(LOGGER_INFO, format("Software version {}", version.value()));
+  }
   logger.log(LOGGER_INFO, "Checking Hardware");
-  logger.log(LOGGER_INFO,
-             format("Model: {}", json_config["Hardware"]["Model"].asString()));
 
-  I2cBus i2c_bus =
-      I2cBus(json_config["Hardware"]["I2c"]["Bus"]["name"].asString());
+  expected<string, int> model = ws_config.model();
+  if (model.has_value() != true) {
+    logger.log(LOGGER_INFO, "Unable to determine Model");
+  } else {
+    logger.log(LOGGER_INFO, format("Model: {}", model.value()));
+  }
+
+  expected<string, int> busname = ws_config.i2cBusName();
+  if (busname.has_value() != true) {
+    logger.log(LOG_CRIT,
+               format("Unable to determine i2c bus name: {}", busname.error()));
+    terminate(in_systemd);
+  }
+  I2cBus i2c_bus = I2cBus(busname.value());
   if (i2c_bus.status() != qw::devices::I2CBUS_STATUS_OK) {
     logger.log(LOGGER_ERR, "Initialization of I2C bus failed");
     terminate(in_systemd);
   }
 
-  Lps22 lps22(i2c_bus, kLps22hbI2cPrimaryAddress);
+  expected<uint8_t, int> lps22hbI2cAddress =
+      ws_config.i2cDeviceAddress("lps22");
+  Lps22 lps22(i2c_bus, lps22hbI2cAddress.value());
 
   error = lps22.init();
   if (error != 0) {
@@ -387,7 +404,8 @@ int main(int argc, char* argv[]) {
   /*
    * The sht4x device is connected to I2c bus 1 at the primary address
    */
-  I2cSht4x sht4x(i2c_bus, kSht4xI2cPrimaryAddress);
+  expected<uint8_t, int> sht4xI2cAddress = ws_config.i2cDeviceAddress("sht4x");
+  I2cSht4x sht4x(i2c_bus, sht4xI2cAddress.value());
 
   error = sht4x.softReset();
   if (error != 0) {
@@ -405,7 +423,9 @@ int main(int argc, char* argv[]) {
   /*
    * Add the ads device
    */
-  I2cAds1015 ads1015(i2c_bus, kAds1015I2cPrimaryAddress);
+  expected<uint8_t, int> ads1015I2cAddress =
+      ws_config.i2cDeviceAddress("ads1015");
+  I2cAds1015 ads1015(i2c_bus, ads1015I2cAddress.value());
   /*
    * Check if we can get the configuration register
    */
@@ -434,60 +454,46 @@ int main(int argc, char* argv[]) {
   logger.log(LOGGER_INFO, "Starting");
 
   /*
-   * Get the Weather Underground configuration
+   * Get data_gather_interval
    */
-  WeatherUndergroundConfig wu_config(
-      json_config["WeatherUndegroundFile"].asString());
-  if (wu_config.exists() == false) {
-    logger.log(LOGGER_INFO, "Can't get Weather Underground configuration info");
-    terminate(in_systemd);
+  milliseconds data_gathering_interval;
+  expected<milliseconds, int> get_data_interval =
+      ws_config.getDataAcquisitionInterval();
+  if (get_data_interval.has_value() != true) {
+    data_gathering_interval = ws_data_gathering_interval_default;
+    logger.log(
+        LOG_INFO,
+        format("Setting data gathering interval to default {} milliseconds",
+               data_gathering_interval.count()));
+  } else {
+    data_gathering_interval =
+        milliseconds(min(max(ws_data_gathering_interval_min.count(),
+                             get_data_interval.value().count()),
+                         ws_data_gathering_interval_max.count()));
   }
 
-  Json::Value ws_writable_json_config;
-  if (wu_config.getRoot(&ws_writable_json_config) == false) {
-    logger.log(LOGGER_INFO,
-               format("Unable to parse Weather Underground config file: {}",
-                      json_config["WeatherUndegroundFile"].asString()));
-    terminate(in_systemd);
-  }
-
-  /*
-   * Get the Configuration section out of the Json tree
-   */
-  Json::Value ws_json_configuration = ws_writable_json_config["Configuration"];
-  /*
-   * Set the data_gather_interval
-   */
-  int data_gathering_interval =
-      min(max(ws_data_gathering_interval_min,
-              ws_json_configuration["data_gathering_interval"].asInt()),
-          ws_data_gathering_interval_max);
-
-  /*
-   * Get the WeatherUnderground section of the Json tree
-   */
-  Json::Value wu_json_config = ws_writable_json_config["WeatherUnderground"];
-  if (wu_json_config.isMember("pwu_name") == false ||
-      wu_json_config.isMember("pwu_password") == false) {
-    logger.log(LOGGER_INFO,
-               "Improperly formatted Weather Underground config file no "
-               "authentication info");
-  }
-  string pwu_name = wu_json_config["pwu_name"].asString();
-  string pwu_password = wu_json_config["pwu_password"].asString();
+  expected<string, int> get_wu_pwu_name = ws_config.getWuPwuName();
+  string pwu_name = get_wu_pwu_name.value();
+  expected<string, int> get_wu_pwu_password = ws_config.getWuPwuPassword();
+  string pwu_password = get_wu_pwu_password.value();
 
   WeatherUnderground* wu = new WeatherUnderground(pwu_name, pwu_password);
-  int reporting_loop_interval = wu_default_report_interval;
-  if (wu_json_config.isMember("report_interval") == true) {
-    reporting_loop_interval = min(
-        max(wu_report_interval_min, wu_json_config["report_interval"].asInt()),
-        wu_report_interval_max);
+  milliseconds reporting_loop_interval;
+  expected<milliseconds, int> get_report_interval =
+      ws_config.getWuReportInterval();
+  if (get_report_interval.has_value() != true) {
+    reporting_loop_interval = wu_default_report_interval;
+  } else {
+    reporting_loop_interval =
+        milliseconds(min(max(wu_report_interval_min.count(),
+                             get_report_interval.value().count()),
+                         wu_report_interval_max.count()));
   }
   /*
    * Initializing last reporting time to 2 reporting loops prior to now so a report is
    * sent on first pass.
    */
-  auto reporting_interval = std::chrono::milliseconds(reporting_loop_interval);
+  auto reporting_interval = reporting_loop_interval;
   auto last_report_time = system_clock::now() - (reporting_interval * 2);
   /*
    * Setup inotify to get notified when config file changes during poll
@@ -495,9 +501,9 @@ int main(int argc, char* argv[]) {
   int inotify_fd = inotify_init();
   int inotify_ws_watch_d =
       inotify_add_watch(inotify_fd, weather_station_config.data(), IN_MODIFY);
-  int inotify_wu_watch_d = inotify_add_watch(
-      inotify_fd, json_config["WeatherUndegroundFile"].asString().c_str(),
-      IN_MODIFY);
+  expected<string, int> get_fname = ws_config.configurableFileName();
+  int inotify_wu_watch_d =
+      inotify_add_watch(inotify_fd, get_fname.value().c_str(), IN_MODIFY);
   pollfd fds[1];
   fds[0].fd = inotify_fd;
   fds[0].events = POLLIN;
@@ -529,8 +535,7 @@ int main(int argc, char* argv[]) {
         ws_history.add(x_anomometer.value());
       }
 
-      if ((now_time - last_report_time) >=
-          std::chrono::milliseconds(reporting_loop_interval)) {
+      if ((now_time - last_report_time) >= reporting_loop_interval) {
         /*
          * We only need this information when we are going to make a report so get it now.
          */
@@ -575,38 +580,49 @@ int main(int argc, char* argv[]) {
           logger.log(LOGGER_INFO, response);
         }
         wu->reset();
-        delete wu;
       }
     }
 
-    int poll_cnt = poll(fds, 1, data_gathering_interval);
+    int poll_cnt = poll(fds, 1, data_gathering_interval.count());
     /*
      * If poll_cnt is zero it means the configuration file was
      * not updated and we can just cycle through and gather
      * another set of data.
      */
     if (poll_cnt != 0 || (pwu_name == "" || pwu_password == "")) {
-      delete wu;
       /*
        * If we got here it means the configuration file was
        * changed. Or the authentication was invalid. So, we have to
        * get a new username and password and then gather more data.
        */
-      if ((wu_config.getRoot(&wu_json_config) == false) ||
-          (wu_json_config.isMember("pwu_name") == false) ||
-          (wu_json_config.isMember("pwu_password") == false)) {
-        logger.log(LOGGER_INFO,
-                   "Unable to parse Weather Underground config file");
+      ws_config.load();
+      expected<string, int> get_pwu_name = ws_config.getWuPwuName();
+      pwu_name = get_pwu_name.value();
+      expected<string, int> get_pwu_passwd = ws_config.getWuPwuPassword();
+      pwu_password = get_pwu_passwd.value();
+      expected<milliseconds, int> get_report_interval =
+          ws_config.getWuReportInterval();
+      if (get_report_interval.has_value() != true) {
+        reporting_loop_interval = get_report_interval.value();
       } else {
-        pwu_name = wu_json_config["pwu_name"].asString();
-        pwu_password = wu_json_config["pwu_password"].asString();
-        wu = new WeatherUnderground(pwu_name, pwu_password);
+        reporting_loop_interval =
+            milliseconds(min(max(wu_report_interval_min.count(),
+                                 get_report_interval.value().count()),
+                             wu_report_interval_max.count()));
       }
-      reporting_loop_interval = wu_default_report_interval;
-      if (wu_json_config.isMember("report_interval") == true) {
-        reporting_loop_interval = min(
-            max(wu_report_interval_min, json_config["report_interval"].asInt()),
-            wu_report_interval_max);
+      expected<milliseconds, int> get_data_interval =
+          ws_config.getDataAcquisitionInterval();
+      if (get_data_interval.has_value() != true) {
+        data_gathering_interval = ws_data_gathering_interval_default;
+        logger.log(
+            LOG_INFO,
+            format("Setting data gathering interval to default {} milliseconds",
+                   data_gathering_interval.count()));
+      } else {
+        data_gathering_interval =
+            milliseconds(min(max(ws_data_gathering_interval_min.count(),
+                                 get_data_interval.value().count()),
+                             ws_data_gathering_interval_max.count()));
       }
     }
   }
