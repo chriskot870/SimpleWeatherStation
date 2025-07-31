@@ -4,7 +4,8 @@
     "pwu_name": "KTXROANO168",
     "pwu_password": "HW0SG8q3",
     "report_interval_comment": "Interval to report data in milliseconds",
-    "report_interval": 300000
+    "report_interval": 300000,
+    "reporting_enabled": false
   },
   "DataAcquisition": {
     "data_gather_interval_comment": "Interval to gather data in milliseconds",

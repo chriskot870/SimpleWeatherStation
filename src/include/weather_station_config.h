@@ -81,6 +81,8 @@ class WeatherStationConfig {
 
   std::expected<std::chrono::milliseconds, int> getWuReportInterval();
 
+  std::expected<bool, int> getWuReportEnabled();
+
  private:
   string getLockFileName(string file);
 

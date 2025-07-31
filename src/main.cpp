@@ -230,7 +230,7 @@ void processWuData(
   return;
 }
 
-void parseCommandLine(int argc, char **argv, bool parse_log) {
+void parseCommandLine(int argc, char** argv, bool parse_log) {
   int c;
   /*
    * Determine the logging mode from parameters
@@ -496,6 +496,16 @@ int main(int argc, char* argv[]) {
                              get_report_interval.value().count()),
                          wu_report_interval_max.count()));
   }
+
+  expected<bool, int> get_report_enabled = ws_config.getWuReportEnabled();
+  if (get_report_enabled.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't determine if WU reporting is "
+                                "enabled. Setting to false: {}",
+                                get_report_enabled.error()));
+    reporting_enabled = false;
+  } else {
+    reporting_enabled = get_report_enabled.value();
+  }
   /*
    * Initializing last reporting time to 2 reporting loops prior to now so a report is
    * sent on first pass.
@@ -615,6 +625,15 @@ int main(int argc, char* argv[]) {
             milliseconds(min(max(wu_report_interval_min.count(),
                                  get_report_interval.value().count()),
                              wu_report_interval_max.count()));
+      }
+      expected<bool, int> get_report_enabled = ws_config.getWuReportEnabled();
+      if (get_report_enabled.has_value() != true) {
+        logger.log(LOG_INFO, format("Couldn't determine if WU reporting is "
+                                    "enabled. Setting to false: {}",
+                                    get_report_enabled.error()));
+        reporting_enabled = false;
+      } else {
+        reporting_enabled = get_report_enabled.value();
       }
       expected<milliseconds, int> get_data_interval =
           ws_config.getDataAcquisitionInterval();

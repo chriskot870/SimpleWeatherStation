@@ -215,14 +215,14 @@ expected<string, int> WeatherStationConfig::getWuPwuName() {
   return pwu_name;
 }
 
-std::expected<string, int> WeatherStationConfig::getWuPwuPassword() {
+expected<string, int> WeatherStationConfig::getWuPwuPassword() {
   string pwu_password =
       writable_json_["WeatherUnderground"]["pwu_password"].asString();
 
   return pwu_password;
 }
 
-std::expected<std::chrono::milliseconds, int>
+expected<std::chrono::milliseconds, int>
 WeatherStationConfig::getWuReportInterval() {
   int interval_count =
       writable_json_["WeatherUnderground"]["report_interval"].asInt();
@@ -230,6 +230,12 @@ WeatherStationConfig::getWuReportInterval() {
   milliseconds interval = milliseconds(interval_count);
 
   return interval;
+}
+
+expected<bool, int> WeatherStationConfig::getWuReportEnabled() {
+  bool enabled = writable_json_["WeatherUnerground"]["reporting_enabled"].asBool();
+
+  return enabled;
 }
 
 string WeatherStationConfig::getLockFileName(string file) {
