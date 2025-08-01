@@ -35,7 +35,7 @@
 
 #include "jsoncpp/json/json.h"
 
-#include "weather_station.h"
+#include "include/weather_station.h"
 
 /*
  * The ReportInterval is in milliseconds. 300000 = 5 minutes

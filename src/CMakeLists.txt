@@ -17,11 +17,11 @@ add_executable(${EXECUTABLE_NAME}
                main.cpp
 )
 
-target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++26)
+target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++23)
 #target_compile_options(${EXECUTABLE_NAME} PUBLIC -lfmt)
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/src/lib
 )
 
