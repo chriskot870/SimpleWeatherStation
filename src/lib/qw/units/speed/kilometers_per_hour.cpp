@@ -27,12 +27,15 @@
  */
 #include "qw/units/speed/include/kilometers_per_hour.h"
 
+#include <format>
+#include <math.h>
+
 #include <compare>
 #include <string>
 
-#include "fmt/format.h"
-
-using fmt::format;
+using std::format;
+using std::vformat;
+using std::make_format_args;
 using std::string;
 using std::strong_ordering;
 
@@ -82,21 +85,16 @@ void KilometersPerHour::setBase(int64_t base_value) {
   return;
 }
 
-/*
- * Use the default format
- */
 string KilometersPerHour::toString() {
-  string data = format(fmt::runtime(fmt_value_), value());
+  float i = value();
+  string data = vformat(fmt_value_, make_format_args(i));
 
   return data;
 }
 
-/*
- * Use the provided format instead of one in private variable
- */
 string KilometersPerHour::toString(string fmt_value) {
-  string data = format(fmt::runtime(fmt_value), value());
-
+  float i = value();
+  string data = vformat(fmt_value, make_format_args(i));
   return data;
 }
 

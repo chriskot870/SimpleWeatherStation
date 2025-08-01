@@ -32,10 +32,10 @@
 #include "qw/devices/i2c/include/lps22.h"
 
 #include <errno.h>
+#include <expected>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>  // Cpplint is wrong about this being a C system header // NOLINT
 #include <map>
 #include <memory>
 #include <vector>

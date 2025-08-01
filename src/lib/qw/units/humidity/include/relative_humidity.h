@@ -29,7 +29,6 @@
 #ifndef SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_H_
 #define SRC_LIB_QW_UNITS_HUMIDITY_INCLUDE_RELATIVE_HUMIDITY_H_
 
-#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>

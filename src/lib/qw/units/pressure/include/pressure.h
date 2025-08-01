@@ -29,7 +29,6 @@
 #ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_H_
 #define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_PRESSURE_H_
 
-#include <fmt/format.h>
 #include <math.h>
 #include <compare>
 #include <string>

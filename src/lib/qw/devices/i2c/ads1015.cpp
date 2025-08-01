@@ -32,10 +32,11 @@
 #include "qw/devices/i2c/include/ads1015.h"
 
 #include <errno.h>
+#include <expected>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <expected>  // Lint incorrectly counts this as a C header // NOLINT
 #include <map>
 #include <memory>
 #include <vector>

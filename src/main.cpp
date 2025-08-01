@@ -32,13 +32,12 @@
  */
 
 #include <expected>
+#include <format>
+
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <string_view>
-
-#include "fmt/chrono.h"
-#include "fmt/format.h"
 
 #include "include/weather_station.h"
 #include "include/weather_station_config.h"
@@ -60,7 +59,7 @@
 #include "qw/weather/include/dewpoint.h"
 #include "qw/weather/include/windspeed_history.h"
 
-using fmt::format;
+using std::format;
 using qw::devices::ADS1015_MUX_AIN0_GND;
 using qw::devices::Ads1015Config;
 using qw::devices::AnomometerAdafruit;
@@ -470,7 +469,7 @@ int main(int argc, char* argv[]) {
     data_gathering_interval = ws_data_gathering_interval_default;
     logger.log(
         LOG_INFO,
-        format("Setting data gathering interval to default {} milliseconds",
+        std::format("Setting data gathering interval to default {} milliseconds",
                data_gathering_interval.count()));
   } else {
     data_gathering_interval =

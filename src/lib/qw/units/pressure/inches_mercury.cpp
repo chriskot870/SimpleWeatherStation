@@ -28,9 +28,13 @@
 
 #include "qw/units/pressure/include/inches_mercury.h"
 
+#include <format>
 #include <compare>
 #include <string>
 
+using std::format;
+using std::vformat;
+using std::make_format_args;
 using std::string;
 using std::strong_ordering;
 
@@ -78,22 +82,16 @@ void InchesMercury::setBase(int64_t base_value) {
   return;
 }
 
-/*
- * Use the default format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
 string InchesMercury::toString() {
-  string data = format(fmt::runtime(fmt_value_), value());
+  float i = value();
+  string data = vformat(fmt_value_, make_format_args(i));
 
   return data;
 }
 
-/*
- * Use the provided format
- * Use "fmt" so it doesn't get confused with fmt::format
- */
 string InchesMercury::toString(string fmt_value) {
-  string data = format(fmt::runtime(fmt_value), value());
+  float i = value();
+  string data = vformat(fmt_value, make_format_args(i));
 
   return data;
 }

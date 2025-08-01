@@ -11,7 +11,7 @@ target_include_directories(weather PUBLIC , ${CMAKE_SOURCE_DIR}/src/lib)
 #
 # Use the C++23 option
 #
-target_compile_options(weather PUBLIC -std=c++23)
+target_compile_options(weather PUBLIC -std=c++26)
 
 target_link_libraries(weather PUBLIC
   temperature_units

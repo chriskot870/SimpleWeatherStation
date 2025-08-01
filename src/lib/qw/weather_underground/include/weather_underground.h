@@ -33,12 +33,12 @@
 #ifndef SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 #define SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_
 
-#include <cstring>
+#include <expected>
 
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <expected>  // cpplint thinks this is a c system header // NOLINT
+#include <cstring>
 #include <list>
 #include <map>
 #include <regex>
@@ -48,10 +48,7 @@
 #include <vector>
 
 #include "curl/curl.h"
-#include "fmt/chrono.h"
-#include "fmt/format.h"
 
-using fmt::format;
 using std::expected;
 using std::find;
 using std::get;

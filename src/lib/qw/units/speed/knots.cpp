@@ -27,11 +27,15 @@
  */
 #include "qw/units/speed/include/knots.h"
 
+#include <format>
+#include <math.h>
+
 #include <compare>
 #include <string>
 
-#include "fmt/format.h"
-
+using std::format;
+using std::vformat;
+using std::make_format_args;
 using std::string;
 using std::strong_ordering;
 
@@ -84,7 +88,8 @@ void Knots::setBase(int64_t base_value) {
  * Use the default format
  */
 string Knots::toString() {
-  string data = format(fmt::runtime(fmt_value_), value());
+  float i = value();
+  string data = vformat(fmt_value_, make_format_args(i));
 
   return data;
 }
@@ -93,7 +98,8 @@ string Knots::toString() {
  * Use the provided format instead of one in private variable
  */
 string Knots::toString(string fmt_value) {
-  string data = format(fmt::runtime(fmt_value), value());
+  float i = value();
+  string data = vformat(fmt_value, make_format_args(i));
 
   return data;
 }
