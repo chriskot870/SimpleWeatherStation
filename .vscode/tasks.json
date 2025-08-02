@@ -14,6 +14,12 @@
       "type": "shell",
       "command": "cmake/stop_gdbserver.sh cmake/gdbserver.config",
       "group": "none",
+    },
+    {
+      "label": "Scp WeatherStation",
+      "type": "shell",
+      "command": "cmake/scp_weatherstation.sh",
+      "group": "none"
     }
   ]
 }
