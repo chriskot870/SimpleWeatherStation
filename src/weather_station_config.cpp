@@ -29,17 +29,17 @@
 #include "include/weather_station_config.h"
 
 #include <errno.h>
-#include <expected>
-#include <format>
 
 #include <chrono>
+#include <expected>
 #include <string>
 
+#include "fmt/format.h"
 #include "jsoncpp/json/json.h"
 
 #include "qw/logger/include/logger.h"
 
-using std::format;
+using fmt::format;
 using Json::CharReaderBuilder;
 using Json::parseFromStream;
 using Json::StreamWriter;

@@ -28,14 +28,14 @@
 
 #include "qw/weather/include/windspeed_history.h"
 
-#include <format>
-#include <expected>
-
 #include <algorithm>
+#include <expected>  // cpplint thinks this is a c system header // NOLINT
+
+#include "fmt/format.h"
 
 #include "qw/logger/include/logger.h"
 
-using std::format;
+using fmt::format;
 using qw::logging::logger;
 using qw::units::MilesPerHour;
 using qw::units::Speed;
@@ -177,7 +177,7 @@ expected<Speed, int> WindspeedHistory::average(std::chrono::seconds time_span) {
 
   if (count == 0) {
     logger.log(LOG_ERR,
-               format("WindspeedHistory Average: Divide by zero"));
+               fmt::format("WindspeedHistory Average: Divide by zero"));
     return unexpected(ENOTSUP);
   }
 

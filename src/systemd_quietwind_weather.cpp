@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <format>
+#include <fmt/format.h>
 #include <expected>
 #include <variant>
 #include <string>
@@ -35,7 +35,7 @@
 #include "qw/logger/include/logger.h"
 #include "qw/systemd/include/systemd.h"
 
-using std::format;
+using fmt::format;
 using qw::logging::Logger;
 using qw::logging::logger;
 using qw::systemd::SD_BUS_TYPE_SYSTEM;
@@ -117,7 +117,7 @@ expected<pid_t, bool> quietwindWeatherServiceMainPID() {
   value = qw_ws_mainpid.getValue();
   if (value.has_value() == false) {
     logger.log(LOG_ERR,
-               format("Getting quietwind.weather.service MainPID failed"));
+               fmt::format("Getting quietwind.weather.service MainPID failed"));
     return unexpected(false);
   }
 
@@ -126,7 +126,7 @@ expected<pid_t, bool> quietwindWeatherServiceMainPID() {
    */
   if (std::holds_alternative<SdBusNumericResult>(value.value()) == false) {
     logger.log(LOG_ERR,
-               format("Request for MainPID did not return a uint32_t"));
+               fmt::format("Request for MainPID did not return a uint32_t"));
     return unexpected(false);
   }
 

@@ -29,12 +29,11 @@
 #include "qw/units/humidity/include/relative_humidity.h"
 
 #include <expected>
-#include <format>
 #include <string>
 
-using std::format;
-using std::vformat;
-using std::make_format_args;
+#include "fmt/format.h"
+
+using fmt::format;
 using std::string;
 using std::strong_ordering;
 
@@ -68,16 +67,22 @@ float RelativeHumidity::value() {
   return value;
 }
 
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
 string RelativeHumidity::toString() {
-  float i = value();
-  string data = vformat(fmt_value_, make_format_args(i));
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
 
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
 string RelativeHumidity::toString(string fmt_value) {
-  float i = value();
-  string data = vformat(fmt_value, make_format_args(i));
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }

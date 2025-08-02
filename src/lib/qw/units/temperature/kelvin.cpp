@@ -29,15 +29,11 @@
 
 #include "qw/units/temperature/include/kelvin.h"
 
-#include <format>
+#include <fmt/format.h>
 #include <math.h>
-
 #include <compare>
 #include <string>
 
-using std::format;
-using std::vformat;
-using std::make_format_args;
 using std::string;
 using std::strong_ordering;
 
@@ -83,10 +79,10 @@ void Kelvin::setBase(int64_t base_value) {
 
 /*
  * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
  */
 string Kelvin::toString() {
-  float i = value();
-  string data = vformat(fmt_value_, make_format_args(i));
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
@@ -95,8 +91,7 @@ string Kelvin::toString() {
  * Use the provided format
  */
 string Kelvin::toString(string fmt_value) {
-  float i = value();
-  string data = vformat(fmt_value, make_format_args(i));
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }

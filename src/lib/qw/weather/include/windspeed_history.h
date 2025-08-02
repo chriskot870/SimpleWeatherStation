@@ -29,9 +29,11 @@
 #ifndef SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
 #define SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
 
-#include <expected>
-
 #include <deque>
+#include <expected>  // cpplint counts this as a c system header // NOLINT
+
+#include "fmt/chrono.h"
+#include "fmt/format.h"
 
 #include "qw/units/speed/include/speed_measurement.h"
 

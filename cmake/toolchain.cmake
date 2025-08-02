@@ -3,8 +3,8 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
 # which compilers to use for C and C++
-set(CMAKE_C_COMPILER   aarch64-linux-gnu-gcc-14)
-set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++-14)
+set(CMAKE_C_COMPILER   aarch64-linux-gnu-gcc-12)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++-12)
 
 set(CMAKE_SYSROOT /opt/sdk/rpi_zero_2_w)
 

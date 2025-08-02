@@ -6,7 +6,7 @@
 #
 set(EXECUTABLE_NAME ${CMAKE_PROJECT_NAME})
 
-#find_package(fmt REQUIRED) we switched over to std::format
+find_package(fmt REQUIRED)
 #set(jsoncpp_DIR /usr/lib/x86_64-linux-gnu/cmake/jsoncpp)
 #find_package(jsoncpp REQUIRED)
 #
@@ -90,6 +90,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     speed_units
     locking
     logger
+    fmt
     curl
     systemd
     jsoncpp

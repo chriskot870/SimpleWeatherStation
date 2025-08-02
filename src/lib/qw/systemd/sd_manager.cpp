@@ -28,12 +28,12 @@
 
 #include "qw/systemd/include/sd_manager.h"
 
-#include <format>
+#include <fmt/format.h>
 #include <expected>
 #include <string>
 #include <variant>
 
-using std::format;
+using fmt::format;
 using std::expected;
 using std::string;
 using std::string_view;

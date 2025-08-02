@@ -36,7 +36,6 @@
 #define SRC_LIB_QW_DEVICES_I2C_INCLUDE_SHT4X_H_
 
 #include <errno.h>
-#include <expected>
 #include <fcntl.h>
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
@@ -49,6 +48,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <expected>  // Lint incorrectly counts this as a C header // NOLINT
 #include <map>
 #include <memory>
 #include <mutex>

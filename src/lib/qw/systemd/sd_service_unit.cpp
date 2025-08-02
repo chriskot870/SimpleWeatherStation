@@ -32,9 +32,10 @@
 #include <string>
 #include <string_view>
 #include <variant>
-#include <format>
 
-using std::format;
+#include "fmt/format.h"
+
+using fmt::format;
 using std::expected;
 using std::string;
 using std::string_view;

@@ -11,7 +11,7 @@ add_library(i2cdevices STATIC
 )
 
 # add_compile_options(-std=c++23) to use expected class
-target_compile_options(i2cdevices PUBLIC -std=c++26)
+target_compile_options(i2cdevices PUBLIC -std=c++23)
 
 target_include_directories(i2cdevices PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
 

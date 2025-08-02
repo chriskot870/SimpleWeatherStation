@@ -28,9 +28,8 @@
 
 #include "qw/devices/include/anomometer_adafruit.h"
 
-#include <expected>
-
 #include <chrono>
+#include <expected>  // Cpplint thinks this is c system header // NOLINT
 
 #include "qw/devices/i2c/include/ads1015.h"
 #include "qw/units/speed/include/meters_per_second.h"

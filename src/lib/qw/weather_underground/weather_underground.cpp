@@ -32,13 +32,10 @@
 #include "include/weather_underground.h"
 
 #include <expected>
-#include <format>
-
 #include <map>
 #include <string>
 
 using std::string;
-using std::format;
 
 /*
  * Any filed that matches the pattern of the key has the associated properties
@@ -271,12 +268,9 @@ expected<bool, int> WeatherUnderground::addData(
   string data_string;
   switch (value.index()) {
     case WU_FIELD_TYPE_NUMBER:
-      { // Bracket so that i only has scope inside brackets
-        float i =  get<float>(value);
-        data_string =
-          std::vformat(field_properties.value().default_format_,
-                 std::make_format_args(i));
-      }
+      data_string =
+          format(fmt::runtime(field_properties.value().default_format_),
+                 get<float>(value));
       break;
     case WU_FIELD_TYPE_STRING:
       /*
@@ -288,20 +282,16 @@ expected<bool, int> WeatherUnderground::addData(
        */
       if (field == "dateutc") {
         data_string = format("{}", get<string>(value));
-      } else {  // i only has scope inside brackets
-        string i = get<string>(value);
+      } else {
         data_string =
-            vformat(field_properties.value().default_format_,
-                   std::make_format_args(i));
+            format(fmt::runtime(field_properties.value().default_format_),
+                   get<string>(value));
       }
       break;
     case WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT:
-      { // Bracket so that i only has scope inside brackets
-        system_clock::time_point k = get<system_clock::time_point>(value);
-        data_string =
-          vformat(field_properties.value().default_format_,
-             std::make_format_args(k));
-      }
+      data_string =
+          format(fmt::runtime(field_properties.value().default_format_),
+                 get<system_clock::time_point>(value));
       break;
   }
 

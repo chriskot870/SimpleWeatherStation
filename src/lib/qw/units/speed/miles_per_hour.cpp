@@ -27,15 +27,11 @@
  */
 #include "qw/units/speed/include/miles_per_hour.h"
 
-#include <format>
-#include <math.h>
-
 #include <compare>
 #include <string>
 
-using std::format;
-using std::vformat;
-using std::make_format_args;
+#include "fmt/format.h"
+
 using std::string;
 using std::strong_ordering;
 
@@ -83,8 +79,7 @@ void MilesPerHour::setBase(int64_t base_value) {
  * Use the default format
  */
 string MilesPerHour::toString() {
-  float i = value();
-  string data = vformat(fmt_value_, make_format_args(i));
+  string data = format(fmt::runtime(fmt_value_), value());
 
   return data;
 }
@@ -93,8 +88,7 @@ string MilesPerHour::toString() {
  * Use the provided format instead of one in private variable
  */
 string MilesPerHour::toString(string fmt_value) {
-  float i = value();
-  string data = vformat(fmt_value, make_format_args(i));
+  string data = format(fmt::runtime(fmt_value), value());
 
   return data;
 }
