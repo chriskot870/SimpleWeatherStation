@@ -241,9 +241,10 @@ void parseCommandLine(int argc, char** argv, bool parse_log) {
         /*
          * If we are running from systemd then the
          * mode will already have been set to LOGGER_MODE_JOURNAL.
-         * We ignore any command line option.
+         * In that case parse_log will be false.
+         * We ignore processeing the log option when parse_log is false.
          */
-        if (parse_log == true) {
+        if (parse_log == false) {
           break;
         }
         string value = optarg;
