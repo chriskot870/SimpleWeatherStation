@@ -1,5 +1,5 @@
 {
-   "WeatherUndegroundFile": "/usr/local/qw/etc/ws_wu_config.json",
+   "WeatherUndergroundFile": "/usr/local/qw/etc/ws_config_variables.json",
    "Software": {
       "Version": {
          "Major": 0,

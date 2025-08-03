@@ -28,11 +28,11 @@ then
     exit 1
 fi
 
-build_wu_config_cksum=`cksum $build_wu_config 2>/dev/null | awk '{print($1)}'`
+build_config_variables_cksum=`cksum $build_config_variables 2>/dev/null | awk '{print($1)}'`
     
-if [ -z  $build_wu_config_cksum ]
+if [ -z  $build_config_variables_cksum ]
 then
-    echo No build wu config file
+    echo No build config variables file
     exit 1
 fi
 
@@ -96,24 +96,24 @@ else
     echo Using existing configuration on target
 fi
 
-ssh $target_user@$target_ip test -f $target_wu_config
+ssh $target_user@$target_ip test -f $target_config_variables
 if [ $? -eq 0 ]
 then
-   echo Getting target wu_config cksum
-   target_wu_config_cksum=`ssh $target_user@$target_ip "cksum $target_wu_config 2>/dev/null" | awk '{print($1)}'`
+   echo Getting target config variables cksum
+   target_config_variables_cksum=`ssh $target_user@$target_ip "cksum $target_config_variables 2>/dev/null" | awk '{print($1)}'`
 else
-  target_wu_config_cksum="0"
+  target_config_variables_cksum="0"
 fi
 
-if [ $build_wu_config_cksum != $target_wu_config_cksum ]
+if [ $build_config_variables_cksum != $target_config_variables_cksum ]
 then
     #
-    # If the cksums don't match copy the new wu config to the target
+    # If the cksums don't match copy the new variables config to the target
     #
-    echo Copying new wu configuration to target
-    scp $build_wu_config $target_user@$target_ip:$target_wu_config 1>/dev/null 2>&1
+    echo Copying new variables configuration to target
+    scp $build_config_variables $target_user@$target_ip:$target_config_variables 1>/dev/null 2>&1
 else
-    echo Using existing wu configuration on target
+    echo Using existing variables configuration on target
 fi
 
 #

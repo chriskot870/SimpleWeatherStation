@@ -29,9 +29,9 @@
 #include "include/weather_station_config.h"
 
 #include <errno.h>
+#include <expected>
 
 #include <chrono>
-#include <expected>
 #include <string>
 
 #include "fmt/format.h"
@@ -74,7 +74,8 @@ bool WeatherStationConfig::exists() {
 }
 
 expected<bool, int> WeatherStationConfig::load() {
-  CharReaderBuilder builder;
+  CharReaderBuilder ws_builder;
+  CharReaderBuilder var_builder;
   string errors;
   string lock_file = getLockFileName(config_file_);
 
@@ -84,15 +85,18 @@ expected<bool, int> WeatherStationConfig::load() {
   ifstream config_file_stream(config_file_);
   if (config_file_stream.is_open() == false) {
     logger.log(LOG_ERR, "Failed to open the WU config file.");
+    config_guard.unlock();
     return (unexpected(errno));
   }
 
-  if (parseFromStream(builder, config_file_stream, &read_only_json_, &errors) ==
+  if (parseFromStream(ws_builder, config_file_stream, &read_only_json_, &errors) ==
       false) {
     logger.log(
         LOG_ERR,
         format("Failed to parse config Weather Underground config file: {}",
                errors));
+    config_file_stream.close();
+    config_guard.unlock();
     return (unexpected(ENODATA));
   }
   config_file_stream.close();
@@ -101,28 +105,31 @@ expected<bool, int> WeatherStationConfig::load() {
   /*
    * Now look for the writable configuration file
    */
-  string w_fname = read_only_json_["WeatherUndergroundFile"].asString();
-  lock_file = getLockFileName(config_file_);
-  LockingFile w_guard(lock_file);
+  string var_fname = read_only_json_["WeatherUndergroundFile"].asString();
+  lock_file = getLockFileName(var_fname);
+  LockingFile var_guard(lock_file);
 
-  w_guard.lock();
-  ifstream w_config_file_stream(w_fname);
-  if (w_config_file_stream.is_open() == false) {
+  var_guard.lock();
+  ifstream var_config_file_stream(var_fname);
+  if (var_config_file_stream.is_open() == false) {
     logger.log(LOG_ERR,
-               format("Failed to open the WS config file: {}", w_fname));
+               format("Failed to open the WS config file: {}", var_fname));
+    var_guard.unlock();
     return (unexpected(errno));
   }
 
-  if (parseFromStream(builder, config_file_stream, &writable_json_, &errors) ==
+  if (parseFromStream(var_builder, var_config_file_stream, &writable_json_, &errors) ==
       false) {
     logger.log(
         LOG_ERR,
         format("Failed to parse config Weather Underground config file: {}",
                errors));
+    var_config_file_stream.close();
+    var_guard.unlock();
     return (unexpected(ENODATA));
   }
-  w_config_file_stream.close();
-  w_guard.unlock();
+  var_config_file_stream.close();
+  var_guard.unlock();
 
   return true;
 }
