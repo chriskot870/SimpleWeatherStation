@@ -169,18 +169,36 @@ void processWuData(
            */
     TemperatureMeasurement temp_measurement = temp1.value();
     Fahrenheit tempf = temp_measurement.value();
-    wu->setVarData("tempf", tempf.value());
+    expected<string, int> field_format = wu->getFieldFormat("tempf");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "tempf"));
+    } else {
+      wu->setVarData("tempf", tempf.toString(field_format.value()));
+    }
   }
   if (temp2.has_value()) {
-    TemperatureMeasurement temp_measurement = temp1.value();
+    TemperatureMeasurement temp_measurement = temp2.value();
     Fahrenheit temp2f = temp_measurement.value();
-    wu->setVarData("temp2f", temp2f.value());
+    expected<string, int> field_format = wu->getFieldFormat("temp2f");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "temp2f"));
+    } else {
+      wu->setVarData("temp2f", temp2f.toString(field_format.value()));
+    }
   }
 
   if (rh.has_value()) {
     RelativeHumidityMeasurement humidity_measurement = rh.value();
     RelativeHumidity humidity = humidity_measurement.relativeHumidityValue();
-    wu->setVarData("humidity", humidity.value());
+    expected<string, int> field_format = wu->getFieldFormat("humidity");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "humidity"));
+    } else {
+      wu->setVarData("humidity", humidity.toString(field_format.value()));
+    }
   }
 
   /*
@@ -188,7 +206,13 @@ void processWuData(
    */
   if (dewpoint.has_value()) {
     Fahrenheit dew_temp = dewpoint.value();
-    wu->setData("dewptf", dew_temp.value());
+    expected<string, int> field_format = wu->getFieldFormat("dewptf");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "dewptf"));
+    } else {
+      wu->setVarData("dewptf", dew_temp.toString(field_format.value()));
+    }
   }
 
   /*
@@ -197,7 +221,13 @@ void processWuData(
   if (pressure.has_value()) {
     PressureMeasurement pressure_measurement = pressure.value();
     InchesMercury inches = pressure_measurement.value();
-    wu->setVarData("baromin", inches.value());
+    expected<string, int> field_format = wu->getFieldFormat("baromin");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "baromin"));
+    } else {
+      wu->setVarData("baromin", inches.toString(field_format.value()));
+    }
   }
 
   /*
@@ -206,24 +236,51 @@ void processWuData(
   if (windspeed.has_value()) {
     SpeedMeasurement wind_speed_measurement = windspeed.value();
     MilesPerHour wind_mph = wind_speed_measurement.value();
-    wu->setVarData("windspeedmph", wind_mph.value());
+    expected<string, int> field_format = wu->getFieldFormat("windspeedmph");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "windspeedmph"));
+    } else {
+      wu->setVarData("windspeedmph", wind_mph.toString(field_format.value()));
+    }
   }
   if (wind_history->countOverPeriod(kInterval2m) > 0) {
     expected<MilesPerHour, int> ave = wind_history->average(kInterval2m);
     if (ave.has_value() == true) {
-      wu->setVarData("windspdmph_avg2m", ave.value().value());
+      expected<string, int> field_format =
+          wu->getFieldFormat("windspdmph_avg2m");
+      if (field_format.has_value() != true) {
+        logger.log(LOG_INFO, format("No suitable for format for field {}",
+                                    "windspeed_avg2m"));
+      } else {
+        wu->setVarData("windspeed_avg2m",
+                       ave.value().toString(field_format.value()));
+      }
     }
     expected<SpeedMeasurement, int> gust = wind_history->gust(kInterval2m);
     if (gust.has_value() == true) {
       MilesPerHour mph = gust.value().value();
-      wu->setVarData("windgustmph", mph.value());
+      expected<string, int> field_format = wu->getFieldFormat("windgustmph");
+      if (field_format.has_value() != true) {
+        logger.log(LOG_INFO, format("No suitable for format for field {}",
+                                    "windgustmph"));
+      } else {
+        wu->setVarData("windgustmph", mph.toString(field_format.value()));
+      }
     }
   }
   if (wind_history->countOverPeriod(kInterval10m) > 0) {
     expected<SpeedMeasurement, int> gust = wind_history->gust(kInterval10m);
     if (gust.has_value() == true) {
       MilesPerHour mph = gust.value().value();
-      wu->setVarData("windgustmph_10m", mph.value());
+      expected<string, int> field_format =
+          wu->getFieldFormat("windgustmph_10m");
+      if (field_format.has_value() != true) {
+        logger.log(LOG_INFO, format("No suitable for format for field {}",
+                                    "windgustmph_10m"));
+      } else {
+        wu->setVarData("windgustmph_10m", mph.toString(field_format.value()));
+      }
     }
   }
 
@@ -348,6 +405,8 @@ int main(int argc, char* argv[]) {
   if (in_systemd == true) {
     logger.setMode(LOGGER_MODE_JOURNAL);
     logger.log(LOGGER_INFO, "Logging in Journal Mode");
+    // Since we are logging in Journal Mode we don't need to parse -l option
+    // We still need to process any other command line options
     parseCommandLine(argc, argv, false);
   } else {
     parseCommandLine(argc, argv, true);
@@ -579,8 +638,12 @@ int main(int argc, char* argv[]) {
         /*
          * debug to check out the string
          */
-        string http_request = wu->buildHttpRequest();
-        logger.log(LOGGER_INFO, http_request);
+        expected<string, int> http_request = wu->buildHttpRequest();
+        if (http_request.has_value() != true) {
+          logger.log(LOG_INFO, "Couldn't build HTTP reuest for logging");
+        } else {
+          logger.log(LOGGER_INFO, http_request.value());
+        }
         /*
          * When we are deugging we may not want to actually send the
          * data. So, only send is reporting enabled is on

@@ -32,10 +32,17 @@
 #include "include/weather_underground.h"
 
 #include <expected>
+
+#include <algorithm>
 #include <map>
 #include <string>
 
+#include "qw/logger/include/logger.h"
+
+using std::find;
+using std::regex_match;
 using std::string;
+using qw::logging::logger;
 
 /*
  * Any filed that matches the pattern of the key has the associated properties
@@ -57,66 +64,54 @@ const map<string, WuFieldProperties> wu_field_regex_list = {
     {"^windspdmph_avg2m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
     {"^windgustmph_10m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")}};
 
-map<string, FieldType> wu_fields = {
-    {"ID", TEXT},
-    {"PASSWORD", TEXT},
-    {"dateutc", DATE},
-    {"action", TEXT},
-    {"winddir", NUMBER},
-    {"windspeedmph", NUMBER},
-    {"windgustmph", NUMBER},
-    {"windgustdir", NUMBER},
-    {"windspdmph_avg2m", NUMBER},
-    {"winddir_avg2m", NUMBER},
-    {"windgustmph_10m", NUMBER},
-    {"windgustdir_10m", NUMBER},
-    {"humidity", NUMBER},
-    {"dewptf", NUMBER},
-    {"tempf",
-     NUMBER},  // for extra outdoor temperatures use temp2f, temp3f etc...
-    {"rainin", NUMBER},
-    {"dailyrainin", NUMBER},
-    {"baromin", NUMBER},
-    {"weather", TEXT},
-    {"clouds", TEXT},
-    {"soiltempf",
-     NUMBER},  // for extra soil temperature use soiltemp2f, soiltemp3f etc...
-    {"soilmoisture",
-     NUMBER},  // for extra sensors use soilmoisture2, soilmoisture3 etc...
-    {"leafwetness",
-     NUMBER},  // for extra sensors use leafwetness2, leafwetness3 etc...
-    {"solarradiation", NUMBER},
-    {"UV", NUMBER},
-    {"visibility", NUMBER},
-    {"indoortempf", NUMBER},
-    {"indoorhumidity", NUMBER},
+const map<string, string> wu_format_regex_list = {
+    {"^ID$", "{}"},
+    {"^PASSWORD$", "{}"},
+    {"^dateutc$", "{:%Y-%m-%d %H:%M:%S}"},
+    {"^action$", "{}"},
+    {"^baromin$", "{0:.2f}"},
+    {"^humidity$", "{0:.2f}"},
+    {"^temp[2-9]?f$|^temp[1-9][0-9]f$",
+     "{0:.2f}"},  // This supports tempf, temp2-99f
+    {"^dewptf$", "{0:.2f}"},
+    {"^windspeedmph$", "{0:.1f}"},
+    {"^windgustmph$", "{0:.1f}"},
+    {"^windspdmph_avg2m$", "{0:.1f}"},
+    {"^windgustmph_10m$", "{0:.1f}"}};
+
+const vector<string_view> wu_fields = {
+    "ID", "PASSWORD", "dateutc", "action", "winddir", "windspeedmph",
+    "windgustmph", "windgustdir", "windspdmph_avg2m", "winddir_avg2m",
+    "windgustmph_10m", "windgustdir_10m", "humidity", "dewptf",
+    "tempf",  // for extra outdoor temperatures use temp2f, temp3f etc...
+    "rainin", "dailyrainin", "baromin", "weather", "clouds",
+    "soiltempf",  // for extra soil temperature use soiltemp2f, soiltemp3f etc...
+    "soilmoisture",  // for extra sensors use soilmoisture2, soilmoisture3 etc...
+    "leafwetness",   // for extra sensors use leafwetness2, leafwetness3 etc...
+    "solarradiation", "UV", "visibility", "indoortempf", "indoorhumidity",
     /*
-   * Pollution fields
-   */
-    {"AqNO", NUMBER},    // NO (nitric oxide) ppb
-    {"AqNO2T", NUMBER},  // nitrogen dioxide, true measure ppb
-    {"AqNO2", NUMBER},   // NO2 computed, NOx-NO ppb
-    {"AqNO2Y", NUMBER},  // NO2 computed, NOy-NO ppb
-    {"AqNOX", NUMBER},   // NOx (nitrogen oxides) - ppb
-    {"AqNOY", NUMBER},   // NOy (total reactive nitrogen) - ppb
-    {"AqNO3",
-     NUMBER},  // NO3 ion (nitrate, not adjusted for ammonium ion) UG/M3
-    {"AqSO4",
-     NUMBER},  // SO4 ion (sulfate, not adjusted for ammonium ion) UG/M3
-    {"AqSO2", NUMBER},   // (sulfur dioxide), conventional ppb
-    {"AqSO2T", NUMBER},  // trace levels ppb
-    {"AqCO", NUMBER},    // CO (carbon monoxide), conventional ppm
-    {"AqCOT", NUMBER},   // CO trace levels ppb
-    {"AqEC", NUMBER},    // EC (elemental carbon) – PM2.5 UG/M3
-    {"AqOC",
-     NUMBER},  // OC (organic carbon, not adjusted for oxygen and hydrogen) – PM2.5 UG/M3
-    {"AqBC", NUMBER},  // BC (black carbon at 880 nm) UG/M3
-    {"AqUV",
-     NUMBER},  // AETH  -UV-AETH (second channel of Aethalometer at 370 nm) UG/M3
-    {"AqPM2.5", NUMBER},    // PM2.5 mass - UG/M3
-    {"AqPM10", NUMBER},     // PM10 mass - PM10 mass
-    {"AqOZONE", NUMBER},    // Ozone - ppb
-    {"softwaretype", TEXT}  // [text] ie: WeatherLink, VWS, WeatherDisplay
+     * Pollution fields
+     */
+    "AqNO",    // NO (nitric oxide) ppb
+    "AqNO2T",  // nitrogen dioxide, true measure ppb
+    "AqNO2",   // NO2 computed, NOx-NO ppb
+    "AqNO2Y",  // NO2 computed, NOy-NO ppb
+    "AqNOX",   // NOx (nitrogen oxides) - ppb
+    "AqNOY",   // NOy (total reactive nitrogen) - ppb
+    "AqNO3",   // NO3 ion (nitrate, not adjusted for ammonium ion) UG/M3
+    "AqSO4",   // SO4 ion (sulfate, not adjusted for ammonium ion) UG/M3
+    "AqSO2",   // (sulfur dioxide), conventional ppb
+    "AqSO2T",  // trace levels ppb
+    "AqCO",    // CO (carbon monoxide), conventional ppm
+    "AqCOT",   // CO trace levels ppb
+    "AqEC",    // EC (elemental carbon) – PM2.5 UG/M3
+    "AqOC",  // OC (organic carbon, not adjusted for oxygen and hydrogen) – PM2.5 UG/M3
+    "AqBC",  // BC (black carbon at 880 nm) UG/M3
+    "AqUV",  // AETH  -UV-AETH (second channel of Aethalometer at 370 nm) UG/M3
+    "AqPM2.5",      // PM2.5 mass - UG/M3
+    "AqPM10",       // PM10 mass - PM10 mass
+    "AqOZONE",      // Ozone - ppb
+    "softwaretype"  // [text] ie: WeatherLink, VWS, WeatherDisplay
 };
 
 WeatherUnderground::WeatherUnderground(string id, string password)
@@ -124,7 +119,8 @@ WeatherUnderground::WeatherUnderground(string id, string password)
 
 size_t WeatherUnderground::writeCallback(void* contents, size_t size,
                                          size_t nmemb, void* userp) {
-  (reinterpret_cast<string*>(userp))->append(reinterpret_cast<char*>(contents), size * nmemb);
+  (reinterpret_cast<string*>(userp))
+      ->append(reinterpret_cast<char*>(contents), size * nmemb);
   return size * nmemb;
 }
 
@@ -132,7 +128,7 @@ expected<bool, int> WeatherUnderground::sendData() {
   /*
    * We need to check that ID and PASSWORD are NOT in the map
    */
-  if (wu_text_data_.contains("ID") || wu_text_data_.contains("PASSWORD")) {
+  if (wu_data_.contains("ID") || wu_data_.contains("PASSWORD")) {
     return unexpected(EINVAL);
   }
 
@@ -140,13 +136,16 @@ expected<bool, int> WeatherUnderground::sendData() {
    * We have to make sure that these values exist in the map
    */
   if ((wu_data_.contains("action") == false) ||
-      (wu_data_["action"].data.index() != WU_FIELD_TYPE_STRING) ||
-      (get<string>(wu_data_["action"].data) != "updateraw") ||
+      (wu_data_["action"].data != "updateraw") ||
       (wu_data_.contains("dateutc") == false)) {
     return unexpected(EINVAL);
   }
 
-  http_get_request_ = buildHttpRequest();
+  expected<string, int> http_get_request_ = buildHttpRequest();
+  if (http_get_request_.has_value() != true) {
+    logger.log(LOG_INFO, "Couldn't build HTTP request");
+    return unexpected(http_get_request_.error());
+  }
 
   /*
    * Now use curl to send the HTTP GET request
@@ -157,7 +156,7 @@ expected<bool, int> WeatherUnderground::sendData() {
   /*
    * Set the URL options
    */
-  curl_easy_setopt(curl, CURLOPT_URL, http_get_request_.c_str());
+  curl_easy_setopt(curl, CURLOPT_URL, http_get_request_.value().c_str());
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                    WeatherUnderground::writeCallback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_);
@@ -179,16 +178,8 @@ expected<bool, int> WeatherUnderground::sendData() {
   return true;
 }
 
-expected<bool, int> WeatherUnderground::setVarData(
-    string field, variant<float, string, system_clock::time_point> value) {
-
-  /*
-   * Sanity check by walking through the regex list to make sure it is a valid field
-   */
-  expected<WuFieldProperties, int> field_properties = getFieldProperties(field);
-  if (field_properties.has_value() == false) {
-    return unexpected(field_properties.error());
-  }
+expected<bool, int> WeatherUnderground::setVarData(string_view field,
+                                                   string_view value) {
 
   /*
    * We only get ID and PASSWORD from id_ and password_ when class is created.
@@ -196,34 +187,29 @@ expected<bool, int> WeatherUnderground::setVarData(
   if ((field == "ID") || field == "PASSWORD") {
     return unexpected(EINVAL);
   }
+
+  /*
+   * Check if the field is on the wu_fields list
+   */
+  auto it = find(wu_fields.begin(), wu_fields.end(), field);
+  if (it == wu_fields.end()) {
+    return unexpected(EINVAL);
+  }
+
   /*
    * It is my understanding the action can only be updateraw
    */
   if (field == "action") {
-    if ((value.index() != WU_FIELD_TYPE_STRING) ||
-        (get<string>(value) != "updateraw")) {
+    if (value != "updateraw") {
       return unexpected(EINVAL);
     }
   }
 
   /*
-   * dateutc can either be system_clock::time_point or "now"
-   * So it's type check needs to be done separately
+   * dateutc we only support now for now
    */
   if (field == "dateutc") {
-    if (!((value.index() == WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT) ||
-          (value.index() == WU_FIELD_TYPE_STRING))) {
-      return unexpected(EINVAL);
-    }
-    if ((value.index() == WU_FIELD_TYPE_STRING) &&
-        (get<string>(value) != "now")) {
-      return unexpected(EINVAL);
-    }
-  } else {
-    /*
-     * Make sure all the other fields are passing the correct type
-     */
-    if (field_properties.value().type_ != value.index()) {
+    if (value != "now") {
       return unexpected(EINVAL);
     }
   }
@@ -231,20 +217,16 @@ expected<bool, int> WeatherUnderground::setVarData(
   /*
    * It's OK to add the field and it's value
    */
-  addData(field, value);
+  expected<void, int> add = addData(field, value);
+  if (add.has_value() == false) {
+    logger.log(LOG_INFO, format("Couldn't add any data for field {}", field));
+    return unexpected(add.error());
+  }
 
   return true;
 }
 
-expected<bool, int> WeatherUnderground::addData(
-    string field, variant<float, string, system_clock::time_point> value) {
-  /*
-   * This is a private routine. The public routine setData does all the sanity checking
-   * And then calls this routine to actually add the field data to the map.
-   * We assume that field and value a valid when we get here.
-   * This allows us to add ID and PASSWORD when we send the data.
-   */
-
+expected<void, int> WeatherUnderground::addData(string_view field, string_view value) {
   /*
    * Create the field's data and set the value to what was passed in
    */
@@ -252,171 +234,63 @@ expected<bool, int> WeatherUnderground::addData(
   field_data.data = value;
 
   /*
-   * Get the field's properties in order to get the default format
-   */
-  expected<WuFieldProperties, int> field_properties = getFieldProperties(field);
-  if (field_properties.has_value() == false) {
-    return unexpected(field_properties.error());
-  }
-
-  /*
-   * Get the data string to be converted to escaped URL
-   * Define data_string before switch so it won't go out of scope.
-   * You need to use fmt::runtime() to use a variable for the
-   * format string.
-   */
-  string data_string;
-  switch (value.index()) {
-    case WU_FIELD_TYPE_NUMBER:
-      data_string =
-          format(fmt::runtime(field_properties.value().default_format_),
-                 get<float>(value));
-      break;
-    case WU_FIELD_TYPE_STRING:
-      /*
-       * The dateutc can be a time or just the word now.
-       * Probably not the best place to sort that out but it
-       * seems to be the simplist place to put it.
-       * If dateutc is a string then don't use the default
-       * format for it.
-       */
-      if (field == "dateutc") {
-        data_string = format("{}", get<string>(value));
-      } else {
-        data_string =
-            format(fmt::runtime(field_properties.value().default_format_),
-                   get<string>(value));
-      }
-      break;
-    case WU_FIELD_TYPE_SYSTEM_CLOCK_TIME_POINT:
-      data_string =
-          format(fmt::runtime(field_properties.value().default_format_),
-                 get<system_clock::time_point>(value));
-      break;
-  }
-
-  /*
    * Now escape the string and store it in the url_data field
    */
   CURL* curl = curl_easy_init();
+  if (nullptr == curl) {
+    logger.log(LOG_INFO, "Unable to create curl ptr");
+    return unexpected(ENOMEM);
+  }
+
   field_data.url_data =
-      string(curl_easy_escape(curl, data_string.c_str(), data_string.length()));
+      string(curl_easy_escape(curl, value.data(), value.length()));
   curl_easy_cleanup(curl);
 
   /*
    * Now store the field data into the wu_data_ array
    */
-  wu_data_[field] = field_data;
+  wu_data_[field.data()] = field_data;
 
-  return true;
+  // Could use return std::expected<voide, int>(std::in_place);
+  // The {} is more concise.
+  return {};
 }
 
-expected<WuFieldProperties, int> WeatherUnderground::getFieldProperties(
-    string field) {
+expected<string, int> WeatherUnderground::getFieldFormat(string_view field) {
 
-  for (auto [rgx, properties] : wu_field_regex_list) {
-    if (std::regex_match(field, regex(rgx)) == true) {
-      return properties;
+  for (auto [rgx, field_format] : wu_format_regex_list) {
+    if (regex_match(field.data(), regex(rgx)) == true) {
+      return field_format;
     }
   }
 
   return unexpected(EINVAL);
 }
 
-expected<bool, int> WeatherUnderground::setData(string field, string value) {
-  int n;
-  /*
-   * Check if the field is on the wu fields list
-   */
-  if (wu_fields.contains(field) == false) {
-    return unexpected(EINVAL);
-  }
-
-  /*
-     * Make sure it is a TEXT field
-     */
-  if (wu_fields[field] != TEXT) {
-    /*
-       * The dateutc has type DATE but can be "now"
-       */
-    if (field != "dateutc" || value != "now") {
-      unexpected(EINVAL);
-    }
-  }
-
-  return true;
-}
-
-expected<bool, int> WeatherUnderground::setData(string field, float value) {
-  int n;
-  /*
-     * Check if the field is on the wu fields list
-     */
-  if (wu_fields.contains(field) == false) {
-    return unexpected(EINVAL);
-  }
-
-  /*
-     * Make sure it is a NUMBER field
-     */
-
-  if (wu_fields[field] != NUMBER) {
-    return unexpected(EINVAL);
-  }
-
-  wu_number_data_[field] = value;
-
-  return true;
-}
-
-expected<bool, int> WeatherUnderground::setData(string field,
-                                                system_clock value) {
-  /*
-   * Check if the field is on the wu fields list
-   */
-  if (wu_fields.contains(field) == false) {
-    return unexpected(EINVAL);
-  }
-
-  /*
-     * Make sure it is a TEXT field
-     */
-  /*
-    if (wu_fields[field] != DATE) {
-       return unexpected(EINVAL);
-    }
-     */
-
-  /*
-     * This is a date and we will store it as a TEXT
-     */
-  /*
-    auto const display_time = system_clock::to_time_t(value);
-
-    wu_text_data_[field] = value;
-     */
-
-  return true;
-}
-
 void WeatherUnderground::reset() {
   wu_data_.clear();
-  wu_number_data_.clear();
-  wu_text_data_.clear();
   clearHttpResponse();
   clearHttpRequest();
 
   return;
 }
 
-string WeatherUnderground::buildHttpRequest() {
+expected<string, int> WeatherUnderground::buildHttpRequest() {
   string url_get_string;
 
   /*
    * Add the ID and PASSWORD
    */
-  addData("ID", id_);
-  addData("PASSWORD", password_);
+  expected<void, int> add = addData("ID", id_);
+  if (add.has_value() != true) {
+    logger.log(LOG_INFO, "Couldn't add ID field");
+    return unexpected(add.error());
+  }
+  add = addData("PASSWORD", password_);
+  if (add.has_value() != true) {
+    logger.log(LOG_INFO, "Couldn't add PASSWORD field");
+    return unexpected(add.error());
+  }
 
   /*
    * Now walk through the url data map and create the url escaped get string.

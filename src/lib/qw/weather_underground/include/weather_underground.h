@@ -104,15 +104,7 @@ class WuFieldProperties {
 };
 
 struct WuFieldData {
-  /*
-   * The order of the types in this variant must match the order of the values
-   * in WuField_Type. The index() function of the variant returns which value
-   * is currently being stored. So, 0 means string => WU_FIELD_TYPE_STRING.
-   * It is important to keep these in sync. I hope to figure out a better way
-   * to do that.
-   */
-  variant<float, string, system_clock::time_point>
-      data;         // The original value passed
+  string data;      // The original value passed
   string url_data;  // The URL escaped string
 };
 
@@ -132,18 +124,13 @@ class WeatherUnderground {
   static size_t writeCallback(void* contents, size_t size, size_t nmemb,
                               void* userp);
 
-  expected<bool, int> setVarData(
-      string field, variant<float, string, system_clock::time_point> value);
+  expected<string, int> getFieldFormat(string_view field);
 
-  expected<bool, int> setData(string field, string value);
-
-  expected<bool, int> setData(string field, float value);
-
-  expected<bool, int> setData(string field, system_clock value);
+  expected<bool, int> setVarData(string_view field, string_view value);
 
   void reset();
 
-  string buildHttpRequest();
+  expected<string, int> buildHttpRequest();
 
   expected<bool, int> sendData();
 
@@ -161,14 +148,9 @@ class WeatherUnderground {
   string* response_ = new string();
   string http_get_request_;
 
+  expected<void, int> addData(string_view field, string_view value);
+
   map<string, WuFieldData> wu_data_;
-  map<string, string> wu_text_data_ = {};
-  map<string, float> wu_number_data_ = {};
-
-  expected<bool, int> addData(
-      string field, variant<float, string, system_clock::time_point> value);
-
-  expected<WuFieldProperties, int> getFieldProperties(string field);
 };
 
 #endif  // SRC_LIB_QW_WEATHER_UNDERGROUND_INCLUDE_WEATHER_UNDERGROUND_H_

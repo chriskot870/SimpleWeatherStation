@@ -7,4 +7,5 @@ target_compile_options(weatherunderground PUBLIC -std=c++23)
 
 target_include_directories(weatherunderground PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/lib
 )
