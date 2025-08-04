@@ -89,7 +89,7 @@ expected<bool, int> WeatherStationConfig::load() {
     return (unexpected(errno));
   }
 
-  if (parseFromStream(ws_builder, config_file_stream, &read_only_json_, &errors) ==
+  if (parseFromStream(ws_builder, config_file_stream, &config_json_, &errors) ==
       false) {
     logger.log(
         LOG_ERR,
@@ -105,7 +105,7 @@ expected<bool, int> WeatherStationConfig::load() {
   /*
    * Now look for the writable configuration file
    */
-  string var_fname = read_only_json_["WeatherUndergroundFile"].asString();
+  string var_fname = config_json_["WeatherUndergroundFile"].asString();
   lock_file = getLockFileName(var_fname);
   LockingFile var_guard(lock_file);
 
@@ -118,7 +118,7 @@ expected<bool, int> WeatherStationConfig::load() {
     return (unexpected(errno));
   }
 
-  if (parseFromStream(var_builder, var_config_file_stream, &writable_json_, &errors) ==
+  if (parseFromStream(var_builder, var_config_file_stream, &variables_json_, &errors) ==
       false) {
     logger.log(
         LOG_ERR,
@@ -171,37 +171,37 @@ bool WeatherStationConfig::putRoot(const Json::Value& data) {
   return true;
 }
 
-std::expected<string, int> WeatherStationConfig::configurableFileName() {
-  string fname = read_only_json_["WeatherUndergroundFile"].asString();
+std::expected<string, int> WeatherStationConfig::configVariablesFileName() {
+  string fname = config_json_["WeatherUndergroundFile"].asString();
 
   return fname;
 }
 
 expected<string, int> WeatherStationConfig::softwareVersion() {
   string version =
-      read_only_json_["Software"]["Version"]["Major"].asString() + "." +
-      read_only_json_["Software"]["Version"]["Minor"].asString() + "." +
-      read_only_json_["Software"]["Version"]["Patchlevel"].asString();
+      config_json_["Software"]["Version"]["Major"].asString() + "." +
+      config_json_["Software"]["Version"]["Minor"].asString() + "." +
+      config_json_["Software"]["Version"]["Patchlevel"].asString();
 
   return version;
 }
 
 expected<string, int> WeatherStationConfig::model() {
-  string model = read_only_json_["Hardware"]["Model"].asString();
+  string model = config_json_["Hardware"]["Model"].asString();
 
   return model;
 }
 
 expected<string, int> WeatherStationConfig::i2cBusName() {
   string bus_name =
-      read_only_json_["Hardware"]["I2c"]["Bus"]["name"].asString();
+      config_json_["Hardware"]["I2c"]["Bus"]["name"].asString();
 
   return bus_name;
 }
 
 expected<uint8_t, int> WeatherStationConfig::i2cDeviceAddress(string device) {
   int addr =
-      read_only_json_["Hardware"]["I2c"]["Bus"]["device_addresses"][device]
+      config_json_["Hardware"]["I2c"]["Bus"]["device_addresses"][device]
           .asInt();
 
   return addr;
@@ -209,7 +209,7 @@ expected<uint8_t, int> WeatherStationConfig::i2cDeviceAddress(string device) {
 
 expected<milliseconds, int> WeatherStationConfig::getDataAcquisitionInterval() {
   int data =
-      writable_json_["DataAcquisition"]["data_gathering_interval"].asInt();
+      variables_json_["DataAcquisition"]["data_gathering_interval"].asInt();
 
   milliseconds msecs = milliseconds(msecs);
 
@@ -217,14 +217,14 @@ expected<milliseconds, int> WeatherStationConfig::getDataAcquisitionInterval() {
 }
 
 expected<string, int> WeatherStationConfig::getWuPwuName() {
-  string pwu_name = writable_json_["WeatherUnderground"]["pwu_name"].asString();
+  string pwu_name = variables_json_["WeatherUnderground"]["pwu_name"].asString();
 
   return pwu_name;
 }
 
 expected<string, int> WeatherStationConfig::getWuPwuPassword() {
   string pwu_password =
-      writable_json_["WeatherUnderground"]["pwu_password"].asString();
+      variables_json_["WeatherUnderground"]["pwu_password"].asString();
 
   return pwu_password;
 }
@@ -232,7 +232,7 @@ expected<string, int> WeatherStationConfig::getWuPwuPassword() {
 expected<std::chrono::milliseconds, int>
 WeatherStationConfig::getWuReportInterval() {
   int interval_count =
-      writable_json_["WeatherUnderground"]["report_interval"].asInt();
+      variables_json_["WeatherUnderground"]["report_interval"].asInt();
 
   milliseconds interval = milliseconds(interval_count);
 
@@ -240,7 +240,7 @@ WeatherStationConfig::getWuReportInterval() {
 }
 
 expected<bool, int> WeatherStationConfig::getWuReportEnabled() {
-  bool enabled = writable_json_["WeatherUnerground"]["reporting_enabled"].asBool();
+  bool enabled = variables_json_["WeatherUnerground"]["reporting_enabled"].asBool();
 
   return enabled;
 }

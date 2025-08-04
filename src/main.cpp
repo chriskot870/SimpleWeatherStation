@@ -575,9 +575,7 @@ int main(int argc, char* argv[]) {
    * Setup inotify to get notified when config file changes during poll
    */
   int inotify_fd = inotify_init();
-  int inotify_ws_watch_d =
-      inotify_add_watch(inotify_fd, weather_station_config.data(), IN_MODIFY);
-  expected<string, int> get_fname = ws_config.configurableFileName();
+  expected<string, int> get_fname = ws_config.configVariablesFileName();
   int inotify_wu_watch_d =
       inotify_add_watch(inotify_fd, get_fname.value().c_str(), IN_MODIFY);
   pollfd fds[1];

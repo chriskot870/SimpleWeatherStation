@@ -57,7 +57,7 @@ class WeatherStationConfig {
 
   bool exists();
 
-  std::expected<string, int> configurableFileName();
+  std::expected<string, int> configVariablesFileName();
 
   void setConfigFile(const string& config_file);
 
@@ -88,8 +88,8 @@ class WeatherStationConfig {
 
   string config_file_;
 
-  Json::Value read_only_json_;
-  Json::Value writable_json_;
+  Json::Value config_json_;
+  Json::Value variables_json_;
 };
 
 #endif  // SRC_INCLUDE_WEATHER_STATION_CONFIG_H_
