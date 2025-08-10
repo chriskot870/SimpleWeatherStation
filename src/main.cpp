@@ -508,13 +508,7 @@ int main(int argc, char* argv[]) {
    * Since the ADC is available define an annometer
    */
   AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
-  expected<SpeedMeasurement, int> wind_speed_measurement =
-      anomometer.getMeasurement();
-  if (wind_speed_measurement.has_value() == false) {
-    logger.log(LOGGER_ERR, "Unable to read anomometer speed");
-    terminate(in_systemd);
-  }
-
+ 
   /*
    * Starting to gather data
    */
