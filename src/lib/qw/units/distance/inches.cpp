@@ -25,45 +25,82 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "qw/units/distance/include/inches.h"
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-
+#include <compare>
 #include <string>
 
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+using std::string;
+using std::strong_ordering;
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+/*
+ * Constructor routines
+ */
+Inches::Inches() {}
 
- public:
-  InchesMercury();
+Inches::Inches(float temp)
+    : Distance(inchesToBase(temp)) {}
 
-  explicit InchesMercury(float temp);
+Inches::Inches(float temp, string fmt_value)
+    : Distance(inchesToBase(temp)), fmt_value_(fmt_value) {}
 
-  InchesMercury(float temp, std::string fmt_value);
+/*
+ * Data manipulation routines
+ */
+float Inches::value() {
+  return baseToInches(base_value_);
+}
 
-  float value();
+/*
+ * I am using a base of milli-millibars as a base unit
+ */
+int Inches::inchesToBase(float inch) {
+  int value = round(inch * mm_in_inch * base_units_in_mm);
 
-  std::string toString();
+  return value;
+}
 
-  std::string toString(std::string format);
+float Inches::baseToInches(int base) {
+  float inches = ((static_cast<float>(base))/mm_in_inch)/base_units_in_mm;
 
-  void setFormat(std::string fmt_value);
+  return inches;
+}
 
- private:
-  std::string fmt_value_ = pressure_default_format;
+void Inches::setBase(int64_t base_value) {
+  base_value_ = base_value;
 
-  int inchesMercuryToBase(float temp);
+  return;
+}
 
-  float baseToInchesMercury(int base);
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Inches::toString() {
+  string data = format(fmt::runtime(fmt_value_), value());
 
-  void setBase(int64_t base_value);
-};
+  return data;
+}
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Inches::toString(string fmt_value) {
+  string data = format(fmt::runtime(fmt_value), value());
+
+  return data;
+}
+
+/*
+ * Set the format for this instance
+ */
+void Inches::setFormat(string fmt_value) {
+  fmt_value_ = fmt_value;
+
+  return;
+}
 
 }  // namespace qw::units
-
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_

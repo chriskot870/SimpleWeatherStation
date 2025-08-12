@@ -26,44 +26,38 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_UVI_INCLUDE_UVI_MEASUREMENT_H_
+#define SRC_LIB_QW_UNITS_UVI_INCLUDE_UVI_MEASUREMENT_H_
 
-#include <string>
-
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+#include <chrono>
+#include "qw/units/uvi/include/uvi.h"
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
-
+class UviMeasurement {
  public:
-  InchesMercury();
+  UviMeasurement();
 
-  explicit InchesMercury(float temp);
+  UviMeasurement(
+      Uvi value, Uvi accuracy,
+      std::chrono::time_point<std::chrono::system_clock> time);
 
-  InchesMercury(float temp, std::string fmt_value);
+  Uvi value();
 
-  float value();
+  Uvi accuracy();
 
-  std::string toString();
+  std::chrono::time_point<std::chrono::system_clock> time();
 
-  std::string toString(std::string format);
+  Uvi uviValue();
 
-  void setFormat(std::string fmt_value);
+  Uvi uviAccuracy();
 
  private:
-  std::string fmt_value_ = pressure_default_format;
-
-  int inchesMercuryToBase(float temp);
-
-  float baseToInchesMercury(int base);
-
-  void setBase(int64_t base_value);
+  Uvi value_;
+  Uvi accuracy_;
+  std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_UVI_INCLUDE_UVI_MEASUREMENT_H_

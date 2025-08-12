@@ -26,44 +26,36 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_MEASUREMENT_H_
+#define SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_MEASUREMENT_H_
 
-#include <string>
+#include <chrono>
 
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/foot_candle.h"
+#include "qw/units/light/include/light.h"
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
-
+class LightMeasurement {
  public:
-  InchesMercury();
+  LightMeasurement();
 
-  explicit InchesMercury(float temp);
+  LightMeasurement(Light value, Light accuracy,
+                      std::chrono::time_point<std::chrono::system_clock> time);
 
-  InchesMercury(float temp, std::string fmt_value);
+  Light value();
 
-  float value();
+  Light accuracy();
 
-  std::string toString();
-
-  std::string toString(std::string format);
-
-  void setFormat(std::string fmt_value);
+  std::chrono::time_point<std::chrono::system_clock> time();
 
  private:
-  std::string fmt_value_ = pressure_default_format;
-
-  int inchesMercuryToBase(float temp);
-
-  float baseToInchesMercury(int base);
-
-  void setBase(int64_t base_value);
+  Light value_;
+  Light accuracy_;
+  std::chrono::time_point<std::chrono::system_clock> time_;
 };
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_MEASUREMENT_H_

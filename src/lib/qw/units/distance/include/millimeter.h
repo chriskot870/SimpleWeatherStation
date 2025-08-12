@@ -26,25 +26,25 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_MILLIMETER_H_
+#define SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_MILLIMETER_H_
 
 #include <string>
 
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/distance/include/inches.h"
+#include "qw/units/distance/include/distance.h"
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+class Millimeter : public Distance {
+  friend Distance;
 
  public:
-  InchesMercury();
+  Millimeter();
 
-  explicit InchesMercury(float temp);
+  explicit Millimeter(float temp);
 
-  InchesMercury(float temp, std::string fmt_value);
+  Millimeter(float temp, std::string fmt_value);
 
   float value();
 
@@ -55,15 +55,15 @@ class InchesMercury : public Pressure {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = pressure_default_format;
+  std::string fmt_value_ = distance_default_format;
 
-  int inchesMercuryToBase(float temp);
+  int millimeterToBase(float temp);
 
-  float baseToInchesMercury(int base);
+  float baseToMillimeter(int base);
 
   void setBase(int64_t base_value);
 };
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_MILLIMETER_H_

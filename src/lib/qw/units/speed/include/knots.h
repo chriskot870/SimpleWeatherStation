@@ -37,7 +37,6 @@
 namespace qw::units {
 
 class Knots : public Speed {
-
   friend Speed;
 
  public:

@@ -26,25 +26,25 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LUX_H_
+#define SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LUX_H_
 
 #include <string>
 
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/light/include/foot_candle.h"
+#include "qw/units/light/include/light.h"
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+class Lux : public Light {
+  friend Light;
 
  public:
-  InchesMercury();
+  Lux();
 
-  explicit InchesMercury(float temp);
+  explicit Lux(float temp);
 
-  InchesMercury(float temp, std::string fmt_value);
+  Lux(float temp, std::string fmt_value);
 
   float value();
 
@@ -55,15 +55,15 @@ class InchesMercury : public Pressure {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = pressure_default_format;
+  std::string fmt_value_ = light_default_format;
 
-  int inchesMercuryToBase(float temp);
+  int luxToBase(float temp);
 
-  float baseToInchesMercury(int base);
+  float baseToLux(int base);
 
   void setBase(int64_t base_value);
 };
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LUX_H_

@@ -26,44 +26,82 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#include "qw/units/distance/include/millimeter.h"
 
+#include <compare>
 #include <string>
 
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+using std::string;
+using std::strong_ordering;
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+/*
+ * Constructor routines
+ */
+Millimeter::Millimeter() {}
 
- public:
-  InchesMercury();
+Millimeter::Millimeter(float temp)
+    : Distance(millimeterToBase(temp)) {}
 
-  explicit InchesMercury(float temp);
+Millimeter::Millimeter(float temp, string fmt_value)
+    : Distance(millimeterToBase(temp)), fmt_value_(fmt_value) {}
 
-  InchesMercury(float temp, std::string fmt_value);
+/*
+ * Data manipulation routines
+ */
+float Millimeter::value() {
+  return baseToMillimeter(base_value_);
+}
 
-  float value();
+/*
+ * I am using a base of .01 millimeters as a base unit
+ */
+int Millimeter::millimeterToBase(float mm) {
+  int value = round(mm * base_units_in_mm);
 
-  std::string toString();
+  return value;
+}
 
-  std::string toString(std::string format);
+float Millimeter::baseToMillimeter(int base) {
+  float mm = (static_cast<float>(base))/base_units_in_mm;
 
-  void setFormat(std::string fmt_value);
+  return mm;
+}
 
- private:
-  std::string fmt_value_ = pressure_default_format;
+void Millimeter::setBase(int64_t base_value) {
+  base_value_ = base_value;
 
-  int inchesMercuryToBase(float temp);
+  return;
+}
 
-  float baseToInchesMercury(int base);
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Millimeter::toString() {
+  string data = format(fmt::runtime(fmt_value_), value());
 
-  void setBase(int64_t base_value);
-};
+  return data;
+}
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Millimeter::toString(string fmt_value) {
+  string data = format(fmt::runtime(fmt_value), value());
+
+  return data;
+}
+
+/*
+ * Set the format for this instance
+ */
+void Millimeter::setFormat(string fmt_value) {
+  fmt_value_ = fmt_value;
+
+  return;
+}
 
 }  // namespace qw::units
-
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_

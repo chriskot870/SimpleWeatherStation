@@ -25,45 +25,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <chrono>
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#include "qw/units/distance/include/distance_measurement.h"
 
-#include <string>
-
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+using std::chrono::system_clock;
+using std::chrono::time_point;
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+DistanceMeasurement::DistanceMeasurement() {}
 
- public:
-  InchesMercury();
+DistanceMeasurement::DistanceMeasurement(
+    Distance value,
+    Distance accuracy, time_point<system_clock> time)
+    : value_(value), accuracy_(accuracy), time_(time) {}
 
-  explicit InchesMercury(float temp);
+Distance DistanceMeasurement::value() {
+  return value_;
+}
 
-  InchesMercury(float temp, std::string fmt_value);
+Distance DistanceMeasurement::accuracy() {
+  return accuracy_;
+}
 
-  float value();
-
-  std::string toString();
-
-  std::string toString(std::string format);
-
-  void setFormat(std::string fmt_value);
-
- private:
-  std::string fmt_value_ = pressure_default_format;
-
-  int inchesMercuryToBase(float temp);
-
-  float baseToInchesMercury(int base);
-
-  void setBase(int64_t base_value);
-};
+time_point<system_clock> DistanceMeasurement::time() {
+  return time_;
+}
 
 }  // namespace qw::units
-
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_

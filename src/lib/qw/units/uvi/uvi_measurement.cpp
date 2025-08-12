@@ -26,44 +26,54 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#include "qw/units/uvi/include/uvi_measurement.h"
 
-#include <string>
-
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+using std::chrono::system_clock;
+using std::chrono::time_point;
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+/*
+ * Constructor routines
+ */
+UviMeasurement::UviMeasurement() {}
 
- public:
-  InchesMercury();
+UviMeasurement::UviMeasurement(
+    Uvi value, Uvi accuracy,
+    time_point<std::chrono::system_clock> time)
+    : value_(value), accuracy_(accuracy), time_(time) {}
 
-  explicit InchesMercury(float temp);
+/*
+ * Constructor routines
+ */
+Uvi UviMeasurement::value() {
+  return value_;
+}
 
-  InchesMercury(float temp, std::string fmt_value);
+Uvi UviMeasurement::accuracy() {
+  return accuracy_;
+}
 
-  float value();
+time_point<system_clock> UviMeasurement::time() {
+  return time_;
+}
 
-  std::string toString();
+/*
+ * These would make more sense if there was more than one
+ * unit of relative humidity
+ */
+/*
+ * This is a duplicate of value above for symmetry with other units
+ */
+Uvi UviMeasurement::uviValue() {
+  return value_;
+}
 
-  std::string toString(std::string format);
-
-  void setFormat(std::string fmt_value);
-
- private:
-  std::string fmt_value_ = pressure_default_format;
-
-  int inchesMercuryToBase(float temp);
-
-  float baseToInchesMercury(int base);
-
-  void setBase(int64_t base_value);
-};
+/*
+ * This is a duplicate of value accuracy for symmetry with other units
+ */
+Uvi UviMeasurement::uviAccuracy() {
+  return accuracy_;
+}
 
 }  // namespace qw::units
-
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_

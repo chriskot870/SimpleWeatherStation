@@ -26,44 +26,76 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_DISTANCE_H_
+#define SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_DISTANCE_H_
 
+#include <fmt/format.h>
+#include <math.h>
+#include <compare>
 #include <string>
-
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+/*
+ * Need to pre-declare these for casting
+ */
+class Millimeter;
+class Inches;
+
+constexpr std::string distance_default_format = "{0:.2f}";
+constexpr float base_units_in_mm = 100;
+constexpr float mm_in_inch = 25.4;
+
+class Distance {
+  friend Millimeter;
+  friend Inches;
 
  public:
-  InchesMercury();
+  Distance();
 
-  explicit InchesMercury(float temp);
+  explicit Distance(const int64_t);
 
-  InchesMercury(float temp, std::string fmt_value);
+  bool operator==(const Distance& other) const;
 
-  float value();
+  bool operator!=(const Distance& other) const;
 
-  std::string toString();
+  bool operator<(const Distance& other) const;
 
-  std::string toString(std::string format);
+  bool operator>(const Distance& other) const;
 
-  void setFormat(std::string fmt_value);
+  bool operator<=(const Distance& other) const;
+
+  bool operator>=(const Distance& other) const;
+
+  std::strong_ordering operator<=> (const Distance& other) const;
+
+  Distance& operator=(const Distance& other);
+
+  Distance& operator+=(const Distance& other);
+
+  Distance& operator-=(const Distance& other);
+
+  const Distance operator+(const Distance& other) const;
+
+  const Distance operator-(const Distance& other) const;
+
+  const Distance operator/(const int& other) const;
+
+  const Distance operator*(const int& other) const;
+
+  /*
+   * Supports implicit casting
+   * hence the need for the predeclaration
+   */
+  operator Millimeter() const;
+
+  operator Inches() const;
 
  private:
-  std::string fmt_value_ = pressure_default_format;
-
-  int inchesMercuryToBase(float temp);
-
-  float baseToInchesMercury(int base);
-
-  void setBase(int64_t base_value);
+  int64_t base_value_;
 };
+
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_DISTANCE_H_

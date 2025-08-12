@@ -26,44 +26,82 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#include "qw/units/light/include/foot_candle.h"
 
+#include <compare>
 #include <string>
 
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
+using std::string;
+using std::strong_ordering;
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+/*
+ * Constructor routines
+ */
+FootCandle::FootCandle() {}
 
- public:
-  InchesMercury();
+FootCandle::FootCandle(float temp)
+    : Light(footCandleToBase(temp)) {}
 
-  explicit InchesMercury(float temp);
+FootCandle::FootCandle(float temp, string fmt_value)
+    : Light(footCandleToBase(temp)), fmt_value_(fmt_value) {}
 
-  InchesMercury(float temp, std::string fmt_value);
+/*
+ * Data manipulation routines
+ */
+float FootCandle::value() {
+  return baseToFootCandle(base_value_);
+}
 
-  float value();
+/*
+ * I am using a base of .01 millimeters as a base unit
+ */
+int FootCandle::footCandleToBase(float lx) {
+  int value = round(lx * base_units_in_lux * lux_in_foot_candle);
 
-  std::string toString();
+  return value;
+}
 
-  std::string toString(std::string format);
+float FootCandle::baseToFootCandle(int base) {
+  float fc = ((static_cast<float>(base))/base_units_in_lux)/lux_in_foot_candle;
 
-  void setFormat(std::string fmt_value);
+  return fc;
+}
 
- private:
-  std::string fmt_value_ = pressure_default_format;
+void FootCandle::setBase(int64_t base_value) {
+  base_value_ = base_value;
 
-  int inchesMercuryToBase(float temp);
+  return;
+}
 
-  float baseToInchesMercury(int base);
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string FootCandle::toString() {
+  string data = format(fmt::runtime(fmt_value_), value());
 
-  void setBase(int64_t base_value);
-};
+  return data;
+}
+
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string FootCandle::toString(string fmt_value) {
+  string data = format(fmt::runtime(fmt_value), value());
+
+  return data;
+}
+
+/*
+ * Set the format for this instance
+ */
+void FootCandle::setFormat(string fmt_value) {
+  fmt_value_ = fmt_value;
+
+  return;
+}
 
 }  // namespace qw::units
-
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_

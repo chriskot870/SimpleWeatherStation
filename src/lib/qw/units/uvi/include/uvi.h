@@ -26,25 +26,53 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
-#define SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#ifndef SRC_LIB_QW_UNITS_UVI_INCLUDE_UVI_H_
+#define SRC_LIB_QW_UNITS_UVI_INCLUDE_UVI_H_
 
+#include <fmt/format.h>
+#include <math.h>
+#include <compare>
 #include <string>
-
-#include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure.h"
 
 namespace qw::units {
 
-class InchesMercury : public Pressure {
-  friend Pressure;
+constexpr int base_units_in_uvi = 100;
+constexpr std::string uvi_default_format = "{0:.1f}";
 
+class Uvi {
  public:
-  InchesMercury();
+  Uvi();
 
-  explicit InchesMercury(float temp);
+  explicit Uvi(float rh);
 
-  InchesMercury(float temp, std::string fmt_value);
+  Uvi(float rh, std::string fmt_value);
+
+  bool operator==(const Uvi& other) const;
+
+  bool operator!=(const Uvi& other) const;
+
+  bool operator<(const Uvi& other) const;
+
+  bool operator>(const Uvi& other) const;
+
+  bool operator<=(const Uvi& other) const;
+
+  bool operator>=(const Uvi& other) const;
+
+  std::strong_ordering operator<=> (const Uvi& other) const;
+
+  Uvi& operator=(const Uvi& other);
+
+  Uvi& operator+=(const Uvi& other);
+
+  Uvi& operator-=(const Uvi& other);
+
+  /*
+   * I don't know if arithmetic operators make sense
+   */
+  const Uvi operator+(const Uvi& other) const;
+
+  const Uvi operator-(const Uvi& other) const;
 
   float value();
 
@@ -55,15 +83,11 @@ class InchesMercury : public Pressure {
   void setFormat(std::string fmt_value);
 
  private:
-  std::string fmt_value_ = pressure_default_format;
+  int base_value_;
 
-  int inchesMercuryToBase(float temp);
-
-  float baseToInchesMercury(int base);
-
-  void setBase(int64_t base_value);
+  std::string fmt_value_ = uvi_default_format;
 };
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_PRESSURE_INCLUDE_INCHES_MERCURY_H_
+#endif  // SRC_LIB_QW_UNITS_UVI_INCLUDE_UVI_H_
