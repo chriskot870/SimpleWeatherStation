@@ -20,6 +20,12 @@
       "type": "shell",
       "command": "cmake/scp_weatherstation.sh",
       "group": "none"
+    },
+    {
+      "label": "StartUnitTestServer",
+      "type": "shell",
+      "command": "cmake/unit_test_gdb_server.sh",
+      "group": "none"
     }
   ]
 }
