@@ -9,7 +9,7 @@
             "name": "Debug Unit Tests",
             "cwd": "${workspaceRoot}",
             "request": "launch",
-            "program": "${workspaceRoot}/build/src/lib/qw/units/tests/units.test",
+            "program": "${workspaceRoot}/build/src/lib/qw/units/temperature/tests/units_temperature.test",
             "args": [
             //   "--gtest_output=xml:${workspaceRoot}/build/src/lib/qw/units/tests/test_results.xml",
             //   "--gtest_filter=UnitTests.*"
@@ -32,7 +32,8 @@
             "name": "Debug WeatherStation",
             "cwd": "${workspaceRoot}",
             "request": "launch",
-            "program": "${workspaceRoot}/build/src/WeatherStation",
+            //"program": "${workspaceRoot}/build/src/WeatherStation",
+            "program": "${command:cmake.launchTargetPath}",
             "args": [
                 "-l",
                 "journal"

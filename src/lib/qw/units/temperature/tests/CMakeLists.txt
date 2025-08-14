@@ -1,16 +1,10 @@
 #
 # This tests the units 
 #
-add_executable(units.test units_test.cpp)
+add_executable(units_temperature.test units_temperature_test.cpp)
 
-target_link_libraries(units.test PRIVATE
-  distance_units
-  humidity_units
-  pressure_units
-  speed_units
+target_link_libraries(units_temperature.test PRIVATE
   temperature_units
-  uvi_units
-  light_units
   gtest_main
   gtest
   fmt)
@@ -19,7 +13,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/lib
 )
 
-target_compile_options(units.test PRIVATE -std=c++23)
+target_compile_options(units_temperature.test PRIVATE -std=c++23)
 
 #
 # When the test is run it is run with current directory to the corresponding directory.
@@ -30,5 +24,5 @@ target_compile_options(units.test PRIVATE -std=c++23)
 #
 # You need to have enable_testing() set in the top level CMakefile.txt for this to work.
 #
-add_test(NAME UnitTests COMMAND ${CMAKE_SOURCE_DIR}/cmake/run_remote_test.sh units.test)
+add_test(NAME UnitsTemperatureTests COMMAND ${CMAKE_SOURCE_DIR}/cmake/run_remote_test.sh units_temperature.test)
 

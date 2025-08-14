@@ -35,13 +35,13 @@
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
 
-using std::string_view;
 using qw::units::Celsius;
 using qw::units::Fahrenheit;
 using qw::units::Kelvin;
 using qw::units::Temperature;
+using std::string_view;
 
-TEST(UnitsTest, Temperature_Assignment_Tests) {
+TEST(UnitsTemperatureTest, Assignment_Tests) {
   int resolution_factor = 1000;
   float celsius_value = 25.0;
   string_view celsius_str("25.00");
@@ -78,7 +78,7 @@ TEST(UnitsTest, Temperature_Assignment_Tests) {
   EXPECT_EQ(kelvin.toString(), kelvin_str.data());
 }
 
-TEST(UnitsTest, Temperature_Casting_Tests) {
+TEST(UnitsTemperatureTest, Casting_Tests) {
   /*
    * Cast to different unit and then cast back and see if it is the same
    */
@@ -89,28 +89,28 @@ TEST(UnitsTest, Temperature_Casting_Tests) {
   EXPECT_EQ(celsius_1, celsius_2);      // Make sure they are equal
 }
 
-TEST(UnitsTest, Temperature_Equivalence_Tests) {
+TEST(UnitsTemperatureTest, Equivalence_Tests) {
   Celsius c1(25.0);
   Fahrenheit f1 = c1;  // Implicit cast to Fahrenheit
-  EXPECT_EQ(c1, f1);  // Make sure they are equal
+  EXPECT_EQ(c1, f1);   // Make sure they are equal
 
   Celsius c2(25.0);
-  Kelvin k1 = c2;  // Implicit cast to Kelvin
+  Kelvin k1 = c2;     // Implicit cast to Kelvin
   EXPECT_EQ(c2, k1);  // Make sure they are equal
 
   Fahrenheit f2(77.0);
-  Celsius c3 = f2;  // Implicit cast to Celsius
+  Celsius c3 = f2;    // Implicit cast to Celsius
   EXPECT_EQ(f2, c3);  // Make sure they are equal
 
   Fahrenheit f3(77.0);
-  Kelvin k2 = f3;  // Implicit cast to Kelvin
+  Kelvin k2 = f3;     // Implicit cast to Kelvin
   EXPECT_EQ(f3, k2);  // Make sure they are equal
 
   Kelvin k3(298.15);
-  Celsius c4 = k3;  // Implicit cast to Celsius
+  Celsius c4 = k3;    // Implicit cast to Celsius
   EXPECT_EQ(k3, c4);  // Make sure they are equal
 
   Kelvin k4(298.15);
   Fahrenheit f4 = k4;  // Implicit cast to Fahrenheit
-  EXPECT_EQ(k4, f4);  // Make sure they are equal
+  EXPECT_EQ(k4, f4);   // Make sure they are equal
 }
