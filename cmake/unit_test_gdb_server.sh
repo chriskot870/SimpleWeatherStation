@@ -17,13 +17,15 @@ gdb_server_pid=`ssh $target_user@$target_ip pgrep -x gdbserver`
 if [ ! -z  $gdb_server_pid ] 
 then
   echo GDB server already running pid: $gdb_server_pid
+  echo Killing existing gdbserver
+  ssh $target_user@$target_ip kill $gdb_server_pid
 else
-  echo Starting gdb 
-  gdbserver_command="gdbserver $target_gdbserver_port $target_command"
-  echo ssh $target_user@$target_ip "nohup $gdbserver_command 0<$target_stdin 1>$target_stdout 2>$target_stderr &"
-  ssh $target_user@$target_ip "nohup $gdbserver_command 0<$target_stdin 1>$target_stdout 2>$target_stderr &"
-  #ssh $target_user@$target_ip "nohup $gdbserver_command &"
+  echo GDB server not running
 fi
+echo Starting gdb 
+gdbserver_command="gdbserver $target_gdbserver_port $target_command"
+echo ssh $target_user@$target_ip "nohup $gdbserver_command 0<$target_stdin 1>$target_stdout 2>$target_stderr &"
+ssh $target_user@$target_ip "nohup $gdbserver_command 0<$target_stdin 1>$target_stdout 2>$target_stderr &"
 
 echo Copying new Unit Test command to target
     scp $build_command $target_user@$target_ip:$target_command 1>/dev/null 2>&1
