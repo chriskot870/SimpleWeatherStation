@@ -58,6 +58,29 @@ constexpr uint8_t kWsEwLn90lpRtuDefaultSlaveAddress = 0x90;
 // I hope that it identifies the model, but I am not sure
 constexpr uint32_t kWsEwLn90lpRtuDeviceId = 0x90FFFF;
 
+// Special command code
+constexpr uint8_t kWsEwLn90lpSpecialCommandCode[3] = {0xFD, 0xFD, 0xFD};
+
+struct WsEwLn90lpSpecialDataInquiry {
+  uint8_t bps;
+  uint8_t device_address;
+};
+
+struct WsEwLn90lpSpecialDataResponse {
+  uint32_t baud_rate;
+  uint8_t device_address;
+};
+
+struct WsEwLn90lpSpecialFrame {
+  uint8_t prefix[3];
+  struct WsEwLn90lpSpecialDataInquiry data;
+};
+
+constexpr uint8_t kWsEwLn90lpErrIllegalFunction = 1;
+constexpr uint8_t kWsEwLn90lpErrIllegalAddress = 2;
+constexpr uint8_t kWsEwLn90lpErrIllegalData = 3;
+constexpr uint8_t kWsEwLn90lpErrCrcFail = 8;
+
 // One more than the offsets are the values to exchange with the device
 // to get the corresponding baud rate.
 // If when asked for the baud rate it returns a value of 2 then that
@@ -66,6 +89,13 @@ constexpr uint32_t kWsEwLn90lpRtuDeviceId = 0x90FFFF;
 constexpr uint8_t kWsEwLn90lpBaudRateCount = 4;
 constexpr uint32_t kWsEwLn90lpBaudRates[kWsEwLn90lpBaudRateCount] = {
     4800, 9600, 19200, 115200};
+enum kWsEwLn90lpBaudRate {
+  kWsEwLn90lpBaudRateQuery,  // This is zero for SPecial Command to query baud rate
+  kWsEwLn90lpBaudRate4800,
+  kWsEwLn90lpBaudRate9600,
+  kWsEwLn90lpBaudRate19200,
+  kWsEwLn90lpBaudRate115200
+};
 
 constexpr uint16_t kWsEwLn90lpAddressMin = 1;
 constexpr uint16_t kWsEwLn90lpAddressMax = 252;
@@ -98,8 +128,8 @@ const qw::units::Millibar kWsEwLn90lpPressureAccuracy(5);
 const qw::units::Millibar kWsEwLn90lpPressureResolution(.1);
 
 // TWind speed measuring range
-const qw::units::Speed kWsEwLn90lpWindSpeedRange[2] = {
-    qw::units::Speed(0), qw::units::Speed(40)};
+const qw::units::Speed kWsEwLn90lpWindSpeedRange[2] = {qw::units::Speed(0),
+                                                       qw::units::Speed(40)};
 // wind speed accuracy is not a constant. It is implemented in readWindSpeed().
 // wind speed reolution
 const qw::units::MetersPerSecond kWsEwLn90lpWindSpeedResolution(.1);
@@ -158,7 +188,10 @@ struct WsEwLn90lpRtuInputData {
 };
 
 // The device updates it's values every 8.8 seconds.
-constexpr std::chrono::milliseconds kEcowittLn90lpDataRefreshInterval(8800);
+constexpr std::chrono::milliseconds kWsEwLn90lpDataRefreshInterval(8800);
+// Wind speed is faster every 2.2 seconds
+constexpr std::chrono::milliseconds kWsEwLn90lpWindSpeedDataRefreshInterval(
+    2200);
 
 class WeatherStationEcowittLn90lp {
  public:
@@ -192,6 +225,9 @@ class WeatherStationEcowittLn90lp {
 
   std::expected<uint32_t, int> getDeviceId();
 
+  std::expected<struct WsEwLn90lpSpecialDataResponse, int> specialCommand(
+      uint32_t baud_rate, uint8_t address);
+
   ~WeatherStationEcowittLn90lp();
 
  private:
@@ -205,21 +241,22 @@ class WeatherStationEcowittLn90lp {
 
   qw::units::TemperatureMeasurement last_temperature_;
   std::chrono::milliseconds temperature_valid_interval_ =
-      kEcowittLn90lpDataRefreshInterval;
+      kWsEwLn90lpDataRefreshInterval;
 
   qw::units::RelativeHumidityMeasurement last_rh_;
-  std::chrono::milliseconds rh_valid_interval_ =
-      kEcowittLn90lpDataRefreshInterval;
+  std::chrono::milliseconds rh_valid_interval_ = kWsEwLn90lpDataRefreshInterval;
 
   qw::units::PressureMeasurement last_pressure_;
   std::chrono::milliseconds pressure_valid_interval_ =
-      kEcowittLn90lpDataRefreshInterval;
+      kWsEwLn90lpDataRefreshInterval;
 
   qw::units::SpeedMeasurement last_wind_speed_;
   std::chrono::milliseconds wind_speed_valid_interval_ =
-      kEcowittLn90lpDataRefreshInterval;
+      kWsEwLn90lpDataRefreshInterval;
 
-  int fetchModBusData(uint16_t addr, int count, uint16_t* buffer);
+  int downloadModBusData(uint16_t addr, int count, uint16_t* buffer);
+
+  int uploadModBusData(uint16_t addr, int count, uint16_t* buffer);
 
   std::expected<qw::units::Temperature, int> convertRawTemperatureData(
       uint16_t raw_data);
