@@ -62,8 +62,6 @@
 #include "qw/weather/include/windspeed_history.h"
 
 using fmt::format;
-using qw::devices::WeatherStationEcowittLn90lp;
-using qw::devices::kWsEwLn90lpBaudRates;
 using qw::devices::ADS1015_MUX_AIN0_GND;
 using qw::devices::Ads1015Config;
 using qw::devices::AnomometerAdafruit;
@@ -73,7 +71,10 @@ using qw::devices::I2cSht4x;
 using qw::devices::kAds1015I2cPrimaryAddress;
 using qw::devices::kLps22hbI2cPrimaryAddress;
 using qw::devices::kSht4xI2cPrimaryAddress;
+using qw::devices::kWsEwLn90lpBaudRates;
+using qw::devices::kWsEwLn90lpRtuDeviceId;
 using qw::devices::Lps22;
+using qw::devices::WeatherStationEcowittLn90lp;
 using qw::logging::Logger;
 using qw::logging::logger;
 using qw::logging::LOGGER_DEBUG;
@@ -150,13 +151,10 @@ expected<bool, SdBusError> isRunningInSystemd() {
 
 void processWuData(
     WeatherUnderground* wu, const expected<TemperatureMeasurement, int>& temp1,
-    const expected<TemperatureMeasurement, int>& temp2,
     const expected<PressureMeasurement, int>& pressure,
     const expected<RelativeHumidityMeasurement, int>& rh,
-    const expected<Fahrenheit, int>& dewpoint,
-    const expected<SpeedMeasurement, int>& windspeed,
-    WindspeedHistory*
-        wind_history) {  // the history changes with function calls so use a pointer
+    const expected<Fahrenheit, int>&
+        dewpoint) {  // the history changes with function calls so use a pointer
   /*
          * Put the raw data into the wu data
          */
@@ -178,17 +176,6 @@ void processWuData(
                  format("No suitable for format for field {}", "tempf"));
     } else {
       wu->setVarData("tempf", tempf.toString(field_format.value()));
-    }
-  }
-  if (temp2.has_value()) {
-    TemperatureMeasurement temp_measurement = temp2.value();
-    Fahrenheit temp2f = temp_measurement.value();
-    expected<string, int> field_format = wu->getFieldFormat("temp2f");
-    if (field_format.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("No suitable for format for field {}", "temp2f"));
-    } else {
-      wu->setVarData("temp2f", temp2f.toString(field_format.value()));
     }
   }
 
@@ -230,60 +217,6 @@ void processWuData(
                  format("No suitable for format for field {}", "baromin"));
     } else {
       wu->setVarData("baromin", inches.toString(field_format.value()));
-    }
-  }
-
-  /*
-         * Weather Underground wants speed in mph
-         */
-  if (windspeed.has_value()) {
-    SpeedMeasurement wind_speed_measurement = windspeed.value();
-    MilesPerHour wind_mph = wind_speed_measurement.value();
-    expected<string, int> field_format = wu->getFieldFormat("windspeedmph");
-    if (field_format.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("No suitable for format for field {}", "windspeedmph"));
-    } else {
-      wu->setVarData("windspeedmph", wind_mph.toString(field_format.value()));
-    }
-  }
-  if (wind_history->countOverPeriod(kInterval2m) > 0) {
-    expected<MilesPerHour, int> ave = wind_history->average(kInterval2m);
-    if (ave.has_value() == true) {
-      expected<string, int> field_format =
-          wu->getFieldFormat("windspdmph_avg2m");
-      if (field_format.has_value() != true) {
-        logger.log(LOG_INFO, format("No suitable for format for field {}",
-                                    "windspeed_avg2m"));
-      } else {
-        wu->setVarData("windspeed_avg2m",
-                       ave.value().toString(field_format.value()));
-      }
-    }
-    expected<SpeedMeasurement, int> gust = wind_history->gust(kInterval2m);
-    if (gust.has_value() == true) {
-      MilesPerHour mph = gust.value().value();
-      expected<string, int> field_format = wu->getFieldFormat("windgustmph");
-      if (field_format.has_value() != true) {
-        logger.log(LOG_INFO, format("No suitable for format for field {}",
-                                    "windgustmph"));
-      } else {
-        wu->setVarData("windgustmph", mph.toString(field_format.value()));
-      }
-    }
-  }
-  if (wind_history->countOverPeriod(kInterval10m) > 0) {
-    expected<SpeedMeasurement, int> gust = wind_history->gust(kInterval10m);
-    if (gust.has_value() == true) {
-      MilesPerHour mph = gust.value().value();
-      expected<string, int> field_format =
-          wu->getFieldFormat("windgustmph_10m");
-      if (field_format.has_value() != true) {
-        logger.log(LOG_INFO, format("No suitable for format for field {}",
-                                    "windgustmph_10m"));
-      } else {
-        wu->setVarData("windgustmph_10m", mph.toString(field_format.value()));
-      }
     }
   }
 
@@ -457,71 +390,26 @@ int main(int argc, char* argv[]) {
 
   /*
    * Initialize to the fastest speed
+   * May want to get this from configuration file
    */
-  if (ecowitt.initialize(kWsEwLn90lpBaudRates[kWsEwLn90lpBaudRates.size() - 1]) != true) {
+  if (ecowitt.initialize(
+          kWsEwLn90lpBaudRates[kWsEwLn90lpBaudRates.size() - 1]) != true) {
     logger.log(LOG_CRIT, "Couldn't find Ecowitt LN90lp device");
     logger.log(LOG_CRIT, "Can not continue");
     terminate(in_systemd);
   }
 
-  expected<uint8_t, int> lps22hbI2cAddress =
-      ws_config.i2cDeviceAddress("lps22");
-  Lps22 lps22(i2c_bus, lps22hbI2cAddress.value());
-
-  error = lps22.init();
-  if (error != 0) {
-    logger.log(LOGGER_ERR, "Initialization of lps22hb Failed");
+  expected<uint16_t, int> ecowitt_expect_id = ecowitt.getDeviceId();
+  if (ecowitt_expect_id.has_value() != true) {
+    logger.log(LOG_CRIT, "Couldn't get Ecowitt device id");
     terminate(in_systemd);
   }
+  uint16_t ecowitt_device_id = ecowitt_expect_id.value();
 
-  x_whoami = lps22.whoAmI();
-  if (x_whoami.has_value() != true) {
-    logger.log(LOGGER_ERR, "Couldn't get Who am I value for lps22hb");
+  if (ecowitt_device_id != kWsEwLn90lpRtuDeviceId) {
+    logger.log(LOG_CRIT, "Incorrect Device ID for Ecowitt LN90lp");
     terminate(in_systemd);
   }
-  logger.log(LOGGER_INFO,
-             format("LPS22HB who am I Value: {:#X}", x_whoami.value()));
-
-  /*
-   * The sht4x device is connected to I2c bus 1 at the primary address
-   */
-  expected<uint8_t, int> sht4xI2cAddress = ws_config.i2cDeviceAddress("sht4x");
-  I2cSht4x sht4x(i2c_bus, sht4xI2cAddress.value());
-
-  error = sht4x.softReset();
-  if (error != 0) {
-    logger.log(LOGGER_ERR, "CHT4X reset failed");
-    terminate(in_systemd);
-  }
-  x_serial_number = sht4x.getSerialNumber();
-  if (x_serial_number.has_value() == false) {
-    logger.log(LOGGER_ERR, "Getting SHT44 Serial Number failed");
-    terminate(in_systemd);
-  }
-  logger.log(LOGGER_INFO,
-             format("SHT44 Serial Number: {}", x_serial_number.value()));
-
-  /*
-   * Add the ads device
-   */
-  expected<uint8_t, int> ads1015I2cAddress =
-      ws_config.i2cDeviceAddress("ads1015");
-  I2cAds1015 ads1015(i2c_bus, ads1015I2cAddress.value());
-  /*
-   * Check if we can get the configuration register
-   */
-  expected<Ads1015Config, int> ads_result = ads1015.inspectConfigRegister();
-  if (ads_result.has_value() == false) {
-    logger.log(LOGGER_ERR, "Getting ADS1015 Configuration Register");
-    terminate(in_systemd);
-  }
-  logger.log(LOGGER_INFO, "Ads 1015 Successfully read configuration register");
-  value = ads_result.value();
-
-  /*
-   * Since the ADC is available define an annometer
-   */
-  AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
 
   /*
    * Starting to gather data
@@ -608,39 +496,35 @@ int main(int argc, char* argv[]) {
       /*
        * We need wind information on each data gathering pass
        */
-      auto x_anomometer = anomometer.getMeasurement();
+      //auto x_anomometer = anomometer.getMeasurement();
 
       /*
        * If we successfully got a anomometer measurement add it to the history
        */
-      if (x_anomometer.has_value()) {
-        ws_history.add(x_anomometer.value());
-      }
+      //if (x_anomometer.has_value()) {
+      //  ws_history.add(x_anomometer.value());
+      //}
 
       if ((now_time - last_report_time) >= reporting_loop_interval) {
         /*
          * We only need this information when we are going to make a report so get it now.
          */
-        auto x_sht4x_temp = sht4x.getTemperatureMeasurement();
+        auto temp = ecowitt.getTemperature();
 
-        auto x_sht4x_humidity = sht4x.getRelativeHumidityMeasurement();
+        auto humidity = ecowitt.getRelativeHumidity();
 
-        auto x_lps22_temp = lps22.getTemperatureMeasurement();
-
-        auto x_lps22_pressure = lps22.getPressureMeasurement();
+        auto pressure = ecowitt.getPressure();
 
         expected<Fahrenheit, int> dewptf;
-        if (x_sht4x_temp.has_value() && x_sht4x_humidity.has_value()) {
-          dewptf = dewPoint(x_sht4x_temp.value().value(),
-                            x_sht4x_humidity.value().value());
+        if (temp.has_value() && humidity.has_value()) {
+          dewptf = dewPoint(temp.value().value(), humidity.value().value());
         } else {
           dewptf = unexpected(ENODATA);
         }
         /*
          * Put the raw data into the wu data
          */
-        processWuData(wu, x_sht4x_temp, x_lps22_temp, x_lps22_pressure,
-                      x_sht4x_humidity, dewptf, x_anomometer, &ws_history);
+        processWuData(wu, temp, pressure, humidity, dewptf);
         /*
          * debug to check out the string
          */

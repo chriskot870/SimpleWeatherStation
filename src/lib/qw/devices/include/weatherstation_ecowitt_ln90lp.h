@@ -57,7 +57,7 @@ constexpr uint8_t kWsEwLn90lpRtuDefaultSlaveAddress = 0x90;
 // I assume this is a fixed value
 // I came up with it by reading the register.
 // I hope that it identifies the model, but I am not sure
-constexpr uint32_t kWsEwLn90lpRtuDeviceId = 0x90FFFF;
+constexpr uint16_t kWsEwLn90lpRtuDeviceId = 0x90;
 
 // Special command code
 constexpr uint8_t kWsEwLn90lpSpecialCommandCode[3] = {0xFD, 0xFD, 0xFD};
@@ -226,7 +226,7 @@ class WeatherStationEcowittLn90lp {
 
   int setDeviceAddress(uint16_t device_address);
 
-  std::expected<uint32_t, int> getDeviceId();
+  std::expected<uint16_t, int> getDeviceId();
 
   std::expected<struct WsEwLn90lpSpecialDataResponse, int> specialCommand(
       uint32_t baud_rate, uint8_t address);

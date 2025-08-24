@@ -151,7 +151,7 @@ bool WeatherStationEcowittLn90lp::initialize(uint32_t baud,
     /*
      * Makesure to have the local baud ad address match what the device reported
      */
-    baud_rate_ = kWsEwLn90lpBaudRates[result.value().baud_rate];
+    baud_rate_ = result.value().baud_rate;
     slave_addr_ = result.value().device_address;
   }
   return true;
@@ -645,21 +645,15 @@ int WeatherStationEcowittLn90lp::setDeviceAddress(uint16_t device_address) {
   return 0;
 }
 
-std::expected<uint32_t, int> WeatherStationEcowittLn90lp::getDeviceId() {
-  uint16_t data[2];
+std::expected<uint16_t, int> WeatherStationEcowittLn90lp::getDeviceId() {
+  uint16_t data;
 
-  int result = downloadModBusData(kWsEwLn90lpRtuRegisterDeviceAddress, 1, data);
+  int result = downloadModBusData(kWsEwLn90lpRtuRegisterDeviceAddress, 1, &data);
   if (result != 0) {
     return unexpected(result);
   }
 
-  /*
-   * The MSB is at offset 0 and the LSB at offset 1
-   */
-  uint32_t id = data[0] << 16;
-  id |= data[1];
-
-  return id;
+  return data;
 }
 
 expected<struct WsEwLn90lpSpecialDataResponse, int>
