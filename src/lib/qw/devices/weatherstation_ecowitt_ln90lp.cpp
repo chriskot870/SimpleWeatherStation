@@ -49,14 +49,14 @@
 
 #include <expected>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <string>
 #include <string_view>
 
 #include "modbus/modbus-rtu.h"
 #include "modbus/modbus.h"
-
-#include "qw/devices/include/CRC.h"
 
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/humidity/include/relative_humidity_measurement.h"
@@ -71,19 +71,23 @@
 using qw::units::Celsius;
 using qw::units::MetersPerSecond;
 using qw::units::Millibar;
+using qw::units::Pressure;
 using qw::units::PressureMeasurement;
+using qw::units::RelativeHumidity;
 using qw::units::RelativeHumidityMeasurement;
+using qw::units::Speed;
 using qw::units::SpeedMeasurement;
 using qw::units::Temperature;
 using qw::units::TemperatureMeasurement;
 using std::expected;
+using std::find;
 using std::string;
 using std::string_view;
 using std::unexpected;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
-namespace qw::units {
+namespace qw::devices {
 
 WeatherStationEcowittLn90lp::WeatherStationEcowittLn90lp(
     string_view device_name)
@@ -113,6 +117,45 @@ WeatherStationEcowittLn90lp::WeatherStationEcowittLn90lp(
 }
 
 WeatherStationEcowittLn90lp::~WeatherStationEcowittLn90lp() {}
+
+bool WeatherStationEcowittLn90lp::initialize(uint32_t baud,
+                                             uint8_t device_addr) {
+  // Find baud rate and address of the device and set local values to match them
+  if (findAndMatchDevice() != true) {
+    return false;
+  }
+  // Sanity check the parameters before making any changes
+  auto it = kWsEwLn90lpBaudRates.begin();
+  for (it; it != kWsEwLn90lpBaudRates.end(); ++it) {
+    if (*it == baud) {
+      break;
+    }
+  }
+  if (it == kWsEwLn90lpBaudRates.end()) {
+    return false;
+  }
+
+  if ((device_addr != 0) && ((device_addr < kWsEwLn90lpAddressMin) ||
+                             device_addr > kWsEwLn90lpAddressMax)) {
+    return false;
+  }
+  /*
+   * The values are valid. If I want to change one of them use specialCommand
+   */
+  if (baud != 0 || device_addr != 0) {
+    std::expected<struct WsEwLn90lpSpecialDataResponse, int> result =
+        specialCommand(baud, device_addr);
+    if (result.has_value() != true) {
+      return false;
+    }
+    /*
+     * Makesure to have the local baud ad address match what the device reported
+     */
+    baud_rate_ = kWsEwLn90lpBaudRates[result.value().baud_rate];
+    slave_addr_ = result.value().device_address;
+  }
+  return true;
+}
 
 expected<TemperatureMeasurement, int>
 WeatherStationEcowittLn90lp::getTemperature() {
@@ -472,7 +515,11 @@ expected<Speed, int> WeatherStationEcowittLn90lp::convertRawWindSpeedData(
   return wspd;
 }
 
-expected<uint32_t, int> WeatherStationEcowittLn90lp::getBaudRate() {
+uint32_t WeatherStationEcowittLn90lp::getLocalBaudRate() {
+  return baud_rate_;
+}
+
+expected<uint32_t, int> WeatherStationEcowittLn90lp::getDeviceBaudRate() {
   uint16_t speed_offset;
 
   int result =
@@ -481,7 +528,7 @@ expected<uint32_t, int> WeatherStationEcowittLn90lp::getBaudRate() {
     return unexpected(result);
   }
 
-  if (speed_offset > kWsEwLn90lpBaudRateCount) {
+  if (speed_offset > kWsEwLn90lpBaudRates.size()) {
     /*
      * We got a bad value. Use Invalid Exchange EBADE. Seems like the best match
      */
@@ -497,32 +544,52 @@ expected<uint32_t, int> WeatherStationEcowittLn90lp::getBaudRate() {
   return speed;
 }
 
-int WeatherStationEcowittLn90lp::setBaudRate(uint32_t speed) {
+int WeatherStationEcowittLn90lp::setLocalBaudRate(uint32_t baud_rate) {
+  auto it =
+      find(kWsEwLn90lpBaudRates.begin(), kWsEwLn90lpBaudRates.end(), baud_rate);
+  if (it == kWsEwLn90lpBaudRates.end()) {
+    return EINVAL;
+  }
+  baud_rate_ = baud_rate;
+
+  return 0;
+}
+
+int WeatherStationEcowittLn90lp::setDeviceBaudRate(uint32_t speed) {
   uint16_t baud_offset;
 
-  for (baud_offset = 0; baud_offset < kWsEwLn90lpBaudRateCount; baud_offset++) {
+  for (baud_offset = 0; baud_offset < kWsEwLn90lpBaudRates.size();
+       baud_offset++) {
     if (kWsEwLn90lpBaudRates[baud_offset] == speed) {
       break;
     }
   }
 
-  if (baud_offset == kWsEwLn90lpBaudRateCount) {
+  if (baud_offset == kWsEwLn90lpBaudRates.size()) {
     return EINVAL;
   }
 
-  int result =
-      uploadModBusData(kWsEwLn90lpRtuRegisterDataRate, 1, &baud_offset);
-
-  if (result != 1) {
-    return errno;
+  /*
+   * There is a register that says it is RW to get and set the baud rate.
+   * When I try to set the baud rate it fails. SO, use the special command
+   * to set the baud rate.
+   */
+  std::expected<struct WsEwLn90lpSpecialDataResponse, int> result =
+      specialCommand(speed, 0);
+  if (result.has_value() != true) {
+    return result.error();
   }
 
   /*
-   * If we successfully set the devioes baud rate set our local value to match.
+   * If we successfully set the devices baud rate set our local value to match.
    */
-  baud_rate_ = kWsEwLn90lpBaudRates[baud_offset];
+  baud_rate_ = speed;
 
   return 0;
+}
+
+uint8_t WeatherStationEcowittLn90lp::getSlaveAddress() {
+  return slave_addr_;
 }
 
 expected<uint8_t, int> WeatherStationEcowittLn90lp::getDeviceAddress() {
@@ -541,6 +608,16 @@ expected<uint8_t, int> WeatherStationEcowittLn90lp::getDeviceAddress() {
   return address;
 }
 
+int WeatherStationEcowittLn90lp::setSlaveAddress(uint8_t address) {
+  if ((address < kWsEwLn90lpAddressMin) || (address > kWsEwLn90lpAddressMax)) {
+    return EINVAL;
+  }
+
+  slave_addr_ = address;
+
+  return 0;
+}
+
 int WeatherStationEcowittLn90lp::setDeviceAddress(uint16_t device_address) {
 
   if ((device_address < kWsEwLn90lpAddressMin) ||
@@ -548,11 +625,16 @@ int WeatherStationEcowittLn90lp::setDeviceAddress(uint16_t device_address) {
     return EINVAL;
   }
 
-  int result =
-      uploadModBusData(kWsEwLn90lpRtuRegisterDeviceAddress, 1, &device_address);
-
-  if (result != 1) {
-    return errno;
+  /*
+   * There is a register that says it is RW to get and set the address.
+   * Baud rate also has a similar RW register, but it failed when I tried
+   * to write it. Since I used special command for baud rate I'll use it
+   * for address as well.
+   */
+  std::expected<struct WsEwLn90lpSpecialDataResponse, int> result =
+      specialCommand(0, device_address);
+  if (result.has_value() != true) {
+    return result.error();
   }
 
   /*
@@ -581,25 +663,30 @@ std::expected<uint32_t, int> WeatherStationEcowittLn90lp::getDeviceId() {
 }
 
 expected<struct WsEwLn90lpSpecialDataResponse, int>
-WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate, uint8_t address) {
+WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate,
+                                            uint8_t address) {
   struct WsEwLn90lpSpecialFrame inquiry;
   uint8_t bps;
 
   if (baud_rate != 0) {
     uint8_t i;
-    for (i = 0; i < kWsEwLn90lpBaudRateCount; ++i) {
-      if (kWsEwLn90lpBaudRates[i] ==  baud_rate) {
+    for (i = 0; i < kWsEwLn90lpBaudRates.size(); ++i) {
+      if (kWsEwLn90lpBaudRates[i] == baud_rate) {
         break;
       }
     }
-    if (i == kWsEwLn90lpBaudRateCount) {
+    if (i == kWsEwLn90lpBaudRates.size()) {
       return unexpected(EINVAL);
     }
     bps = i + 1;
   } else {
     bps = 0;
   }
-  if ((address < kWsEwLn90lpAddressMin) || (address > kWsEwLn90lpAddressMax)) {
+  /*
+   * Address == 0 means we are inquiring about the address. So it is valid
+   */
+  if ((address != 0) && ((address < kWsEwLn90lpAddressMin) ||
+                         (address > kWsEwLn90lpAddressMax))) {
     return unexpected(EINVAL);
   }
 
@@ -645,7 +732,7 @@ WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate, uint8_t address)
     modbus_free(ctx);
     return unexpected(errno);
   }
-  
+
   struct WsEwLn90lpSpecialFrame* frame_buffer =
       reinterpret_cast<WsEwLn90lpSpecialFrame*>(response);
   struct WsEwLn90lpSpecialFrame frame = *frame_buffer;
@@ -653,10 +740,10 @@ WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate, uint8_t address)
   delete response;
 
   struct WsEwLn90lpSpecialDataResponse data;
-  if (frame.data.bps < 1 || frame.data.bps > kWsEwLn90lpBaudRateCount) {
+  if (frame.data.bps < 1 || frame.data.bps > kWsEwLn90lpBaudRates.size()) {
     return unexpected(EBADE);
   }
-  data.baud_rate = kWsEwLn90lpBaudRates[frame.data.bps];
+  data.baud_rate = kWsEwLn90lpBaudRates[frame.data.bps - 1];
   data.device_address = frame.data.device_address;
 
   /*
@@ -668,4 +755,51 @@ WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate, uint8_t address)
   return data;
 }
 
-}  // namespace qw::units
+bool WeatherStationEcowittLn90lp::findAndMatchDevice() {
+  /*
+   * We use the special command to try and find the device's address and baud rate.
+   * Of course we can't talk to the device if the baud rate isn't correct. So,
+   * we have to walk through the different rates and call the special command
+   * and see which one returns a success.
+   * To increase our chances we start with the current baud_rate value
+   */
+  int32_t try_baud = getLocalBaudRate();
+  uint8_t start_offset;
+  for (int n = 0; n < kWsEwLn90lpBaudRates.size(); n++) {
+    if (try_baud == kWsEwLn90lpBaudRates[n]) {
+      start_offset = n;
+      break;
+    }
+  }
+
+  for (int cnt = 0, i = start_offset; cnt < kWsEwLn90lpBaudRates.size();
+       i = ++i % kWsEwLn90lpBaudRates.size(), ++cnt) {
+    setLocalBaudRate(kWsEwLn90lpBaudRates[i]);
+    expected<struct WsEwLn90lpSpecialDataResponse, int> attempt =
+        specialCommand(0, 0);
+    if (attempt.has_value() == true) {
+      /* It was a successful attempt so use the beaudrate and address*/
+      if (setLocalBaudRate(attempt.value().baud_rate) != 0) {
+        continue;
+      }
+      if (setSlaveAddress(attempt.value().device_address) != 0) {
+        continue;
+      }
+      /*
+       * If it gets here I got a result and loaded the values locally.
+       * This means it was a success.
+       */
+      return true;
+    }
+  }
+
+  /*
+   * If we get here it means we couldn't find the device
+   * Set the baud rate to the original value
+   */
+  setLocalBaudRate(kWsEwLn90lpBaudRates[start_offset]);
+
+  return false;
+}
+
+}  // namespace qw::devices

@@ -48,6 +48,7 @@
 #include "qw/devices/i2c/include/lps22.h"
 #include "qw/devices/i2c/include/sht4x.h"
 #include "qw/devices/include/anomometer_adafruit.h"
+#include "qw/devices/include/weatherstation_ecowitt_ln90lp.h"
 #include "qw/locking/include/locking_file.h"
 #include "qw/logger/include/logger.h"
 #include "qw/systemd/include/sd_service_unit.h"
@@ -61,6 +62,8 @@
 #include "qw/weather/include/windspeed_history.h"
 
 using fmt::format;
+using qw::devices::WeatherStationEcowittLn90lp;
+using qw::devices::kWsEwLn90lpBaudRates;
 using qw::devices::ADS1015_MUX_AIN0_GND;
 using qw::devices::Ads1015Config;
 using qw::devices::AnomometerAdafruit;
@@ -450,6 +453,17 @@ int main(int argc, char* argv[]) {
     terminate(in_systemd);
   }
 
+  WeatherStationEcowittLn90lp ecowitt("/dev/ttyS0");
+
+  /*
+   * Initialize to the fastest speed
+   */
+  if (ecowitt.initialize(kWsEwLn90lpBaudRates[kWsEwLn90lpBaudRates.size() - 1]) != true) {
+    logger.log(LOG_CRIT, "Couldn't find Ecowitt LN90lp device");
+    logger.log(LOG_CRIT, "Can not continue");
+    terminate(in_systemd);
+  }
+
   expected<uint8_t, int> lps22hbI2cAddress =
       ws_config.i2cDeviceAddress("lps22");
   Lps22 lps22(i2c_bus, lps22hbI2cAddress.value());
@@ -508,7 +522,7 @@ int main(int argc, char* argv[]) {
    * Since the ADC is available define an annometer
    */
   AnomometerAdafruit anomometer(ads1015, ADS1015_MUX_AIN0_GND);
- 
+
   /*
    * Starting to gather data
    */

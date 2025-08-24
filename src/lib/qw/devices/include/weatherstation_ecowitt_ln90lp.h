@@ -30,6 +30,7 @@
 
 #include <expected>
 
+#include <array>
 #include <string>
 #include <string_view>
 
@@ -45,7 +46,7 @@
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
 
-namespace qw::units {
+namespace qw::devices {
 
 constexpr std::string_view kWsEwLn90lpRtuDevice = "/dev/ttyS0";
 constexpr uint kWsEwLn90lpRtuDeviceDefaultBaudRate = 9600;
@@ -87,15 +88,7 @@ constexpr uint8_t kWsEwLn90lpErrCrcFail = 8;
 // means the value is at 2-1 offset. That would be 9600. To set the
 // baud rate to 115200 you would send 3 + 1.
 constexpr uint8_t kWsEwLn90lpBaudRateCount = 4;
-constexpr uint32_t kWsEwLn90lpBaudRates[kWsEwLn90lpBaudRateCount] = {
-    4800, 9600, 19200, 115200};
-enum kWsEwLn90lpBaudRate {
-  kWsEwLn90lpBaudRateQuery,  // This is zero for SPecial Command to query baud rate
-  kWsEwLn90lpBaudRate4800,
-  kWsEwLn90lpBaudRate9600,
-  kWsEwLn90lpBaudRate19200,
-  kWsEwLn90lpBaudRate115200
-};
+constexpr std::array<uint32_t, 4> kWsEwLn90lpBaudRates({4800, 9600, 19200, 115200});
 
 constexpr uint16_t kWsEwLn90lpAddressMin = 1;
 constexpr uint16_t kWsEwLn90lpAddressMax = 252;
@@ -197,6 +190,8 @@ class WeatherStationEcowittLn90lp {
  public:
   explicit WeatherStationEcowittLn90lp(std::string_view device_name);
 
+  bool initialize(uint32_t baud = 0, uint8_t device_addr = 0);
+
   std::expected<qw::units::TemperatureMeasurement, int> getTemperature();
 
   std::expected<qw::units::RelativeHumidityMeasurement, int>
@@ -215,11 +210,19 @@ class WeatherStationEcowittLn90lp {
 
   std::expected<qw::units::SpeedMeasurement, int> readWindSpeedData();
 
-  std::expected<uint32_t, int> getBaudRate();
+  uint32_t getLocalBaudRate();
 
-  int setBaudRate(uint32_t speed);
+  std::expected<uint32_t, int> getDeviceBaudRate();
+
+  int setLocalBaudRate(uint32_t baud_rate);
+
+  int setDeviceBaudRate(uint32_t speed);
+
+  uint8_t getSlaveAddress();
 
   std::expected<uint8_t, int> getDeviceAddress();
+
+  int setSlaveAddress(uint8_t address);
 
   int setDeviceAddress(uint16_t device_address);
 
@@ -227,6 +230,8 @@ class WeatherStationEcowittLn90lp {
 
   std::expected<struct WsEwLn90lpSpecialDataResponse, int> specialCommand(
       uint32_t baud_rate, uint8_t address);
+
+  bool findAndMatchDevice();
 
   ~WeatherStationEcowittLn90lp();
 
@@ -271,6 +276,6 @@ class WeatherStationEcowittLn90lp {
       uint16_t raw_data);
 };
 
-}  // namespace qw::units
+}  // namespace qw::devices
 
 #endif  // SRC_LIB_QW_DEVICES_INCLUDE_WEATHERSTATION_ECOWITT_LN90LP_H_
