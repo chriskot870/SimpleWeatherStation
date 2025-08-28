@@ -32,23 +32,25 @@
 #include <chrono>
 #include <functional>
 
-#include "qw/units/direction/include/direction_measurement.h"
+#include "qw/units/direction/include/direction.h"
+#include "qw/units/include/unit_measurement.h"
 
 using std::expected;
-using qw::units::DirectionMeasurement;
+using qw::units::UnitMeasurement;
+using qw::units::Direction;
 using std::chrono::milliseconds;
 
 namespace qw::weather {
 
 WindVane::WindVane(
-    std::function<expected<DirectionMeasurement, int>()> getWindDirection,
+    std::function<expected<UnitMeasurement<Direction>, int>()> getWindDirection,
     std::function<milliseconds()> getInterval,
     std::function<void(milliseconds)> setInterval)
     : getWindDirection_(getWindDirection),
       getInterval_(getInterval),
       setInterval_(setInterval) {}
 
-expected<DirectionMeasurement, int> WindVane::getData() {
+expected<UnitMeasurement<Direction>, int> WindVane::getData() {
   /*
   if (getTemperature_) {
     return getTemperature_();

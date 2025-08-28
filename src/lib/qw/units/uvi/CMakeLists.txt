@@ -1,6 +1,5 @@
 add_library(uvi_units STATIC
     uvi.cpp
-    uvi_measurement.cpp
     )
 
 #

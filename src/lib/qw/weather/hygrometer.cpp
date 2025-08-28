@@ -29,26 +29,30 @@
 #include "qw/weather/include/hygrometer.h"
 
 #include <chrono>
-#include <functional>
 #include <expected>
+#include <functional>
 
-#include "qw/units/humidity/include/relative_humidity_measurement.h"
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/include/unit_measurement.h"
 
 using std::expected;
-using qw::units::RelativeHumidityMeasurement;
+using qw::units::RelativeHumidity;
+using qw::units::UnitMeasurement;
 using std::chrono::milliseconds;
 
 namespace qw::weather {
 
 Hygrometer::Hygrometer(
-    std::function<expected<RelativeHumidityMeasurement, int>()> getRelativeHumidity,
+    std::function<expected<UnitMeasurement<RelativeHumidity>, int>()>
+        getRelativeHumidity,
     std::function<milliseconds()> getInterval,
     std::function<void(milliseconds)> setInterval)
     : getRelativeHumidity_(getRelativeHumidity),
       getInterval_(getInterval),
       setInterval_(setInterval) {}
 
-expected<RelativeHumidityMeasurement, int> Hygrometer::getData() {
+expected<UnitMeasurement<RelativeHumidity>, int>
+Hygrometer::getData() {
   /*
   if (getTemperature_) {
     return getTemperature_();

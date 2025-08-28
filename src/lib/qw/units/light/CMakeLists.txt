@@ -2,7 +2,6 @@ add_library(light_units STATIC
   lux.cpp
   foot_candle.cpp
   light.cpp
-  light_measurement.cpp
 )
 
 #

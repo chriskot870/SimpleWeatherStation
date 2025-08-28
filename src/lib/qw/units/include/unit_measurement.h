@@ -26,16 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- /*
-  * This class can keep a history of a series of any of the meeasurements.
-  * It caps the elements by the maximum time defined. The front of the deque
-  * has the oldest time. The back of the deque has the most recent time.
-  * The deque is sorted by time when a new measurement is added.
-  * It is reccomended that when templates are used that the definition
-  * and the declaration are all in an include file. So, here it is.
-  */
-#ifndef SRC_LIB_QW_UNITS_INCLUDE_MEASUREMENT_HISTORY_H_
-#define SRC_LIB_QW_UNITS_INCLUDE_MEASUREMENT_HISTORY_H_
+#ifndef SRC_LIB_QW_UNITS_INCLUDE_UNIT_MEASUREMENT_H_
+#define SRC_LIB_QW_UNITS_INCLUDE_UNIT_MEASUREMENT_H_
 
 #include <algorithm>
 #include <chrono>
@@ -47,7 +39,16 @@
 
 #include "qw/logger/include/logger.h"
 
-using qw::logging::logger;
+/*
+ * I broke the rule of not defining using in a header.
+ * The reason is I may want to switch from system_clock
+ * to utc_clock. It is noce to have that in one place.
+ * Changing it in MeasurementTimeClock will then 
+ * change it in all files that need the clock used
+ * nby measurments.
+ * Of course they should all use MeasurementTimeClock
+ */
+using MeasurementTimeClock = std::chrono::time_point<std::chrono::system_clock>;
 
 namespace qw::units {
 
@@ -56,20 +57,46 @@ constexpr std::chrono::seconds kMaxHistoryTimeSpan(60 *
 constexpr std::chrono::seconds kHistoryInterval10m(60 * 10);
 constexpr std::chrono::seconds kHistoryInterval2m(60 * 2);
 
-template <typename TMeasurement, typename TValue>
-concept HasTimeAndValue = requires(TMeasurement obj) {
-  // Can't seem to find a type that is appropriate
-  { obj.time() };  // NOLINT
-  { obj.value()} -> std::same_as<TValue>;
+template<typename Tunit>
+class UnitMeasurement {
+ public:
+  UnitMeasurement() {}
+
+  UnitMeasurement(Tunit measurement, Tunit accuracy, MeasurementTimeClock time_stamp)
+    : measurement_(measurement), accuracy_(accuracy), time_stamp_(time_stamp) {}
+
+  Tunit measurement() {
+    return measurement_;
+  }
+
+  Tunit accuracy() {
+    return accuracy_;
+  }
+
+  MeasurementTimeClock timeStamp() {
+    return time_stamp_;
+  }
+ private:
+  Tunit measurement_;
+  Tunit accuracy_;
+  MeasurementTimeClock time_stamp_;
 };
 
-template<typename TMeasurement, typename TValue>
-requires HasTimeAndValue<TMeasurement, TValue>
+template<typename Tmunit>
+concept IsUnitMeasurement = requires(qw::units::UnitMeasurement<Tmunit> obj) {
+  // Make sure the 3 functions return the expected types
+  { obj.timeStamp()}-> std::same_as<MeasurementTimeClock>;
+  { obj.measurement()} -> std::same_as<Tmunit>;
+  { obj.accuracy()} -> std::same_as<Tmunit>;
+};
+
+template<typename Tmunit>
+requires IsUnitMeasurement<Tmunit>
 class MeasurementHistory {
  public:
   MeasurementHistory() {}
 
-  MeasurementHistory(std::chrono::seconds maximum_time) : maximum_time_(maximum_time) {}
+  explicit MeasurementHistory(std::chrono::seconds maximum_time) : maximum_time_(maximum_time) {}
 
   void setMaximumTime(std::chrono::seconds time_span) {
     maximum_time_ = time_span;
@@ -97,9 +124,9 @@ class MeasurementHistory {
     return count;
   }
 
-  std::expected<TMeasurement, int> last() {
+  std::expected<qw::units::UnitMeasurement<Tmunit>, int> last() {
     if (history_.empty()) {
-      return unexpected(ERANGE);
+      return std::unexpected(ERANGE);
     }
 
     /*
@@ -122,14 +149,14 @@ class MeasurementHistory {
      * Iterate through the list backwards, which is from newest measurement.
      */
     for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
-      if ((current_time - (*it).time()) <= time_span) {
+      if ((current_time - (*it).timeStamp()) <= time_span) {
         count++;
       }
     }
     return count;
   }
 
-  void add(TMeasurement data) {
+  void add(qw::units::UnitMeasurement<Tmunit> data) {
     /*
    * We take every opportunity to keep the list small
    * so clean up measurements that are out of range before
@@ -141,7 +168,7 @@ class MeasurementHistory {
    * Make sure the speed is within the maximum time
    */
     auto current_time = std::chrono::system_clock::now();
-    if ((current_time - data.time()) <= maximum_time_) {
+    if ((current_time - data.timeStamp()) <= maximum_time_) {
       history_.push_back(data);
     }
 
@@ -156,12 +183,12 @@ class MeasurementHistory {
    * to the front it gets removed by prune.
    */
     sort(history_.rbegin(), history_.rend(),
-         [](TMeasurement a, TMeasurement b) {
+         [](qw::units::UnitMeasurement<Tmunit> a, qw::units::UnitMeasurement<Tmunit> b) {
            /*
      * We want the older times near the front when going in reverse order.
-     * So, if a.time() > b.time() return true.
+     * So, if a.timeStamp() > b.timeStamp() return true.
      */
-           if (a.time() > b.time()) {
+           if (a.timeStamp() > b.timeStamp()) {
              return true;
            }
            return false;
@@ -170,9 +197,9 @@ class MeasurementHistory {
     return;
   }
 
-  std::expected<TValue, int> average(std::chrono::seconds time_span) {
+  std::expected<Tmunit, int> average(std::chrono::seconds time_span) {
     uint count = 0;
-    TValue total(0);
+    Tmunit total(0);
 
     prune();
 
@@ -180,7 +207,7 @@ class MeasurementHistory {
      * If history is empty return an error so we don't divide by 0
      */
     if (history_.empty() == true) {
-      return unexpected(ENODATA);
+      return std::unexpected(ENODATA);
     }
 
     /*
@@ -191,7 +218,7 @@ class MeasurementHistory {
       /*
        * If it is within the time stamp add the value
        */
-      if ((current_time - (*it).time()) <= time_span) {
+      if ((current_time - (*it).timeStamp()) <= time_span) {
         count++;
         /*
          * Now get the base_value of the measurment value.
@@ -200,7 +227,7 @@ class MeasurementHistory {
          * SpeedHistory has to be a friend of MilesPerHour for
          * this to work.
          */
-        TValue tval = (*it).value();
+        Tmunit tval = (*it).measurement();
         total += tval;
       } else {
         break;
@@ -208,38 +235,38 @@ class MeasurementHistory {
     }
 
     if (count == 0) {
-      logger.log(LOG_ERR, fmt::format("History Average: Divide by zero"));
-      return unexpected(ENOTSUP);
+      qw::logging::logger.log(LOG_ERR, fmt::format("History Average: Divide by zero"));
+      return std::unexpected(ENOTSUP);
     }
 
-    TValue ave_mph = total / count;
+    Tmunit ave_mph = total / count;
 
     return ave_mph;
   }
 
-  std::expected<TMeasurement, int> gust(std::chrono::seconds time_span) {
+  std::expected<qw::units::UnitMeasurement<Tmunit>, int> gust(std::chrono::seconds time_span) {
     prune();
 
     /*
      * Return error if there is no data
      */
     if (history_.empty() == true) {
-      return unexpected(ENODATA);
+      return std::unexpected(ENODATA);
     }
 
     auto current_time = std::chrono::system_clock::now();
-    TMeasurement max_measurement = history_.back();
+    qw::units::UnitMeasurement<Tmunit> max_measurement = history_.back();
     for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
       /*
        * If we go past the time_span then exit loop
        */
-      if ((current_time - (*it).time()) > time_span) {
+      if ((current_time - (*it).timeStamp()) > time_span) {
         break;
       }
       /*
        * If this value is greater then the maximum, make it the maximum
        */
-      if ((*it).value() > max_measurement.value()) {
+      if ((*it).measurement() > max_measurement.measurement()) {
         max_measurement = (*it);
       }
     }
@@ -248,7 +275,7 @@ class MeasurementHistory {
   }
 
  private:
-  std::deque<TMeasurement> history_;
+  std::deque<qw::units::UnitMeasurement<Tmunit>> history_;
 
   std::chrono::seconds maximum_time_ = kMaxHistoryTimeSpan;
 
@@ -263,7 +290,7 @@ class MeasurementHistory {
      * are no elements left in the history.
      */
     while ((history_.empty() != true) &&
-           ((current_time - history_.front().time()) > maximum_time_)) {
+           ((current_time - history_.front().timeStamp()) > maximum_time_)) {
       history_.pop_front();
     }
 
@@ -273,4 +300,4 @@ class MeasurementHistory {
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_INCLUDE_MEASUREMENT_HISTORY_H_
+#endif  // SRC_LIB_QW_UNITS_INCLUDE_UNIT_MEASUREMENT_H_

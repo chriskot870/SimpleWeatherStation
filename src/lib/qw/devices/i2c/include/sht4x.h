@@ -65,12 +65,11 @@
  * and measurements.
  */
 #include "qw/units/humidity/include/relative_humidity.h"
-#include "qw/units/humidity/include/relative_humidity_measurement.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/include/unit_measurement.h"
 
 namespace qw::devices {
 
@@ -284,10 +283,10 @@ class I2cSht4x {
 
   int softReset();
 
-  std::expected<qw::units::TemperatureMeasurement, int>
+  std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int>
   getTemperatureMeasurement();
 
-  std::expected<qw::units::RelativeHumidityMeasurement, int>
+  std::expected<qw::units::UnitMeasurement<qw::units::RelativeHumidity>, int>
   getRelativeHumidityMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Sht4xReading_t reading);

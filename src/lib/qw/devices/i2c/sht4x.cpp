@@ -41,14 +41,13 @@
 #include <vector>
 
 #include "qw/units/humidity/include/relative_humidity.h"  // This device measures in RH
-#include "qw/units/humidity/include/relative_humidity_measurement.h"
 #include "qw/units/temperature/include/celsius.h"  // This device measures in Celsius
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/include/unit_measurement.h"
 
 using qw::units::Celsius;
+using qw::units::Temperature;
 using qw::units::RelativeHumidity;
-using qw::units::RelativeHumidityMeasurement;
-using qw::units::TemperatureMeasurement;
+using qw::units::UnitMeasurement;
 using std::atomic_bool;
 using std::expected;
 using std::find;
@@ -223,7 +222,7 @@ int I2cSht4x::softReset() {
   return 0;
 }
 
-expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
+expected<UnitMeasurement<Temperature>, int> I2cSht4x::getTemperatureMeasurement() {
   int error;
   float temperature;
 
@@ -250,7 +249,7 @@ expected<TemperatureMeasurement, int> I2cSht4x::getTemperatureMeasurement() {
 
   Celsius tempc(temperature);
 
-  TemperatureMeasurement measurement(
+  UnitMeasurement<Temperature> measurement(
       tempc, kSht4xTemperatureAccuracy,
       device_data_->temperature_measurement_system_time_);
 
@@ -292,7 +291,7 @@ int I2cSht4x::setMeasurementInterval(milliseconds interval,
   return 0;
 }
 
-expected<RelativeHumidityMeasurement, int>
+expected<UnitMeasurement<RelativeHumidity>, int>
 I2cSht4x::getRelativeHumidityMeasurement() {
   float relative_humidity;
   int error;
@@ -325,7 +324,7 @@ I2cSht4x::getRelativeHumidityMeasurement() {
 
   RelativeHumidity rhdata(relative_humidity);
 
-  RelativeHumidityMeasurement measurement(
+  UnitMeasurement<RelativeHumidity> measurement(
       rhdata, kSht44xHumidityAccuracy,
       device_data_->humidity_measurement_system_time_);
 

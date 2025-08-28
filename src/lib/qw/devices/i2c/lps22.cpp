@@ -41,14 +41,14 @@
 #include <vector>
 
 #include "qw/units/pressure/include/millibar.h"  // This device measures in millibars
-#include "qw/units/pressure/include/pressure_measurement.h"
 #include "qw/units/temperature/include/celsius.h"  // This device measures in Celsius
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/include/unit_measurement.h"
 
 using qw::units::Celsius;
+using qw::units::Temperature;
 using qw::units::Millibar;
-using qw::units::PressureMeasurement;
-using qw::units::TemperatureMeasurement;
+using qw::units::Pressure;
+using qw::units::UnitMeasurement;
 using std::expected;
 using std::find;
 using std::lock_guard;
@@ -494,7 +494,7 @@ int Lps22::getMeasurement() {
   return 0;
 }
 
-expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement() {
+expected<UnitMeasurement<Temperature>, int> Lps22::getTemperatureMeasurement() {
   uint8_t buffer[2] = {0, 0};
   float temperature;
   int error;
@@ -532,14 +532,14 @@ expected<TemperatureMeasurement, int> Lps22::getTemperatureMeasurement() {
    */
   Celsius tempc(temperature);
 
-  TemperatureMeasurement measurement(
+  UnitMeasurement<Temperature> measurement(
       tempc, kLps22hbTemperatureAccuracy,
       device_data_->temperature_measurement_system_time_);
 
   return measurement;
 }
 
-expected<PressureMeasurement, int> Lps22::getPressureMeasurement() {
+expected<UnitMeasurement<Pressure>, int> Lps22::getPressureMeasurement() {
   uint8_t buffer[3] = {0, 0, 0};
   float pressure;
   int error;
@@ -565,7 +565,7 @@ expected<PressureMeasurement, int> Lps22::getPressureMeasurement() {
 
   Millibar mb(pressure);
 
-  PressureMeasurement measurement(
+  UnitMeasurement<Pressure> measurement(
       mb, kLps22hbPressureAccuracy,
       device_data_->pressure_measurement_system_time_);
 

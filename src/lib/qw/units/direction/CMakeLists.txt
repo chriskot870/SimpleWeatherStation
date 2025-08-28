@@ -3,7 +3,6 @@ add_library(direction_units STATIC
   degrees.cpp
   radians.cpp
   compass_heading.cpp
-  direction_measurement.cpp
 )
 
 #

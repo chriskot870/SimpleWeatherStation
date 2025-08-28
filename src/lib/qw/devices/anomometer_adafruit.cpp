@@ -33,14 +33,16 @@
 
 #include "qw/devices/i2c/include/ads1015.h"
 #include "qw/units/speed/include/meters_per_second.h"
-#include "qw/units/speed/include/speed_measurement.h"
+#include "qw/units/include/unit_measurement.h"
 
 using qw::devices::Ads1015MuxType;
 using qw::devices::I2cAds1015;
 using qw::devices::kAds1015CountPerVolts;
 using qw::units::MetersPerSecond;
-using qw::units::SpeedMeasurement;
-using qw::units::SpeedMeasurementTimeStamp;
+using qw::units::Speed;
+using qw::units::UnitMeasurement;
+using std::chrono::time_point;
+using std::chrono::system_clock;
 using std::expected;
 using std::unexpected;
 using std::chrono::system_clock;
@@ -50,7 +52,7 @@ namespace qw::devices {
 AnomometerAdafruit::AnomometerAdafruit(I2cAds1015 adc, Ads1015MuxType mux)
     : adc_(adc), mux_(mux) {}
 
-expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
+expected<UnitMeasurement<Speed>, int> AnomometerAdafruit::getMeasurement() {
   expected<int16_t, int> reading = adc_.getReading(mux_);
   if (reading.has_value() == false) {
     return unexpected(EIO);
@@ -79,9 +81,9 @@ expected<SpeedMeasurement, int> AnomometerAdafruit::getMeasurement() {
 
   MetersPerSecond mps_speed(mps);
   MetersPerSecond accuracy(kAnomometerAdafruitAccuracy);
-  SpeedMeasurementTimeStamp current_time = system_clock::now();
+  time_point<system_clock> current_time = system_clock::now();
 
-  SpeedMeasurement measured_speed(mps_speed, accuracy, current_time);
+  UnitMeasurement<Speed> measured_speed(mps_speed, accuracy, current_time);
 
   return measured_speed;
 }

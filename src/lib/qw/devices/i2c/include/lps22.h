@@ -69,12 +69,11 @@
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/pressure/include/pressure.h"
-#include "qw/units/pressure/include/pressure_measurement.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/fahrenheit.h"
 #include "qw/units/temperature/include/kelvin.h"
 #include "qw/units/temperature/include/temperature.h"
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/include/unit_measurement.h"
 
 namespace qw::devices {
 
@@ -323,10 +322,10 @@ class Lps22 {
 
   std::expected<uint8_t, int> whoAmI();
 
-  std::expected<qw::units::TemperatureMeasurement, int>
+  std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int>
   getTemperatureMeasurement();
 
-  std::expected<qw::units::PressureMeasurement, int> getPressureMeasurement();
+  std::expected<qw::units::UnitMeasurement<qw::units::Pressure>, int> getPressureMeasurement();
 
   std::chrono::milliseconds getMeasurementInterval(Lps22hbReading_t reading);
 

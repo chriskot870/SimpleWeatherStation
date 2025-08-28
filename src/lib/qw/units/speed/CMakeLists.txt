@@ -4,7 +4,6 @@ add_library(speed_units STATIC
   kilometers_per_hour.cpp
   meters_per_second.cpp
   knots.cpp
-  speed_measurement.cpp
 )
 
 #

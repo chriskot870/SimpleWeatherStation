@@ -38,15 +38,11 @@
 #include "modbus/modbus.h"
 
 #include "qw/units/direction/include/degrees.h"
-#include "qw/units/direction/include/direction_measurement.h"
 #include "qw/units/humidity/include/relative_humidity.h"
-#include "qw/units/humidity/include/relative_humidity_measurement.h"
 #include "qw/units/pressure/include/millibar.h"
-#include "qw/units/pressure/include/pressure_measurement.h"
 #include "qw/units/speed/include/meters_per_second.h"
-#include "qw/units/speed/include/speed_measurement.h"
 #include "qw/units/temperature/include/celsius.h"
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/include/unit_measurement.h"
 
 namespace qw::devices {
 
@@ -206,7 +202,7 @@ class WeatherStationEcowittLn90lp {
   /*
    * These three routines make a thermometer
    */
-  std::expected<qw::units::TemperatureMeasurement, int> getTemperature();
+  std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int> getTemperature();
 
   std::chrono::milliseconds getTemperatureValidInterval();
 
@@ -215,7 +211,7 @@ class WeatherStationEcowittLn90lp {
   /*
    * These three make a hygrometer
    */
-  std::expected<qw::units::RelativeHumidityMeasurement, int>
+  std::expected<qw::units::UnitMeasurement<qw::units::RelativeHumidity>, int>
   getRelativeHumidity();
 
   std::chrono::milliseconds getRelativeHumidityValidInterval();
@@ -225,7 +221,7 @@ class WeatherStationEcowittLn90lp {
   /*
    * These three make a barometer
    */
-  std::expected<qw::units::PressureMeasurement, int> getPressure();
+  std::expected<qw::units::UnitMeasurement<qw::units::Pressure>, int> getPressure();
 
   std::chrono::milliseconds getPressureValidInterval();
 
@@ -234,7 +230,7 @@ class WeatherStationEcowittLn90lp {
   /*
    * These three make an anemometer
    */
-  std::expected<qw::units::SpeedMeasurement, int> getWindspeed();
+  std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int> getWindspeed();
 
   std::chrono::milliseconds getWindSpeedValidInterval();
 
@@ -243,7 +239,7 @@ class WeatherStationEcowittLn90lp {
   /*
    * These three make a wind vane
    */
-  std::expected<qw::units::DirectionMeasurement, int> getWindDirection();
+  std::expected<qw::units::UnitMeasurement<qw::units::Direction>, int> getWindDirection();
 
   std::chrono::milliseconds getWindDirectionValidInterval();
 
@@ -253,16 +249,16 @@ class WeatherStationEcowittLn90lp {
    * THhse are the unbuffered read routines called by the get routines above.
    * These actually go fetch the data from the device.
    */
-  std::expected<qw::units::TemperatureMeasurement, int> readTemperatureData();
+  std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int> readTemperatureData();
 
-  std::expected<qw::units::RelativeHumidityMeasurement, int>
+  std::expected<qw::units::UnitMeasurement<qw::units::RelativeHumidity>, int>
   readRelativeHumidityData();
 
-  std::expected<qw::units::PressureMeasurement, int> readPressureData();
+  std::expected<qw::units::UnitMeasurement<qw::units::Pressure>, int> readPressureData();
 
-  std::expected<qw::units::SpeedMeasurement, int> readWindSpeedData();
+  std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int> readWindSpeedData();
 
-  std::expected<qw::units::DirectionMeasurement, int> readWindDirectionData();
+  std::expected<qw::units::UnitMeasurement<qw::units::Direction>, int> readWindDirectionData();
 
   /*
    * MIicellaneous control functions
@@ -301,22 +297,22 @@ class WeatherStationEcowittLn90lp {
   uint8_t slave_addr_;  // Initially 0x90 can be changed on device
   WsEwLn90lpRtuInputData buffer_;
 
-  qw::units::TemperatureMeasurement last_temperature_;
+  qw::units::UnitMeasurement<qw::units::Temperature> last_temperature_;
   std::chrono::milliseconds temperature_valid_interval_ =
       kWsEwLn90lpDataRefreshInterval;
 
-  qw::units::RelativeHumidityMeasurement last_rh_;
+  qw::units::UnitMeasurement<qw::units::RelativeHumidity> last_rh_;
   std::chrono::milliseconds rh_valid_interval_ = kWsEwLn90lpDataRefreshInterval;
 
-  qw::units::PressureMeasurement last_pressure_;
+  qw::units::UnitMeasurement<qw::units::Pressure> last_pressure_;
   std::chrono::milliseconds pressure_valid_interval_ =
       kWsEwLn90lpDataRefreshInterval;
 
-  qw::units::SpeedMeasurement last_wind_speed_;
+  qw::units::UnitMeasurement<qw::units::Speed> last_wind_speed_;
   std::chrono::milliseconds wind_speed_valid_interval_ =
       kWsEwLn90lpDataRefreshInterval;
 
-  qw::units::DirectionMeasurement last_wind_direction_;
+  qw::units::UnitMeasurement<qw::units::Direction> last_wind_direction_;
   std::chrono::milliseconds wind_direction_valid_interval_ =
       kWsEwLn90lpDataRefreshInterval;
 

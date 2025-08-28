@@ -32,23 +32,25 @@
 #include <chrono>
 #include <functional>
 
-#include "qw/units/speed/include/speed_measurement.h"
+#include "qw/units/speed/include/speed.h"
+#include "qw/units/include/unit_measurement.h"
 
 using std::expected;
-using qw::units::SpeedMeasurement;
+using qw::units::Speed;
+using qw::units::UnitMeasurement;
 using std::chrono::milliseconds;
 
 namespace qw::weather {
 
 Anemometer::Anemometer(
-    std::function<expected<SpeedMeasurement, int>()> getWindSpeed,
+    std::function<expected<UnitMeasurement<Speed>, int>()> getWindSpeed,
     std::function<milliseconds()> getInterval,
     std::function<void(milliseconds)> setInterval)
     : getWindSpeed_(getWindSpeed),
       getInterval_(getInterval),
       setInterval_(setInterval) {}
 
-expected<SpeedMeasurement, int> Anemometer::getData() {
+expected<UnitMeasurement<Speed>, int> Anemometer::getData() {
   /*
   if (getTemperature_) {
     return getTemperature_();

@@ -43,7 +43,8 @@
 #include <expected>  // cpplint is wrong about this being c system header // NOLINT
 
 #include "qw/devices/i2c/include/ads1015.h"
-#include "qw/units/speed/include/speed_measurement.h"
+#include "qw/units/speed/include/speed.h"
+#include "qw/units/include/unit_measurement.h"
 
 namespace qw::devices {
 
@@ -88,7 +89,7 @@ class AnomometerAdafruit {
   AnomometerAdafruit(qw::devices::I2cAds1015 adc,
                      qw::devices::Ads1015MuxType mux);
 
-  std::expected<qw::units::SpeedMeasurement, int> getMeasurement();
+  std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int> getMeasurement();
 
  private:
   qw::devices::I2cAds1015 adc_;

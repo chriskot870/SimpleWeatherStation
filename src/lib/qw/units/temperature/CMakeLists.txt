@@ -3,7 +3,6 @@ add_library(temperature_units STATIC
   celsius.cpp
   fahrenheit.cpp
   kelvin.cpp
-  temperature_measurement.cpp
 )
 
 #

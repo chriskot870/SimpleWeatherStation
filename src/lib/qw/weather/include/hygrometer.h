@@ -34,28 +34,34 @@
 
 #include <chrono>
 
-#include "qw/units/humidity/include/relative_humidity_measurement.h"
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/include/unit_measurement.h"
 
 namespace qw::weather {
 
 class Hygrometer {
  public:
-  Hygrometer(std::function<std::expected<qw::units::RelativeHumidityMeasurement, int>()> getRelativeHumidity,
-              std::function<std::chrono::milliseconds()> getInterval,
-              std::function<void(std::chrono::milliseconds)> setInterval);
+  Hygrometer(
+      std::function<std::expected<
+          qw::units::UnitMeasurement<qw::units::RelativeHumidity>, int>()>
+          getRelativeHumidity,
+      std::function<std::chrono::milliseconds()> getInterval,
+      std::function<void(std::chrono::milliseconds)> setInterval);
 
-  std::expected<qw::units::RelativeHumidityMeasurement, int> getData();
+  std::expected<qw::units::UnitMeasurement<qw::units::RelativeHumidity>, int> getData();
 
   std::chrono::milliseconds getInterval();
 
   void setInterval(std::chrono::milliseconds interval);
 
  private:
-  std::function<std::expected<qw::units::RelativeHumidityMeasurement, int>()> getRelativeHumidity_;
+  std::function<
+      std::expected<qw::units::UnitMeasurement<qw::units::RelativeHumidity>, int>()>
+      getRelativeHumidity_;
   std::function<std::chrono::milliseconds()> getInterval_;
   std::function<void(std::chrono::milliseconds)> setInterval_;
 };
 
 }  // namespace qw::weather
 
-#endif  // SRC_LIB_QW_WEATHER_INCLUDE_PRESSURE_H_
+#endif  // SRC_LIB_QW_WEATHER_INCLUDE_HYGROMETER_H_

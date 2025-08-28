@@ -2,7 +2,6 @@ add_library(distance_units STATIC
   millimeter.cpp
   inches.cpp
   distance.cpp
-  distance_measurement.cpp
 )
 
 #

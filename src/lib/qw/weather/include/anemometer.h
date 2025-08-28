@@ -34,24 +34,30 @@
 
 #include <chrono>
 
-#include "qw/units/speed/include/speed_measurement.h"
+#include "qw/units/include/unit_measurement.h"
+#include "qw/units/speed/include/speed.h"
 
 namespace qw::weather {
 
 class Anemometer {
  public:
-  Anemometer(std::function<std::expected<qw::units::SpeedMeasurement, int>()> getWindSpeed,
-              std::function<std::chrono::milliseconds()> getInterval,
-              std::function<void(std::chrono::milliseconds)> setInterval);
+  Anemometer(
+      std::function<
+          std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int>()>
+          getWindSpeed,
+      std::function<std::chrono::milliseconds()> getInterval,
+      std::function<void(std::chrono::milliseconds)> setInterval);
 
-  std::expected<qw::units::SpeedMeasurement, int> getData();
+  std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int> getData();
 
   std::chrono::milliseconds getInterval();
 
   void setInterval(std::chrono::milliseconds interval);
 
  private:
-  std::function<std::expected<qw::units::SpeedMeasurement, int>()> getWindSpeed_;
+  std::function<
+      std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int>()>
+      getWindSpeed_;
   std::function<std::chrono::milliseconds()> getInterval_;
   std::function<void(std::chrono::milliseconds)> setInterval_;
 };

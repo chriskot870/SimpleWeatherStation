@@ -34,24 +34,30 @@
 
 #include <chrono>
 
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units//include/unit_measurement.h"
+#include "qw/units/temperature/include/temperature.h"
 
 namespace qw::weather {
 
 class Thermometer {
  public:
-  Thermometer(std::function<std::expected<qw::units::TemperatureMeasurement, int>()> getTemperature,
+  Thermometer(std::function<std::expected<
+                  qw::units::UnitMeasurement<qw::units::Temperature>, int>()>
+                  getTemperature,
               std::function<std::chrono::milliseconds()> getInterval,
               std::function<void(std::chrono::milliseconds)> setInterval);
 
-  std::expected<qw::units::TemperatureMeasurement, int> getData();
+  std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int>
+  getData();
 
   std::chrono::milliseconds getInterval();
 
   void setInterval(std::chrono::milliseconds interval);
 
  private:
-  std::function<std::expected<qw::units::TemperatureMeasurement, int>()> getTemperature_;
+  std::function<
+      std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int>()>
+      getTemperature_;
   std::function<std::chrono::milliseconds()> getInterval_;
   std::function<void(std::chrono::milliseconds)> setInterval_;
 };

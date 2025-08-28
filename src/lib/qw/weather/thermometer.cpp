@@ -29,26 +29,29 @@
 #include "qw/weather/include/thermometer.h"
 
 #include <chrono>
-#include <functional>
 #include <expected>
+#include <functional>
 
-#include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/include/unit_measurement.h"
+#include "qw/units/temperature/include/temperature.h"
 
 using std::expected;
-using qw::units::TemperatureMeasurement;
+using qw::units::Temperature;
+using qw::units::UnitMeasurement;
 using std::chrono::milliseconds;
 
 namespace qw::weather {
 
 Thermometer::Thermometer(
-    std::function<expected<TemperatureMeasurement, int>()> getTemperature,
+    std::function<expected<UnitMeasurement<Temperature>, int>()> getTemperature,
     std::function<milliseconds()> getInterval,
     std::function<void(milliseconds)> setInterval)
     : getTemperature_(getTemperature),
       getInterval_(getInterval),
       setInterval_(setInterval) {}
 
-expected<TemperatureMeasurement, int> Thermometer::getData() {
+expected<UnitMeasurement<Temperature>, int>
+Thermometer::getData() {
   /*
   if (getTemperature_) {
     return getTemperature_();

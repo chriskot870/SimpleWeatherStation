@@ -58,14 +58,15 @@
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/speed/include/miles_per_hour.h"
 #include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/weather/include/anemometer.h"
 #include "qw/weather/include/barometer.h"
 #include "qw/weather/include/dewpoint.h"
 #include "qw/weather/include/hygrometer.h"
 #include "qw/weather/include/thermometer.h"
-#include "qw/weather/include/anemometer.h"
 /*#include "qw/weather/include/windspeed_history.h" */
 #include "qw/weather/include/wind_vane.h"
-#include "qw/units/include/measurement_history.h"
+/*#include "qw/units/include/measurement_history.h" */
+#include "qw/units/include/unit_measurement.h"
 
 using fmt::format;
 using qw::devices::ADS1015_MUX_AIN0_GND;
@@ -98,31 +99,27 @@ using qw::systemd::systemd_service_interface;
 using qw::systemd::systemd_unit_interface;
 using qw::units::Celsius;
 using qw::units::Fahrenheit;
-using qw::units::InchesMercury;
 using qw::units::Kelvin;
-using qw::units::KilometersPerHour;
-using qw::units::MilesPerHour;
-using qw::units::Millibar;
-using qw::units::PressureMeasurement;
-using qw::units::RelativeHumidity;
-using qw::units::RelativeHumidityMeasurement;
-using qw::units::Speed;
-using qw::units::SpeedMeasurement;
-using qw::units::SpeedMeasurementTimeStamp;
-using qw::units::TemperatureMeasurement;
+using qw::units::Temperature;
 using qw::units::Degrees;
 using qw::units::Direction;
-using qw::units::DirectionMeasurement;
+using qw::units::InchesMercury;
+using qw::units::Millibar;
+using qw::units::Pressure;
+using qw::units::KilometersPerHour;
+using qw::units::MilesPerHour;
+using qw::units::Speed;
+using qw::units::RelativeHumidity;
+using qw::weather::Anemometer;
 using qw::weather::Barometer;
 using qw::weather::dewPoint;
 using qw::weather::Hygrometer;
+using qw::weather::Thermometer;
+using qw::weather::WindVane;
+using qw::units::UnitMeasurement;
+using qw::units::MeasurementHistory;
 using qw::units::kHistoryInterval10m;
 using qw::units::kHistoryInterval2m;
-using qw::weather::Thermometer;
-using qw::weather::Anemometer;
-/*using qw::weather::WindspeedHistory;*/
-using qw::units::MeasurementHistory;
-using qw::weather::WindVane;
 using std::cout;
 using std::endl;
 using std::get;
@@ -167,13 +164,13 @@ expected<bool, SdBusError> isRunningInSystemd() {
 }
 
 void processWuData(
-    WeatherUnderground* wu, const expected<TemperatureMeasurement, int>& temp1,
-    const expected<PressureMeasurement, int>& pressure,
-    const expected<RelativeHumidityMeasurement, int>& rh,
+    WeatherUnderground* wu, const expected<UnitMeasurement<Temperature>, int>& temp1,
+    const expected<UnitMeasurement<Pressure>, int>& pressure,
+    const expected<UnitMeasurement<RelativeHumidity>, int>& rh,
     const expected<Fahrenheit, int>&
         dewpoint,  // the history changes with function calls so use a pointer
-    MeasurementHistory<SpeedMeasurement, Speed> ws_history,
-    MeasurementHistory<DirectionMeasurement, Direction> wd_history) {
+    MeasurementHistory<Speed> ws_history,
+    MeasurementHistory<Direction> wd_history) {
   /*
          * Put the raw data into the wu data
          */
@@ -187,8 +184,8 @@ void processWuData(
     /*
            * The SHT4x is supposed to be more accurate so use it
            */
-    TemperatureMeasurement temp_measurement = temp1.value();
-    Fahrenheit tempf = temp_measurement.value();
+    UnitMeasurement<Temperature> temp_measurement = temp1.value();
+    Fahrenheit tempf = temp_measurement.measurement();
     expected<string, int> field_format = wu->getFieldFormat("tempf");
     if (field_format.has_value() != true) {
       logger.log(LOG_INFO,
@@ -199,8 +196,8 @@ void processWuData(
   }
 
   if (rh.has_value()) {
-    RelativeHumidityMeasurement humidity_measurement = rh.value();
-    RelativeHumidity humidity = humidity_measurement.relativeHumidityValue();
+    UnitMeasurement<RelativeHumidity> humidity_measurement = rh.value();
+    RelativeHumidity humidity = humidity_measurement.measurement();
     expected<string, int> field_format = wu->getFieldFormat("humidity");
     if (field_format.has_value() != true) {
       logger.log(LOG_INFO,
@@ -228,8 +225,8 @@ void processWuData(
    * Weather Underground wants inches mercury
    */
   if (pressure.has_value()) {
-    PressureMeasurement pressure_measurement = pressure.value();
-    InchesMercury inches = pressure_measurement.value();
+    UnitMeasurement<Pressure> pressure_measurement = pressure.value();
+    InchesMercury inches = pressure_measurement.measurement();
     expected<string, int> field_format = wu->getFieldFormat("baromin");
     if (field_format.has_value() != true) {
       logger.log(LOG_INFO,
@@ -247,16 +244,15 @@ void processWuData(
     /*
      * Report the last wind speed measurement taken
      */
-    expected<SpeedMeasurement, int> newest_measurement = ws_history.last();
-    if (newest_measurement.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("Couldn't get last Wind Speed Measurement"));
+    expected<UnitMeasurement<Speed>, int> x_newest = ws_history.last();
+    if (x_newest.has_value() != true) {
+      logger.log(LOG_INFO, format("Couldn't get last Wind Speed Measurement"));
     } else {
-      MilesPerHour mph = newest_measurement.value().value();
+      MilesPerHour mph = x_newest.value().measurement();
       expected<string, int> field_format = wu->getFieldFormat("windspeedmph");
       if (field_format.has_value() != true) {
         logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "windspeedmph"));
+                   format("No suitable format for field {}", "windspeedmph"));
       } else {
         wu->setVarData("windspeedmph", mph.toString(field_format.value()));
       }
@@ -264,16 +260,17 @@ void processWuData(
     /*
      * Get the windspeed average over the last 2 minutes
      */
-    expected<MilesPerHour, int> mph_2mave = ws_history.average(kHistoryInterval2m);
-    if (mph_2mave.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("Couldn't get Wind Speed 2 min Average"));
+    expected<MilesPerHour, int> x_mph_2mave =
+        ws_history.average(kHistoryInterval2m);
+    if (x_mph_2mave.has_value() != true) {
+      logger.log(LOG_INFO, format("Couldn't get Wind Speed 2 min Average"));
     } else {
-      MilesPerHour mph = mph_2mave.value();
-      expected<string, int> field_format = wu->getFieldFormat("windspdmph_avg2m");
+      MilesPerHour mph = x_mph_2mave.value();
+      expected<string, int> field_format =
+          wu->getFieldFormat("windspdmph_avg2m");
       if (field_format.has_value() != true) {
         logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "windspeedmph"));
+                   format("No suitable format for field {}", "windspeedmph"));
       } else {
         wu->setVarData("windspdmph_avg2m", mph.toString(field_format.value()));
       }
@@ -282,16 +279,16 @@ void processWuData(
      * Get the wind gust for the last 2 minutes. We assume they want the gust for the
      * last 2 minutes. They don't really specify
      */
-    expected<SpeedMeasurement, int> wind_gust = ws_history.gust(kHistoryInterval2m);
-    if (wind_gust.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("Couldn't get Wind Speed gust"));
+    expected<UnitMeasurement<Speed>, int> x_wind_gust =
+        ws_history.gust(kHistoryInterval2m);
+    if (x_wind_gust.has_value() != true) {
+      logger.log(LOG_INFO, format("Couldn't get Wind Speed gust"));
     } else {
-      MilesPerHour mph = wind_gust.value().value();
+      MilesPerHour mph = x_wind_gust.value().measurement();
       expected<string, int> field_format = wu->getFieldFormat("windgustmph");
       if (field_format.has_value() != true) {
         logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "windgust"));
+                   format("No suitable format for field {}", "windgust"));
       } else {
         wu->setVarData("windgustmph", mph.toString(field_format.value()));
       }
@@ -299,16 +296,17 @@ void processWuData(
     /*
      * Get the windspeed average over the last 10 minutes
      */
-    expected<SpeedMeasurement, int> gust_avg10m = ws_history.gust(kHistoryInterval10m);
-    if (gust_avg10m.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("Couldn't get Wind Gust 10 min Average"));
+    expected<UnitMeasurement<Speed>, int> x_gust_avg10m =
+        ws_history.gust(kHistoryInterval10m);
+    if (x_gust_avg10m.has_value() != true) {
+      logger.log(LOG_INFO, format("Couldn't get Wind Gust 10 min Average"));
     } else {
-      MilesPerHour mph = gust_avg10m.value().value();
-      expected<string, int> field_format = wu->getFieldFormat("windgustmph_10m");
+      MilesPerHour mph = x_gust_avg10m.value().measurement();
+      expected<string, int> field_format =
+          wu->getFieldFormat("windgustmph_10m");
       if (field_format.has_value() != true) {
-        logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "windgustmph_10m"));
+        logger.log(LOG_INFO, format("No suitable format for field {}",
+                                    "windgustmph_10m"));
       } else {
         wu->setVarData("windgustmph_10m", mph.toString(field_format.value()));
       }
@@ -319,21 +317,20 @@ void processWuData(
    * Get the wind direction info.
    * The one in back is the most recent value
    */
-  
   if (wd_history.size() > 0) {
     //
     // Report the last wind direction measurement taken
     //
-    expected<DirectionMeasurement, int> newest_measurement = wd_history.last();
-    if (newest_measurement.has_value() != true) {
+    expected<UnitMeasurement<Direction>, int> x_newest = wd_history.last();
+    if (x_newest.has_value() != true) {
       logger.log(LOG_INFO,
                  format("Couldn't get last Wind Direction Measurement"));
     } else {
-      Degrees degrees = newest_measurement.value().value();
+      Degrees degrees = x_newest.value().measurement();
       expected<string, int> field_format = wu->getFieldFormat("winddir");
       if (field_format.has_value() != true) {
         logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "winddir"));
+                   format("No suitable format for field {}", "winddir"));
       } else {
         wu->setVarData("winddir", degrees.toString(field_format.value()));
       }
@@ -341,16 +338,15 @@ void processWuData(
     //
     // Get the wind direction average over the last 2 minutes
     //
-    expected<Degrees, int> dir_2mave = wd_history.average(kHistoryInterval2m);
-    if (dir_2mave.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("Couldn't get Wind Direction 2 min Average"));
+    expected<Degrees, int> x_dir_2mave = wd_history.average(kHistoryInterval2m);
+    if (x_dir_2mave.has_value() != true) {
+      logger.log(LOG_INFO, format("Couldn't get Wind Direction 2 min Average"));
     } else {
-      Degrees dir = dir_2mave.value();
+      Degrees dir = x_dir_2mave.value();
       expected<string, int> field_format = wu->getFieldFormat("winddir_avg2m");
       if (field_format.has_value() != true) {
         logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "winddir_avg2m"));
+                   format("No suitable format for field {}", "winddir_avg2m"));
       } else {
         wu->setVarData("winddir_avg2m", dir.toString(field_format.value()));
       }
@@ -359,16 +355,16 @@ void processWuData(
     // Get the wind gust for the last 2 minutes. We assume they want the gust for the
     // last 2 minutes. They don't really specify
     //
-    expected<DirectionMeasurement, int> wind_dir_gust = wd_history.gust(kHistoryInterval2m);
-    if (wind_dir_gust.has_value() != true) {
-      logger.log(LOG_INFO,
-                 format("Couldn't get Wind Direction gust"));
+    expected<UnitMeasurement<Direction>, int> x_wind_dir_gust =
+        wd_history.gust(kHistoryInterval2m);
+    if (x_wind_dir_gust.has_value() != true) {
+      logger.log(LOG_INFO, format("Couldn't get Wind Direction gust"));
     } else {
-      Degrees dir_gust = wind_dir_gust.value().value();
+      Degrees dir_gust = x_wind_dir_gust.value().measurement();
       expected<string, int> field_format = wu->getFieldFormat("windgustdir");
       if (field_format.has_value() != true) {
         logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "windgustdir"));
+                   format("No suitable format for field {}", "windgustdir"));
       } else {
         wu->setVarData("windgustmph", dir_gust.toString(field_format.value()));
       }
@@ -376,16 +372,18 @@ void processWuData(
     //
     // Get the wind direction average over the last 10 minutes
     //
-    expected<DirectionMeasurement, int> dir_gust_avg10m = wd_history.gust(kHistoryInterval10m);
-    if (dir_gust_avg10m.has_value() != true) {
+    expected<UnitMeasurement<Direction>, int> x_dir_gust_avg10m =
+        wd_history.gust(kHistoryInterval10m);
+    if (x_dir_gust_avg10m.has_value() != true) {
       logger.log(LOG_INFO,
                  format("Couldn't get Wind Direction Gust 10 min Average"));
     } else {
-      Degrees dir = dir_gust_avg10m.value().value();
-      expected<string, int> field_format = wu->getFieldFormat("windgustdir_10m");
+      Degrees dir = x_dir_gust_avg10m.value().measurement();
+      expected<string, int> field_format =
+          wu->getFieldFormat("windgustdir_10m");
       if (field_format.has_value() != true) {
-        logger.log(LOG_INFO,
-                 format("No suitable format for field {}", "windgustdir_10m"));
+        logger.log(LOG_INFO, format("No suitable format for field {}",
+                                    "windgustdir_10m"));
       } else {
         wu->setVarData("windgustdir_10m", dir.toString(field_format.value()));
       }
@@ -495,8 +493,8 @@ int main(int argc, char* argv[]) {
   WindspeedHistory ws_history;
   WindDirectionHistory wd_history;
    */
-  MeasurementHistory<SpeedMeasurement, Speed> ws_history;
-  MeasurementHistory<DirectionMeasurement, Direction> wd_history;
+  MeasurementHistory<Speed> ws_history;
+  MeasurementHistory<Direction> wd_history;
 
   /*
     * If we have started from systemd then we always use
@@ -593,7 +591,7 @@ int main(int argc, char* argv[]) {
    * The first thermometer uses the Ecowitt temperature gauge.
    */
   Thermometer thermometer_1(
-      [&ecowitt]() -> expected<TemperatureMeasurement, int> {
+      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Temperature>, int> {
         return ecowitt.getTemperature();
       },
       [&ecowitt]() -> milliseconds {
@@ -607,7 +605,7 @@ int main(int argc, char* argv[]) {
    * Use the Ecowitt hygrometer
    */
   Hygrometer hygrometer_1(
-      [&ecowitt]() -> expected<RelativeHumidityMeasurement, int> {
+      [&ecowitt]() -> expected<UnitMeasurement<qw::units::RelativeHumidity>, int> {
         return ecowitt.getRelativeHumidity();
       },
       [&ecowitt]() -> milliseconds {
@@ -621,7 +619,7 @@ int main(int argc, char* argv[]) {
    * Use the Ecowitt barometer 
    */
   Barometer barometer_1(
-      [&ecowitt]() -> expected<PressureMeasurement, int> {
+      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Pressure>, int> {
         return ecowitt.getPressure();
       },
       [&ecowitt]() -> milliseconds {
@@ -632,26 +630,26 @@ int main(int argc, char* argv[]) {
       });
 
   Anemometer anemometer_1(
-    [&ecowitt]() -> expected<SpeedMeasurement, int> {
-      return ecowitt.getWindspeed();
-    },
-    [&ecowitt]() -> milliseconds {
-        return ecowitt.getPressureValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setPressureValidInterval(interval);
-    });
+      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Speed>, int> {
+        return ecowitt.getWindspeed();
+      },
+      [&ecowitt]() -> milliseconds {
+        return ecowitt.getWindSpeedValidInterval();
+      },
+      [&ecowitt](milliseconds interval) -> void {
+        return ecowitt.setWindSpeedValidInterval(interval);
+      });
 
   WindVane wind_vane_1(
-    [&ecowitt]() -> expected<DirectionMeasurement, int> {
-      return ecowitt.getWindDirection();
-    },
-    [&ecowitt]() -> milliseconds {
+      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Direction>, int> {
+        return ecowitt.getWindDirection();
+      },
+      [&ecowitt]() -> milliseconds {
         return ecowitt.getWindDirectionValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setWindDirectionValidInterval(interval);
-    });
+      },
+      [&ecowitt](milliseconds interval) -> void {
+        return ecowitt.setWindDirectionValidInterval(interval);
+      });
   /*
    * Starting to gather data
    */
@@ -737,44 +735,45 @@ int main(int argc, char* argv[]) {
       /*
        * We need wind information on each data gathering pass
        */
-      auto wind_speed_measurement = anemometer_1.getData();
+      auto x_wind_speed_measurement = anemometer_1.getData();
 
       /*
        * If we successfully got a anemometer measurement add it to the history
        */
-      if (wind_speed_measurement.has_value()) {
-        ws_history.add(wind_speed_measurement.value());
+      if (x_wind_speed_measurement.has_value()) {
+        ws_history.add(x_wind_speed_measurement.value());
       }
 
-      auto wind_dir_measurement = wind_vane_1.getData();
+      auto x_wind_dir_measurement = wind_vane_1.getData();
 
       /*
        * If we successfully got a direction from the wind vane add it to history
        */
-      if (wind_dir_measurement.has_value()) {
-        wd_history.add(wind_dir_measurement.value());
+      if (x_wind_dir_measurement.has_value()) {
+        wd_history.add(x_wind_dir_measurement.value());
       }
 
       if ((now_time - last_report_time) >= reporting_loop_interval) {
         /*
          * We only need this information when we are going to make a report so get it now.
          */
-        auto temp = thermometer_1.getData();
+        auto x_temp = thermometer_1.getData();
 
-        auto humidity = hygrometer_1.getData();
+        auto x_humidity = hygrometer_1.getData();
 
-        auto pressure = barometer_1.getData();
+        auto x_pressure = barometer_1.getData();
 
         expected<Fahrenheit, int> dewptf;
-        if (temp.has_value() && humidity.has_value()) {
-          dewptf = dewPoint(temp.value().value(), humidity.value().value());
+        if (x_temp.has_value() && x_humidity.has_value()) {
+          dewptf = dewPoint(x_temp.value().measurement(), x_humidity.value().measurement());
         } else {
           dewptf = unexpected(ENODATA);
         }
         /*
          * Put the raw data into the wu data
          */
-        processWuData(wu, temp, pressure, humidity, dewptf, ws_history, wd_history);
+        processWuData(wu, x_temp, x_pressure, x_humidity, dewptf, ws_history,
+                      wd_history);
         /*
          * debug to check out the string
          */
