@@ -26,51 +26,53 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
-#define SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_
+#include "qw/weather/include/thermometer.h"
 
-#include <deque>
-#include <expected>  // cpplint counts this as a c system header // NOLINT
+#include <chrono>
+#include <functional>
+#include <expected>
 
-#include "fmt/chrono.h"
-#include "fmt/format.h"
+#include "qw/units/temperature/include/temperature_measurement.h"
 
-#include "qw/units/speed/include/speed_measurement.h"
+using std::expected;
+using qw::units::TemperatureMeasurement;
+using std::chrono::milliseconds;
 
 namespace qw::weather {
 
-constexpr std::chrono::seconds kMaxListTimeSpan(60 *
-                                                10);  // 10 minutes of samples
-constexpr std::chrono::seconds kInterval10m(60 * 10);
-constexpr std::chrono::seconds kInterval2m(60 * 2);
+Thermometer::Thermometer(
+    std::function<expected<TemperatureMeasurement, int>()> getTemperature,
+    std::function<milliseconds()> getInterval,
+    std::function<void(milliseconds)> setInterval)
+    : getTemperature_(getTemperature),
+      getInterval_(getInterval),
+      setInterval_(setInterval) {}
 
-class WindspeedHistory {
- public:
-  WindspeedHistory();
+expected<TemperatureMeasurement, int> Thermometer::getData() {
+  /*
+  if (getTemperature_) {
+    return getTemperature_();
+  }
+   */
+  return getTemperature_();
+}
 
-  void setMaximumTime(std::chrono::seconds time_span);
+milliseconds Thermometer::getInterval() {
+  //
+  // if (getInterval_) {
+  //   return getInterval_();
+  //}
 
-  std::chrono::seconds getMaximumTime();
+  return getInterval_();
+}
 
-  size_t size();
+void Thermometer::setInterval(milliseconds interval) {
+  //
+  // if (setInterval_) {
+  //   return setInterval_(interval);
+  //}
 
-  size_t countOverPeriod(std::chrono::seconds time_span);
-
-  void add(qw::units::SpeedMeasurement speed);
-
-  std::expected<qw::units::Speed, int> average(std::chrono::seconds time_span);
-
-  std::expected<qw::units::SpeedMeasurement, int> gust(
-      std::chrono::seconds time_span);
-
- private:
-  std::deque<qw::units::SpeedMeasurement> history_;
-
-  std::chrono::seconds maximum_time_ = kMaxListTimeSpan;
-
-  void prune();
-};
+  return setInterval_(interval);
+}
 
 }  // namespace qw::weather
-
-#endif  // SRC_LIB_QW_WEATHER_INCLUDE_WINDSPEED_HISTORY_H_

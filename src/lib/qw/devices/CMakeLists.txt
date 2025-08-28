@@ -10,6 +10,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_library(weatherdevices STATIC
   anomometer_adafruit.cpp
+  weatherstation_ecowitt_ln90lp.cpp
 )
 
 # add_compile_options(-std=c++23) to use expected class
@@ -19,6 +20,7 @@ target_include_directories(weatherdevices PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
 
 target_link_libraries(weatherdevices PUBLIC
   speed_units
+  modbus
 )
 
 add_subdirectory(i2c)

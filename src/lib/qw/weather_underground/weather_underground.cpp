@@ -77,7 +77,13 @@ const map<string, string> wu_format_regex_list = {
     {"^windspeedmph$", "{0:.1f}"},
     {"^windgustmph$", "{0:.1f}"},
     {"^windspdmph_avg2m$", "{0:.1f}"},
-    {"^windgustmph_10m$", "{0:.1f}"}};
+    {"^windgustmph_10m$", "{0:.1f}"},
+    {"^winddir", "{0:.1f}"},
+    {"^winddir_avg2m", "{0:.1f}"},
+    {"^windgustdir", "{0:.1f}"},
+    {"^windgustdir_10m", "{0:.1f}"}
+  };
+
 
 const vector<string_view> wu_fields = {
     "ID", "PASSWORD", "dateutc", "action", "winddir", "windspeedmph",

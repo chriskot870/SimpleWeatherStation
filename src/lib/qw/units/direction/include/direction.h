@@ -26,8 +26,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
-#define SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
+#ifndef SRC_LIB_QW_UNITS_DIRECTION_INCLUDE_DIRECTION_H_
+#define SRC_LIB_QW_UNITS_DIRECTION_INCLUDE_DIRECTION_H_
 
 #include <compare>
 #include <string>
@@ -36,67 +36,70 @@
 namespace qw::units {
 
 /*
-   * Need to pre-declare these for
-   */
-class Fahrenheit;
-class Celsius;
-class Kelvin;
-/*
- * Our temperature base is millicelsius so we want
- * to apply the temperature_base_conversion_factor
- * to Celsius values.
+ * Need to pre-declare these
  */
-constexpr int temperature_base_conversion_factor = 1000;
-constexpr float temperature_celsius_kelvin_offset = 273.15;
-const std::string_view temperature_default_format = "{0:.2f}";
+class Degrees;
+class Radians;
+class CompassHeading;
+/*
+ * Our direction base is .1 degree
+ * There are  degrees_base_conversion_factor base units in a degree
+ * There are 57.2958 degrees in 1 radian.
+ * For Compass heading  we do up to 3 letters which is 16 different sections
+ */
+constexpr int degrees_base_conversion_factor = 10;
+constexpr int radians_base_conversion_factor = (57.2958 * degrees_base_conversion_factor);
+constexpr int compass_heading_points = 16;
+constexpr float compass_heading_range = 360/compass_heading_points;
+const std::string_view direction_default_format = "{0:.2f}";
 
-class Temperature {
-  friend Fahrenheit;
-  friend Celsius;
-  friend Kelvin;
+class Direction {
+  friend Degrees;
+  friend Radians;
+  friend CompassHeading;
 
  public:
-  Temperature();
+  Direction();
 
-  explicit Temperature(const int64_t);
+  explicit Direction(const int64_t);
 
-  bool operator==(const Temperature& other) const;
+  bool operator==(const Direction& other) const;
 
-  bool operator!=(const Temperature& other) const;
+  bool operator!=(const Direction& other) const;
 
-  bool operator<(const Temperature& other) const;
+  bool operator<(const Direction& other) const;
 
-  bool operator>(const Temperature& other) const;
+  bool operator>(const Direction& other) const;
 
-  bool operator<=(const Temperature& other) const;
+  bool operator<=(const Direction& other) const;
 
-  bool operator>=(const Temperature& other) const;
+  bool operator>=(const Direction& other) const;
 
-  std::strong_ordering operator<=> (const Temperature& other) const;
+  std::strong_ordering operator<=> (const Direction& other) const;
 
-  Temperature& operator=(const Temperature& other);
+  Direction& operator=(const Direction& other);
 
-  Temperature& operator+=(const Temperature& other);
+  Direction& operator+=(const Direction& other);
 
-  Temperature& operator-=(const Temperature& other);
+  Direction& operator-=(const Direction& other);
 
-  const Temperature operator+(const Temperature& other) const;
+  const Direction operator+(const Direction& other) const;
 
-  const Temperature operator-(const Temperature& other) const;
+  const Direction operator-(const Direction& other) const;
 
-  const Temperature operator/(const int& other) const;
+  const Direction operator/(const int& other) const;
 
-  const Temperature operator*(const int& other) const;
+  const Direction operator*(const int& other) const;
 
   /*
    * Supports implicit casting
    * hence the need for the predeclaration
    */
-  operator Fahrenheit() const;
+  operator Degrees() const;
 
-  operator Celsius() const;
+  operator Radians() const;
 
-  operator Kelvin() const;
+  operator CompassHeading() const;
 
  private:
   int64_t base_value_;
@@ -104,4 +107,4 @@ class Temperature {
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_TEMPERATURE_INCLUDE_TEMPERATURE_H_
+#endif  // SRC_LIB_QW_UNITS_DIRECTION_INCLUDE_DIRECTION_H_

@@ -1,6 +1,11 @@
 add_library(weather STATIC
   dewpoint.cpp
-  windspeed_history.cpp
+  #windspeed_history.cpp
+  thermometer.cpp
+  barometer.cpp
+  hygrometer.cpp
+  anemometer.cpp
+  wind_vane.cpp
 )
 
 #
@@ -16,5 +21,7 @@ target_compile_options(weather PUBLIC -std=c++23)
 target_link_libraries(weather PUBLIC
   temperature_units
   humidity_units
+  pressure_units
   speed_units
+  direction_units
 )

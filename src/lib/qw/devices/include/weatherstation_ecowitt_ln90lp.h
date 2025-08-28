@@ -37,6 +37,8 @@
 #include "modbus/modbus-rtu.h"
 #include "modbus/modbus.h"
 
+#include "qw/units/direction/include/degrees.h"
+#include "qw/units/direction/include/direction_measurement.h"
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/humidity/include/relative_humidity_measurement.h"
 #include "qw/units/pressure/include/millibar.h"
@@ -88,7 +90,8 @@ constexpr uint8_t kWsEwLn90lpErrCrcFail = 8;
 // means the value is at 2-1 offset. That would be 9600. To set the
 // baud rate to 115200 you would send 3 + 1.
 constexpr uint8_t kWsEwLn90lpBaudRateCount = 4;
-constexpr std::array<uint32_t, 4> kWsEwLn90lpBaudRates({4800, 9600, 19200, 115200});
+constexpr std::array<uint32_t, 4> kWsEwLn90lpBaudRates({4800, 9600, 19200,
+                                                        115200});
 
 constexpr uint16_t kWsEwLn90lpAddressMin = 1;
 constexpr uint16_t kWsEwLn90lpAddressMax = 252;
@@ -113,19 +116,27 @@ const qw::units::RelativeHumidity kWsEwLn90lpRelativeHumidityAccuracy(5);
 const qw::units::RelativeHumidity kWsEwLn90lpRelativeHumidityResolution(1);
 
 // Pressure measuring range
-const qw::units::Pressure kWsEwLn90lpPressureRange[2] = {
-    qw::units::Pressure(300), qw::units::Pressure(1100)};
+const qw::units::Millibar kWsEwLn90lpPressureRange[2] = {
+    qw::units::Millibar(300), qw::units::Millibar(1100)};
 // +/-5 mbar accuracy
 const qw::units::Millibar kWsEwLn90lpPressureAccuracy(5);
 // .1 mbar resolution
 const qw::units::Millibar kWsEwLn90lpPressureResolution(.1);
 
-// TWind speed measuring range
-const qw::units::Speed kWsEwLn90lpWindSpeedRange[2] = {qw::units::Speed(0),
-                                                       qw::units::Speed(40)};
+// Wind speed measuring range
+const qw::units::MetersPerSecond kWsEwLn90lpWindSpeedRange[2] = {
+    qw::units::MetersPerSecond(0), qw::units::MetersPerSecond(40)};
 // wind speed accuracy is not a constant. It is implemented in readWindSpeed().
 // wind speed reolution
 const qw::units::MetersPerSecond kWsEwLn90lpWindSpeedResolution(.1);
+
+// Wind direction measuring range
+const qw::units::Degrees kWsEwLn90lpWindDirectionRange[2] = {
+    qw::units::Degrees(0), qw::units::Degrees(359)};
+// +/- 15 degrees accuracy
+const qw::units::Degrees kWsEwLn90lpWindDirectionAccuracy(15);
+// 1 degree resolution
+const qw::units::Degrees kWsEwLn90lpWindDirectionResolution(1);
 
 constexpr uint16_t kWsEwLn90lpRtuRegisterDeviceName = 0x0160;
 constexpr uint16_t kWsEwLn90lpRtuRegisterDataRate = 0x0161;
@@ -192,15 +203,56 @@ class WeatherStationEcowittLn90lp {
 
   bool initialize(uint32_t baud = 0, uint8_t device_addr = 0);
 
+  /*
+   * These three routines make a thermometer
+   */
   std::expected<qw::units::TemperatureMeasurement, int> getTemperature();
 
+  std::chrono::milliseconds getTemperatureValidInterval();
+
+  void setTemperatureValidInterval(std::chrono::milliseconds interval);
+
+  /*
+   * These three make a hygrometer
+   */
   std::expected<qw::units::RelativeHumidityMeasurement, int>
   getRelativeHumidity();
 
+  std::chrono::milliseconds getRelativeHumidityValidInterval();
+
+  void setRelativeHumidityValidInterval(std::chrono::milliseconds interval);
+
+  /*
+   * These three make a barometer
+   */
   std::expected<qw::units::PressureMeasurement, int> getPressure();
 
+  std::chrono::milliseconds getPressureValidInterval();
+
+  void setPressureValidInterval(std::chrono::milliseconds interval);
+
+  /*
+   * These three make an anemometer
+   */
   std::expected<qw::units::SpeedMeasurement, int> getWindspeed();
 
+  std::chrono::milliseconds getWindSpeedValidInterval();
+
+  void setWindSpeedValidInterval(std::chrono::milliseconds interval);
+
+  /*
+   * These three make a wind vane
+   */
+  std::expected<qw::units::DirectionMeasurement, int> getWindDirection();
+
+  std::chrono::milliseconds getWindDirectionValidInterval();
+
+  void setWindDirectionValidInterval(std::chrono::milliseconds interval);
+
+  /*
+   * THhse are the unbuffered read routines called by the get routines above.
+   * These actually go fetch the data from the device.
+   */
   std::expected<qw::units::TemperatureMeasurement, int> readTemperatureData();
 
   std::expected<qw::units::RelativeHumidityMeasurement, int>
@@ -210,6 +262,11 @@ class WeatherStationEcowittLn90lp {
 
   std::expected<qw::units::SpeedMeasurement, int> readWindSpeedData();
 
+  std::expected<qw::units::DirectionMeasurement, int> readWindDirectionData();
+
+  /*
+   * MIicellaneous control functions
+   */
   uint32_t getLocalBaudRate();
 
   std::expected<uint32_t, int> getDeviceBaudRate();
@@ -257,6 +314,10 @@ class WeatherStationEcowittLn90lp {
 
   qw::units::SpeedMeasurement last_wind_speed_;
   std::chrono::milliseconds wind_speed_valid_interval_ =
+      kWsEwLn90lpDataRefreshInterval;
+
+  qw::units::DirectionMeasurement last_wind_direction_;
+  std::chrono::milliseconds wind_direction_valid_interval_ =
       kWsEwLn90lpDataRefreshInterval;
 
   int downloadModBusData(uint16_t addr, int count, uint16_t* buffer);

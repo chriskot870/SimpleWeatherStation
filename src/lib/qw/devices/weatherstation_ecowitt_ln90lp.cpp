@@ -61,22 +61,30 @@
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/humidity/include/relative_humidity_measurement.h"
 #include "qw/units/pressure/include/millibar.h"
+#include "qw/units/pressure/include/pressure.h"
 #include "qw/units/pressure/include/pressure_measurement.h"
 #include "qw/units/speed/include/meters_per_second.h"
+#include "qw/units/speed/include/speed.h"
 #include "qw/units/speed/include/speed_measurement.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/temperature/include/temperature.h"
 #include "qw/units/temperature/include/temperature_measurement.h"
+#include "qw/units/direction/include/degrees.h"
+#include "qw/units/direction/include/direction.h"
+#include "qw/units/direction/include/direction_measurement.h"
 
-using qw::units::Celsius;
-using qw::units::MetersPerSecond;
 using qw::units::Millibar;
 using qw::units::Pressure;
 using qw::units::PressureMeasurement;
 using qw::units::RelativeHumidity;
 using qw::units::RelativeHumidityMeasurement;
+using qw::units::MetersPerSecond;
 using qw::units::Speed;
 using qw::units::SpeedMeasurement;
+using qw::units::Degrees;
+using qw::units::Direction;
+using qw::units::DirectionMeasurement;
+using qw::units::Celsius;
 using qw::units::Temperature;
 using qw::units::TemperatureMeasurement;
 using std::expected;
@@ -114,6 +122,7 @@ WeatherStationEcowittLn90lp::WeatherStationEcowittLn90lp(
                                          epoch);
   last_pressure_ = PressureMeasurement(Pressure(), Pressure(), epoch);
   last_wind_speed_ = SpeedMeasurement(Speed(), Speed(), epoch);
+  last_wind_direction_ = DirectionMeasurement(Direction(), Direction(), epoch);
 }
 
 WeatherStationEcowittLn90lp::~WeatherStationEcowittLn90lp() {}
@@ -168,14 +177,28 @@ WeatherStationEcowittLn90lp::getTemperature() {
   }
   /*
    * It has been too long since we last got the data so go get the data from the sensor
+   * readTemperatureData() will update the last_temperature_ value.
    */
   expected<TemperatureMeasurement, int> new_temperature = readTemperatureData();
   if (new_temperature.has_value() != true) {
     return unexpected(new_temperature.error());
   }
+
   last_temperature_ = new_temperature.value();
 
-  return new_temperature;
+  return last_temperature_;
+}
+
+milliseconds WeatherStationEcowittLn90lp::getTemperatureValidInterval() {
+
+  return temperature_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setTemperatureValidInterval(std::chrono::milliseconds interval) {
+
+  temperature_valid_interval_ = interval;
+
+  return;
 }
 
 expected<RelativeHumidityMeasurement, int>
@@ -188,15 +211,29 @@ WeatherStationEcowittLn90lp::getRelativeHumidity() {
   }
   /*
    * It has been too long since we last got the data so go get the data from the sensor
+   * The readRelativeHumidityData() will update last_rh_
    */
   expected<RelativeHumidityMeasurement, int> new_rh =
       readRelativeHumidityData();
   if (new_rh.has_value() != true) {
     return unexpected(new_rh.error());
   }
+
   last_rh_ = new_rh.value();
 
-  return new_rh;
+  return last_rh_;
+}
+
+milliseconds WeatherStationEcowittLn90lp::getRelativeHumidityValidInterval() {
+
+  return rh_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setRelativeHumidityValidInterval(milliseconds interval) {
+
+  rh_valid_interval_ = interval;
+
+  return;
 }
 
 expected<PressureMeasurement, int> WeatherStationEcowittLn90lp::getPressure() {
@@ -209,35 +246,98 @@ expected<PressureMeasurement, int> WeatherStationEcowittLn90lp::getPressure() {
   }
   /*
    * It has been too long since we last got the data so go get the data from the sensor
+   * The readPressureData() will update last_pressure_
    */
   expected<PressureMeasurement, int> new_pressure = readPressureData();
   if (new_pressure.has_value() != true) {
     return unexpected(new_pressure.error());
   }
+
   last_pressure_ = new_pressure.value();
 
-  return new_pressure;
+  return last_pressure_;
+}
+
+milliseconds WeatherStationEcowittLn90lp::getPressureValidInterval() {
+
+  return pressure_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setPressureValidInterval(std::chrono::milliseconds interval) {
+
+  pressure_valid_interval_ = interval;
+
+  return;
 }
 
 expected<SpeedMeasurement, int> WeatherStationEcowittLn90lp::getWindspeed() {
   /*
    * Check if we have gotten the wind speed within the valid time frame
    */
-  if ((system_clock::now() - last_pressure_.time()) <=
-      pressure_valid_interval_) {
+  if ((system_clock::now() - last_wind_speed_.time()) <=
+      wind_speed_valid_interval_) {
     return last_wind_speed_;
   }
   /*
    * It has been too long since we last got the data so go get the data from the sensor
+   * The readWindSpeedData() will update last_wind_speed_
    */
   expected<SpeedMeasurement, int> new_wind_speed = readWindSpeedData();
   if (new_wind_speed.has_value() != true) {
     return unexpected(new_wind_speed.error());
   }
+
   last_wind_speed_ = new_wind_speed.value();
 
-  return new_wind_speed;
+  return last_wind_speed_;
 }
+
+milliseconds WeatherStationEcowittLn90lp::getWindSpeedValidInterval() {
+
+  return wind_speed_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setWindSpeedValidInterval(milliseconds interval) {
+
+  wind_speed_valid_interval_ = interval;
+
+  return;
+}
+
+expected<DirectionMeasurement, int> WeatherStationEcowittLn90lp::getWindDirection() {
+  /*
+   * Check if we have gotten the wind direction within the valid time frame
+   */
+  if ((system_clock::now() - last_wind_direction_.time()) <=
+      wind_direction_valid_interval_) {
+    return last_wind_direction_;
+  }
+  /*
+   * It has been too long since we last got the data so go get the data from the sensor
+   * The readWindSpeedData() will update last_wind_speed_
+   */
+  expected<DirectionMeasurement, int> new_wind_direction = readWindDirectionData();
+  if (new_wind_direction.has_value() != true) {
+    return unexpected(new_wind_direction.error());
+  }
+
+  last_wind_direction_ = new_wind_direction.value();
+
+  return last_wind_direction_;
+}
+
+milliseconds WeatherStationEcowittLn90lp::getWindDirectionValidInterval() {
+
+  return wind_speed_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setWindDirectionValidInterval(milliseconds interval) {
+
+  wind_direction_valid_interval_ = interval;
+
+  return;
+}
+
 
 expected<TemperatureMeasurement, int>
 WeatherStationEcowittLn90lp::readTemperatureData() {
@@ -322,7 +422,7 @@ WeatherStationEcowittLn90lp::readPressureData() {
   }
 
   if ((pressure.value() < kWsEwLn90lpPressureRange[0]) ||
-      (pressure.value() > kWsEwLn90lpPressureRange[0])) {
+      (pressure.value() > kWsEwLn90lpPressureRange[1])) {
     return unexpected(ERANGE);
   }
 
@@ -353,14 +453,16 @@ WeatherStationEcowittLn90lp::readWindSpeedData() {
     return unexpected(wspd.error());
   }
 
+  MetersPerSecond mps = wspd.value();
+
+  if ((mps < kWsEwLn90lpWindSpeedRange[0]) ||
+      (mps > kWsEwLn90lpWindSpeedRange[1])) {
+    return unexpected(ERANGE);
+  }
+
   MetersPerSecond ws_accuracy(1);
   if (wspd.value() >= MetersPerSecond(10)) {
     ws_accuracy = wspd.value() * .1;
-  }
-
-  if ((wspd.value() < kWsEwLn90lpWindSpeedRange[0]) ||
-      (wspd.value() > kWsEwLn90lpWindSpeedRange[1])) {
-    return unexpected(ERANGE);
   }
 
   SpeedMeasurement wspdm(wspd.value(), ws_accuracy, system_clock::now());
@@ -370,6 +472,37 @@ WeatherStationEcowittLn90lp::readWindSpeedData() {
   last_wind_speed_ = wspdm;
 
   return wspdm;
+}
+
+expected<DirectionMeasurement, int> WeatherStationEcowittLn90lp::readWindDirectionData() {
+  /*
+   * Get the wind direction data
+   */
+  uint16_t raw_wind_direction;
+  int result =
+      downloadModBusData(kWsEwLn90lpRtuRegisterWindDirection, 1, &raw_wind_direction);
+  if (result != 0) {
+    return unexpected(result);
+  }
+
+  /*
+   * There is no conversion necessary. The returned value is 0 to 359.
+   * So, just check the range
+   */
+  Degrees direct(raw_wind_direction);
+
+  if ((direct < kWsEwLn90lpWindDirectionRange[0]) ||
+      (direct > kWsEwLn90lpWindDirectionRange[1])) {
+    return unexpected(ERANGE);
+  }
+
+  DirectionMeasurement wdm(direct, kWsEwLn90lpWindDirectionAccuracy, system_clock::now());
+  /*
+   * Since we got a wind direction data load it in the private variable
+   */
+  last_wind_direction_ = wdm;
+
+  return last_wind_direction_;
 }
 
 int WeatherStationEcowittLn90lp::downloadModBusData(uint16_t addr, int count,
@@ -459,11 +592,6 @@ WeatherStationEcowittLn90lp::convertRawTemperatureData(uint16_t raw_data) {
   float temp = static_cast<float>(raw_data - 400) / 10;
   Celsius temp_c(temp);
 
-  if ((temp_c < kWsEwLn90lpTemperatureRange[0]) ||
-      (temp_c > kWsEwLn90lpTemperatureRange[1])) {
-    return unexpected(ERANGE);
-  }
-
   return temp_c;
 }
 
@@ -474,11 +602,6 @@ WeatherStationEcowittLn90lp::convertRawRelativeHumidityData(uint16_t raw_data) {
   }
 
   RelativeHumidity rhm(raw_data);
-
-  if ((rhm < kWsEwLn90lpRelativeHumidityRange[0]) ||
-      (rhm > kWsEwLn90lpRelativeHumidityRange[1])) {
-    return unexpected(ERANGE);
-  }
 
   return rhm;
 }
@@ -491,11 +614,6 @@ expected<Pressure, int> WeatherStationEcowittLn90lp::convertRawPressureData(
 
   Millibar pressure(raw_data / 10);
 
-  if ((pressure < kWsEwLn90lpPressureRange[0]) ||
-      (pressure > kWsEwLn90lpPressureRange[1])) {
-    return unexpected(ERANGE);
-  }
-
   return pressure;
 }
 
@@ -506,11 +624,6 @@ expected<Speed, int> WeatherStationEcowittLn90lp::convertRawWindSpeedData(
   }
 
   MetersPerSecond wspd(raw_data / 10);
-
-  if ((wspd < kWsEwLn90lpWindSpeedRange[0]) ||
-      (wspd > kWsEwLn90lpWindSpeedRange[1])) {
-    return unexpected(ERANGE);
-  }
 
   return wspd;
 }
