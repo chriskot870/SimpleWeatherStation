@@ -68,6 +68,8 @@
 #include "qw/units/direction/include/degrees.h"
 #include "qw/units/direction/include/direction.h"
 #include "qw/units/uvi/include/uvi.h"
+#include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/light.h"
 #include "qw/units/include/unit_measurement.h"
 
 using qw::units::Millibar;
@@ -80,6 +82,8 @@ using qw::units::Direction;
 using qw::units::Celsius;
 using qw::units::Temperature;
 using qw::units::Uvi;
+using qw::units::Lux;
+using qw::units::Light;
 using qw::units::UnitMeasurement;
 using std::expected;
 using std::find;
@@ -354,6 +358,38 @@ void WeatherStationEcowittLn90lp::setUviValidInterval(milliseconds interval) {
   return;
 }
 
+expected<UnitMeasurement<Light>, int> WeatherStationEcowittLn90lp::getLight() {
+  /*
+   * Check if we have gotten the wind direction within the valid time frame
+   */
+  if ((system_clock::now() - last_light_.timeStamp()) <=
+      light_valid_interval_) {
+    return last_light_;
+  }
+  /*
+   * It has been too long since we last got the data so go get the data from the sensor
+   * The readWindSpeedData() will update last_wind_speed_
+   */
+  expected<UnitMeasurement<Light>, int> x_new_light = readLightData();
+  if (x_new_light.has_value() != true) {
+    return unexpected(x_new_light.error());
+  }
+
+  last_light_ = x_new_light.value();
+
+  return last_light_;
+}
+
+milliseconds WeatherStationEcowittLn90lp::getLightValidInterval() {
+  return light_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setLightValidInterval(milliseconds interval) {
+  light_valid_interval_ = interval;
+
+  return;
+}
+
 expected<UnitMeasurement<Temperature>, int>
 WeatherStationEcowittLn90lp::readTemperatureData() {
   /*
@@ -555,6 +591,41 @@ WeatherStationEcowittLn90lp::readUviData() {
   return last_uvi_;
 }
 
+expected<UnitMeasurement<Light>, int>
+WeatherStationEcowittLn90lp::readLightData() {
+  /*
+   * Get the temperature data
+   */
+  uint16_t raw_light;
+  int result = downloadModBusData(kWsEwLn90lpRtuRegisterLight, 1,
+                                  &raw_light);
+  if (result != 0) {
+    return unexpected(result);
+  }
+
+  expected<Light, int> x_light =
+      convertRawLightData(raw_light);
+  if (x_light.has_value() != true) {
+    return unexpected(x_light.error());
+  }
+
+  Light light = x_light.value();
+
+  if ((light < kWsEwLn90lpLightRange[0]) ||
+      (light > kWsEwLn90lpLightRange[1])) {
+    return unexpected(ERANGE);
+  }
+
+  UnitMeasurement<Light> lightm(light, kWsEwLn90lpLightAccuracy,
+                            system_clock::now());
+  /*
+   * Since we got a temperature data load it in the private variable
+   */
+  last_light_ = lightm;
+
+  return last_light_;
+}
+
 int WeatherStationEcowittLn90lp::downloadModBusData(uint16_t addr, int count,
                                                     uint16_t* buffer) {
   /*
@@ -690,6 +761,16 @@ expected<Uvi, int> WeatherStationEcowittLn90lp::convertRawUviData(
 
 }
 
+expected<Light, int> WeatherStationEcowittLn90lp::convertRawLightData(
+  uint16_t raw_data) {
+  if (raw_data == 0xFFFF) {
+    return unexpected(EINVAL);
+  }
+
+  Lux lux(raw_data);
+
+  return lux;
+}
 
 uint32_t WeatherStationEcowittLn90lp::getLocalBaudRate() {
   return baud_rate_;

@@ -1,11 +1,5 @@
 add_library(weather STATIC
   dewpoint.cpp
-  #windspeed_history.cpp
-  thermometer.cpp
-  barometer.cpp
-  hygrometer.cpp
-  anemometer.cpp
-  wind_vane.cpp
 )
 
 #

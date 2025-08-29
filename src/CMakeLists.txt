@@ -89,6 +89,8 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     humidity_units
     speed_units
     direction_units
+    uvi_units
+    light_units
     locking
     logger
     fmt

@@ -62,7 +62,9 @@ const map<string, WuFieldProperties> wu_field_regex_list = {
     {"^windspeedmph$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
     {"^windgustmph$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
     {"^windspdmph_avg2m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
-    {"^windgustmph_10m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")}};
+    {"^windgustmph_10m$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
+    {"^solarradiation$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")},
+    {"^UV$", WuFieldProperties(WU_FIELD_TYPE_NUMBER, "{0:.1f}")}};
 
 const map<string, string> wu_format_regex_list = {
     {"^ID$", "{}"},
@@ -78,10 +80,12 @@ const map<string, string> wu_format_regex_list = {
     {"^windgustmph$", "{0:.1f}"},
     {"^windspdmph_avg2m$", "{0:.1f}"},
     {"^windgustmph_10m$", "{0:.1f}"},
-    {"^winddir", "{0:.1f}"},
-    {"^winddir_avg2m", "{0:.1f}"},
-    {"^windgustdir", "{0:.1f}"},
-    {"^windgustdir_10m", "{0:.1f}"}
+    {"^winddir$", "{0:.1f}"},
+    {"^winddir_avg2m$", "{0:.1f}"},
+    {"^windgustdir$", "{0:.1f}"},
+    {"^windgustdir_10m$", "{0:.1f}"},
+    {"^UV$", "{0:.1f}"},
+    {"^solarradiation$", "{0:.1f}"}
   };
 
 

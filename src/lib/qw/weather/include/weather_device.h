@@ -26,55 +26,46 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "qw/weather/include/barometer.h"
-
 #include <expected>
 #include <chrono>
 #include <functional>
 
-#include "qw/units/pressure/include/pressure.h"
 #include "qw/units/include/unit_measurement.h"
+#include "qw/units/temperature/include/temperature.h"
 
 using std::expected;
-using qw::units::Pressure;
 using qw::units::UnitMeasurement;
 using std::chrono::milliseconds;
 
 namespace qw::weather {
 
-Barometer::Barometer(
-    std::function<expected<UnitMeasurement<Pressure>, int>()> getPressure,
+template<typename Tdev>
+class WeatherDevice {
+ public:
+  WeatherDevice(
+    std::function<expected<UnitMeasurement<Tdev>, int>()> fetchData,
     std::function<milliseconds()> getInterval,
     std::function<void(milliseconds)> setInterval)
-    : getPressure_(getPressure),
+    : fetchData_(fetchData),
       getInterval_(getInterval),
       setInterval_(setInterval) {}
 
-expected<UnitMeasurement<Pressure>, int> Barometer::getData() {
-  /*
-  if (getTemperature_) {
-    return getTemperature_();
-  }
-   */
-  return getPressure_();
+expected<UnitMeasurement<Tdev>, int> getData() {
+  return fetchData_();
 }
 
-milliseconds Barometer::getInterval() {
-  //
-  // if (getInterval_) {
-  //   return getInterval_();
-  //}
-
+milliseconds getInterval() {
   return getInterval_();
 }
 
-void Barometer::setInterval(milliseconds interval) {
-  //
-  // if (setInterval_) {
-  //   return setInterval_(interval);
-  //}
-
+void setInterval(milliseconds interval) {
   return setInterval_(interval);
 }
+
+ private:
+  std::function<std::expected<qw::units::UnitMeasurement<Tdev>, int>()> fetchData_;
+  std::function<std::chrono::milliseconds()> getInterval_;
+  std::function<void(std::chrono::milliseconds)> setInterval_;
+};
 
 }  // namespace qw::weather

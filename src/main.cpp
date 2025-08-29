@@ -58,15 +58,11 @@
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/speed/include/miles_per_hour.h"
 #include "qw/units/temperature/include/fahrenheit.h"
-#include "qw/weather/include/anemometer.h"
-#include "qw/weather/include/barometer.h"
 #include "qw/weather/include/dewpoint.h"
-#include "qw/weather/include/hygrometer.h"
-#include "qw/weather/include/thermometer.h"
-/*#include "qw/weather/include/windspeed_history.h" */
-#include "qw/weather/include/wind_vane.h"
-/*#include "qw/units/include/measurement_history.h" */
+#include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/light.h"
 #include "qw/units/include/unit_measurement.h"
+#include "qw/weather/include/weather_device.h"
 
 using fmt::format;
 using qw::devices::ADS1015_MUX_AIN0_GND;
@@ -110,16 +106,14 @@ using qw::units::KilometersPerHour;
 using qw::units::MilesPerHour;
 using qw::units::Speed;
 using qw::units::RelativeHumidity;
-using qw::weather::Anemometer;
-using qw::weather::Barometer;
-using qw::weather::dewPoint;
-using qw::weather::Hygrometer;
-using qw::weather::Thermometer;
-using qw::weather::WindVane;
+using qw::units::Uvi;
+using qw::units::Lux;
+using qw::units::Light;
 using qw::units::UnitMeasurement;
 using qw::units::MeasurementHistory;
 using qw::units::kHistoryInterval10m;
 using qw::units::kHistoryInterval2m;
+using qw::weather::dewPoint;
 using std::cout;
 using std::endl;
 using std::get;
@@ -170,7 +164,9 @@ void processWuData(
     const expected<Fahrenheit, int>&
         dewpoint,  // the history changes with function calls so use a pointer
     MeasurementHistory<Speed> ws_history,
-    MeasurementHistory<Direction> wd_history) {
+    MeasurementHistory<Direction> wd_history,
+    const expected<UnitMeasurement<Uvi>, int>& x_uvi,
+    const expected<UnitMeasurement<Light>, int>& x_light) {
   /*
          * Put the raw data into the wu data
          */
@@ -366,7 +362,7 @@ void processWuData(
         logger.log(LOG_INFO,
                    format("No suitable format for field {}", "windgustdir"));
       } else {
-        wu->setVarData("windgustmph", dir_gust.toString(field_format.value()));
+        wu->setVarData("windgustdir", dir_gust.toString(field_format.value()));
       }
     }
     //
@@ -390,6 +386,29 @@ void processWuData(
     }
   }
 
+  if (x_uvi.has_value()) {
+    UnitMeasurement<Uvi> uvi_measurement = x_uvi.value();
+    Uvi  uvi = uvi_measurement.measurement();
+    expected<string, int> field_format = wu->getFieldFormat("UV");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "UV"));
+    } else {
+      wu->setVarData("UV", uvi.toString(field_format.value()));
+    }
+  }
+
+  if (x_light.has_value()) {
+    UnitMeasurement<Light> light_measurement = x_light.value();
+    Lux  light = light_measurement.measurement();
+    expected<string, int> field_format = wu->getFieldFormat("solarradiation");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "solarradiation"));
+    } else {
+      wu->setVarData("solarradiation", light.toString(field_format.value()));
+    }
+  }
   return;
 }
 
@@ -586,70 +605,83 @@ int main(int argc, char* argv[]) {
     terminate(in_systemd);
   }
 
-  /*
-   * Define the weather devices
-   * The first thermometer uses the Ecowitt temperature gauge.
-   */
-  Thermometer thermometer_1(
-      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Temperature>, int> {
-        return ecowitt.getTemperature();
-      },
-      [&ecowitt]() -> milliseconds {
-        return ecowitt.getTemperatureValidInterval();
-      },
-      [&ecowitt](milliseconds interval) -> void {
-        return ecowitt.setTemperatureValidInterval(interval);
-      });
+  qw::weather::WeatherDevice<Temperature> thermometer_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Temperature>, int> {
+      return ecowitt.getTemperature();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getTemperatureValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setTemperatureValidInterval(interval);
+    });
 
-  /*
-   * Use the Ecowitt hygrometer
-   */
-  Hygrometer hygrometer_1(
-      [&ecowitt]() -> expected<UnitMeasurement<qw::units::RelativeHumidity>, int> {
-        return ecowitt.getRelativeHumidity();
-      },
-      [&ecowitt]() -> milliseconds {
-        return ecowitt.getRelativeHumidityValidInterval();
-      },
-      [&ecowitt](milliseconds interval) -> void {
-        return ecowitt.setRelativeHumidityValidInterval(interval);
-      });
+  qw::weather::WeatherDevice<RelativeHumidity> hygrometer_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::RelativeHumidity>, int> {
+      return ecowitt.getRelativeHumidity();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getRelativeHumidityValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setRelativeHumidityValidInterval(interval);
+    });
 
-  /*
-   * Use the Ecowitt barometer 
-   */
-  Barometer barometer_1(
-      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Pressure>, int> {
-        return ecowitt.getPressure();
-      },
-      [&ecowitt]() -> milliseconds {
-        return ecowitt.getPressureValidInterval();
-      },
-      [&ecowitt](milliseconds interval) -> void {
-        return ecowitt.setPressureValidInterval(interval);
-      });
+  qw::weather::WeatherDevice<Pressure> barometer_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Pressure>, int> {
+      return ecowitt.getPressure();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getPressureValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setPressureValidInterval(interval);
+    });
 
-  Anemometer anemometer_1(
-      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Speed>, int> {
-        return ecowitt.getWindspeed();
-      },
-      [&ecowitt]() -> milliseconds {
-        return ecowitt.getWindSpeedValidInterval();
-      },
-      [&ecowitt](milliseconds interval) -> void {
-        return ecowitt.setWindSpeedValidInterval(interval);
-      });
+  qw::weather::WeatherDevice<Speed> anemometer_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Speed>, int> {
+      return ecowitt.getWindspeed();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getWindSpeedValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setWindSpeedValidInterval(interval);
+    });
 
-  WindVane wind_vane_1(
-      [&ecowitt]() -> expected<UnitMeasurement<qw::units::Direction>, int> {
-        return ecowitt.getWindDirection();
-      },
-      [&ecowitt]() -> milliseconds {
-        return ecowitt.getWindDirectionValidInterval();
-      },
-      [&ecowitt](milliseconds interval) -> void {
-        return ecowitt.setWindDirectionValidInterval(interval);
-      });
+  qw::weather::WeatherDevice<Direction> wind_vane_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Direction>, int> {
+      return ecowitt.getWindDirection();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getWindDirectionValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setWindDirectionValidInterval(interval);
+    });
+
+  qw::weather::WeatherDevice<Uvi> uv_meter_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Uvi>, int> {
+      return ecowitt.getUvi();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getUviValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setUviValidInterval(interval);
+    });
+
+  qw::weather::WeatherDevice<Light> photometer_1(
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Light>, int> {
+      return ecowitt.getLight();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getLightValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setLightValidInterval(interval);
+    });
+
   /*
    * Starting to gather data
    */
@@ -769,17 +801,21 @@ int main(int argc, char* argv[]) {
         } else {
           dewptf = unexpected(ENODATA);
         }
+
+        auto x_uvi = uv_meter_1.getData();
+
+        auto x_light = photometer_1.getData();
         /*
          * Put the raw data into the wu data
          */
         processWuData(wu, x_temp, x_pressure, x_humidity, dewptf, ws_history,
-                      wd_history);
+                      wd_history, x_uvi, x_light);
         /*
          * debug to check out the string
          */
         expected<string, int> http_request = wu->buildHttpRequest();
         if (http_request.has_value() != true) {
-          logger.log(LOG_INFO, "Couldn't build HTTP reuest for logging");
+          logger.log(LOG_INFO, "Couldn't build HTTP request for logging");
         } else {
           logger.log(LOGGER_INFO, http_request.value());
         }
