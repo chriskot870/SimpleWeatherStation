@@ -67,6 +67,7 @@
 #include "qw/units/temperature/include/temperature.h"
 #include "qw/units/direction/include/degrees.h"
 #include "qw/units/direction/include/direction.h"
+#include "qw/units/uvi/include/uvi.h"
 #include "qw/units/include/unit_measurement.h"
 
 using qw::units::Millibar;
@@ -78,6 +79,7 @@ using qw::units::Degrees;
 using qw::units::Direction;
 using qw::units::Celsius;
 using qw::units::Temperature;
+using qw::units::Uvi;
 using qw::units::UnitMeasurement;
 using std::expected;
 using std::find;
@@ -320,6 +322,37 @@ void WeatherStationEcowittLn90lp::setWindDirectionValidInterval(milliseconds int
   return;
 }
 
+expected<UnitMeasurement<Uvi>, int> WeatherStationEcowittLn90lp::getUvi() {
+  /*
+   * Check if we have gotten the wind direction within the valid time frame
+   */
+  if ((system_clock::now() - last_uvi_.timeStamp()) <=
+      uvi_valid_interval_) {
+    return last_uvi_;
+  }
+  /*
+   * It has been too long since we last got the data so go get the data from the sensor
+   * The readWindSpeedData() will update last_wind_speed_
+   */
+  expected<UnitMeasurement<Uvi>, int> x_new_uvi = readUviData();
+  if (x_new_uvi.has_value() != true) {
+    return unexpected(x_new_uvi.error());
+  }
+
+  last_uvi_ = x_new_uvi.value();
+
+  return last_uvi_;
+}
+
+milliseconds WeatherStationEcowittLn90lp::getUviValidInterval() {
+  return uvi_valid_interval_;
+}
+
+void WeatherStationEcowittLn90lp::setUviValidInterval(milliseconds interval) {
+  uvi_valid_interval_ = interval;
+
+  return;
+}
 
 expected<UnitMeasurement<Temperature>, int>
 WeatherStationEcowittLn90lp::readTemperatureData() {
@@ -487,6 +520,41 @@ expected<UnitMeasurement<Direction>, int> WeatherStationEcowittLn90lp::readWindD
   return last_wind_direction_;
 }
 
+expected<UnitMeasurement<Uvi>, int>
+WeatherStationEcowittLn90lp::readUviData() {
+  /*
+   * Get the temperature data
+   */
+  uint16_t raw_uvi;
+  int result = downloadModBusData(kWsEwLn90lpRtuRegisterUvi, 1,
+                                  &raw_uvi);
+  if (result != 0) {
+    return unexpected(result);
+  }
+
+  expected<Uvi, int> x_uvi =
+      convertRawUviData(raw_uvi);
+  if (x_uvi.has_value() != true) {
+    return unexpected(x_uvi.error());
+  }
+
+  Uvi uvi = x_uvi.value();
+
+  if ((uvi < kWsEwLn90lpUviRange[0]) ||
+      (uvi > kWsEwLn90lpUviRange[1])) {
+    return unexpected(ERANGE);
+  }
+
+  UnitMeasurement<Uvi> uvim(uvi, kWsEwLn90lpUviAccuracy,
+                            system_clock::now());
+  /*
+   * Since we got a temperature data load it in the private variable
+   */
+  last_uvi_ = uvim;
+
+  return last_uvi_;
+}
+
 int WeatherStationEcowittLn90lp::downloadModBusData(uint16_t addr, int count,
                                                     uint16_t* buffer) {
   /*
@@ -609,6 +677,19 @@ expected<Speed, int> WeatherStationEcowittLn90lp::convertRawWindSpeedData(
 
   return wspd;
 }
+
+expected<Uvi, int> WeatherStationEcowittLn90lp::convertRawUviData(
+  uint16_t raw_data) {
+  if (raw_data == 0xFFFF) {
+    return unexpected(EINVAL);
+  }
+
+  Uvi uv_index(raw_data);
+
+  return uv_index;
+
+}
+
 
 uint32_t WeatherStationEcowittLn90lp::getLocalBaudRate() {
   return baud_rate_;

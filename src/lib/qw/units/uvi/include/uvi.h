@@ -43,9 +43,9 @@ class Uvi {
  public:
   Uvi();
 
-  explicit Uvi(float rh);
+  explicit Uvi(float index);
 
-  Uvi(float rh, std::string fmt_value);
+  Uvi(float index, std::string fmt_value);
 
   bool operator==(const Uvi& other) const;
 

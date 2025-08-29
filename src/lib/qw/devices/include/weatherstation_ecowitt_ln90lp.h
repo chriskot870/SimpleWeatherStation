@@ -42,6 +42,7 @@
 #include "qw/units/pressure/include/millibar.h"
 #include "qw/units/speed/include/meters_per_second.h"
 #include "qw/units/temperature/include/celsius.h"
+#include "qw/units/uvi/include/uvi.h"
 #include "qw/units/include/unit_measurement.h"
 
 namespace qw::devices {
@@ -133,6 +134,14 @@ const qw::units::Degrees kWsEwLn90lpWindDirectionRange[2] = {
 const qw::units::Degrees kWsEwLn90lpWindDirectionAccuracy(15);
 // 1 degree resolution
 const qw::units::Degrees kWsEwLn90lpWindDirectionResolution(1);
+
+// UVI measuring range
+const qw::units::Uvi kWsEwLn90lpUviRange[2] = {
+    qw::units::Uvi(1), qw::units::Uvi(15)};
+// +/- 2 UVI accuracy
+const qw::units::Uvi kWsEwLn90lpUviAccuracy(15);
+// 1 UVI resolution
+const qw::units::Degrees kWsEwLn90lpUviResolution(1);
 
 constexpr uint16_t kWsEwLn90lpRtuRegisterDeviceName = 0x0160;
 constexpr uint16_t kWsEwLn90lpRtuRegisterDataRate = 0x0161;
@@ -246,7 +255,15 @@ class WeatherStationEcowittLn90lp {
   void setWindDirectionValidInterval(std::chrono::milliseconds interval);
 
   /*
-   * THhse are the unbuffered read routines called by the get routines above.
+   * These three make a UVI unit
+   */
+  std::expected<qw::units::UnitMeasurement<qw::units::Uvi>, int> getUvi();
+
+  std::chrono::milliseconds getUviValidInterval();
+
+  void setUviValidInterval(std::chrono::milliseconds interval);
+  /*
+   * These are the unbuffered read routines called by the get routines above.
    * These actually go fetch the data from the device.
    */
   std::expected<qw::units::UnitMeasurement<qw::units::Temperature>, int> readTemperatureData();
@@ -259,6 +276,8 @@ class WeatherStationEcowittLn90lp {
   std::expected<qw::units::UnitMeasurement<qw::units::Speed>, int> readWindSpeedData();
 
   std::expected<qw::units::UnitMeasurement<qw::units::Direction>, int> readWindDirectionData();
+
+  std::expected<qw::units::UnitMeasurement<qw::units::Uvi>, int> readUviData();
 
   /*
    * MIicellaneous control functions
@@ -316,6 +335,10 @@ class WeatherStationEcowittLn90lp {
   std::chrono::milliseconds wind_direction_valid_interval_ =
       kWsEwLn90lpDataRefreshInterval;
 
+  qw::units::UnitMeasurement<qw::units::Uvi> last_uvi_;
+  std::chrono::milliseconds uvi_valid_interval_ =
+      kWsEwLn90lpDataRefreshInterval;
+
   int downloadModBusData(uint16_t addr, int count, uint16_t* buffer);
 
   int uploadModBusData(uint16_t addr, int count, uint16_t* buffer);
@@ -331,6 +354,8 @@ class WeatherStationEcowittLn90lp {
 
   std::expected<qw::units::Speed, int> convertRawWindSpeedData(
       uint16_t raw_data);
+
+  std::expected<qw::units::Uvi, int> convertRawUviData(uint16_t raw_data);
 };
 
 }  // namespace qw::devices
