@@ -112,16 +112,21 @@ class MeasurementHistory {
   std::chrono::seconds getMaximumTime() { return maximum_time_; }
 
   size_t size() {
-    size_t count = 0;
-
     /*
      * Get rid of any old entries before returning a count
      */
     prune();
 
-    count = history_.size();
+    size_t count = history_.size();
 
     return count;
+  }
+
+  bool empty() {
+    // Call size() it will do the pruning
+    bool result = size() == 0 ? true : false;
+
+    return result;
   }
 
   std::expected<qw::units::UnitMeasurement<Tmunit>, int> last() {

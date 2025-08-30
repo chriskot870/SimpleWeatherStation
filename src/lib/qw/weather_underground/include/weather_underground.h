@@ -51,7 +51,34 @@
 #include "fmt/chrono.h"
 #include "fmt/format.h"
 
+#include "qw/units/direction/include/degrees.h"
+#include "qw/units/direction/include/direction.h"
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/include/unit_measurement.h"
+#include "qw/units/light/include/light.h"
+#include "qw/units/light/include/lux.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/speed.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/temperature.h"
+#include "qw/units/uvi/include/uvi.h"
+
 using fmt::format;
+using qw::units::Degrees;
+using qw::units::Direction;
+using qw::units::Fahrenheit;
+using qw::units::InchesMercury;
+using qw::units::Light;
+using qw::units::Lux;
+using qw::units::MeasurementHistory;
+using qw::units::MilesPerHour;
+using qw::units::Pressure;
+using qw::units::RelativeHumidity;
+using qw::units::Speed;
+using qw::units::Temperature;
+using qw::units::Uvi;
 using std::expected;
 using std::find;
 using std::get;
@@ -64,6 +91,8 @@ using std::unexpected;
 using std::variant;
 using std::vector;
 using std::chrono::system_clock;
+
+using qw::units::UnitMeasurement;
 
 constexpr string_view wu_url =
     "https://weatherstation.wunderground.com/weatherstation/"
@@ -127,6 +156,20 @@ class WeatherUnderground {
   expected<string, int> getFieldFormat(string_view field);
 
   expected<bool, int> setVarData(string_view field, string_view value);
+
+  void addTemperatureMeasurements(vector<UnitMeasurement<Temperature>> m_temps);
+
+  void addRelativeHumidityMeasurement(UnitMeasurement<RelativeHumidity> m_rh);
+
+  void addPressureMeasurement(UnitMeasurement<Pressure> m_pressure);
+
+  void addWindSpeedMeasurement(MeasurementHistory<Speed>& m_wind_speed_history);
+
+  void addWindDirectionMeasurement(MeasurementHistory<Direction>& m_wind_direction_history);
+
+  void addUviMeasurement(UnitMeasurement<Uvi> m_uvi);
+
+  void addLightMeasurement(UnitMeasurement<Light> m_light);
 
   void reset();
 

@@ -39,10 +39,42 @@
 
 #include "qw/logger/include/logger.h"
 
+#include "qw/units/direction/include/degrees.h"
+#include "qw/units/direction/include/direction.h"
+#include "qw/units/humidity/include/relative_humidity.h"
+#include "qw/units/include/unit_measurement.h"
+#include "qw/units/light/include/light.h"
+#include "qw/units/light/include/lux.h"
+#include "qw/units/pressure/include/inches_mercury.h"
+#include "qw/units/pressure/include/pressure.h"
+#include "qw/units/speed/include/miles_per_hour.h"
+#include "qw/units/speed/include/speed.h"
+#include "qw/units/temperature/include/fahrenheit.h"
+#include "qw/units/temperature/include/temperature.h"
+#include "qw/units/uvi/include/uvi.h"
+
+using qw::units::Degrees;
+using qw::units::Direction;
+using qw::units::Fahrenheit;
+using qw::units::InchesMercury;
+using qw::units::Light;
+using qw::units::Lux;
+using qw::units::MilesPerHour;
+using qw::units::Pressure;
+using qw::units::RelativeHumidity;
+using qw::units::Speed;
+using qw::units::Temperature;
+using qw::units::Uvi;
+using qw::units::UnitMeasurement;
+using qw::units::MeasurementHistory;
+using qw::units::kHistoryInterval10m;
+using qw::units::kHistoryInterval2m;
+
+using qw::logging::logger;
 using std::find;
 using std::regex_match;
 using std::string;
-using qw::logging::logger;
+
 
 /*
  * Any filed that matches the pattern of the key has the associated properties
@@ -85,9 +117,7 @@ const map<string, string> wu_format_regex_list = {
     {"^windgustdir$", "{0:.1f}"},
     {"^windgustdir_10m$", "{0:.1f}"},
     {"^UV$", "{0:.1f}"},
-    {"^solarradiation$", "{0:.1f}"}
-  };
-
+    {"^solarradiation$", "{0:.1f}"}};
 
 const vector<string_view> wu_fields = {
     "ID", "PASSWORD", "dateutc", "action", "winddir", "windspeedmph",
@@ -236,7 +266,8 @@ expected<bool, int> WeatherUnderground::setVarData(string_view field,
   return true;
 }
 
-expected<void, int> WeatherUnderground::addData(string_view field, string_view value) {
+expected<void, int> WeatherUnderground::addData(string_view field,
+                                                string_view value) {
   /*
    * Create the field's data and set the value to what was passed in
    */
@@ -264,6 +295,224 @@ expected<void, int> WeatherUnderground::addData(string_view field, string_view v
   // Could use return std::expected<voide, int>(std::in_place);
   // The {} is more concise.
   return {};
+}
+
+void WeatherUnderground::addTemperatureMeasurements(
+    vector<UnitMeasurement<Temperature>> m_temps) {
+  // Walk through the list and adding the temperatures.
+  int cnt = 0;
+  for (auto temp : m_temps) {
+    Fahrenheit tempf = temp.measurement();
+    expected<string, int> field_format = getFieldFormat("tempf");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable for format for field {}", "tempf"));
+    } else {
+      cnt++;
+      string temp_label = "tempf";
+      if (cnt > 1) {
+        temp_label += std::to_string(cnt);
+      }
+      setVarData("tempf", tempf.toString(field_format.value()));
+    }
+  }
+
+  return;
+}
+
+void WeatherUnderground::addRelativeHumidityMeasurement(
+    UnitMeasurement<RelativeHumidity> m_rh) {
+  // Add the measurement value
+  RelativeHumidity humidity = m_rh.measurement();
+  expected<string, int> field_format = getFieldFormat("humidity");
+  if (field_format.has_value() != true) {
+    logger.log(LOG_INFO,
+               format("No suitable for format for field {}", "humidity"));
+  } else {
+    setVarData("humidity", humidity.toString(field_format.value()));
+  }
+}
+
+void WeatherUnderground::addPressureMeasurement(
+    UnitMeasurement<Pressure> m_pressure) {
+
+  InchesMercury inches = m_pressure.measurement();
+  expected<string, int> field_format = getFieldFormat("baromin");
+  if (field_format.has_value() != true) {
+    logger.log(LOG_INFO,
+               format("No suitable for format for field {}", "baromin"));
+  } else {
+    setVarData("baromin", inches.toString(field_format.value()));
+  }
+
+  return;
+}
+
+void WeatherUnderground::addWindSpeedMeasurement(
+    MeasurementHistory<Speed>& m_wind_speed_history) {
+
+  /*
+   * Report the last wind speed measurement taken
+   */
+  expected<UnitMeasurement<Speed>, int> x_newest = m_wind_speed_history.last();
+  if (x_newest.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get last Wind Speed Measurement"));
+  } else {
+    MilesPerHour mph = x_newest.value().measurement();
+    expected<string, int> field_format = getFieldFormat("windspeedmph");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO, format("No suitable format for field {}", "windspeedmph"));
+    } else {
+      setVarData("windspeedmph", mph.toString(field_format.value()));
+    }
+  }
+  /*
+   * Get the windspeed average over the last 2 minutes
+   */
+  expected<MilesPerHour, int> x_mph_2mave = m_wind_speed_history.average(kHistoryInterval2m);
+  if (x_mph_2mave.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get Wind Speed 2 min Average"));
+  } else {
+    MilesPerHour mph = x_mph_2mave.value();
+    expected<string, int> field_format = getFieldFormat("windspdmph_avg2m");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO, format("No suitable format for field {}", "windspeedmph"));
+    } else {
+      setVarData("windspdmph_avg2m", mph.toString(field_format.value()));
+    }
+  }
+  /*
+   * Get the wind gust for the last 2 minutes. We assume they want the gust for the
+   * last 2 minutes. They don't really specify
+   */
+  expected<UnitMeasurement<Speed>, int> x_wind_gust =
+      m_wind_speed_history.gust(kHistoryInterval2m);
+  if (x_wind_gust.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get Wind Speed gust"));
+  } else {
+    MilesPerHour mph = x_wind_gust.value().measurement();
+    expected<string, int> field_format = getFieldFormat("windgustmph");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable format for field {}", "windgust"));
+    } else {
+      setVarData("windgustmph", mph.toString(field_format.value()));
+    }
+  }
+  /*
+   * Get the windspeed average over the last 10 minutes
+   */
+  expected<UnitMeasurement<Speed>, int> x_gust_avg10m =
+      m_wind_speed_history.gust(kHistoryInterval10m);
+  if (x_gust_avg10m.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get Wind Gust 10 min Average"));
+  } else {
+    MilesPerHour mph = x_gust_avg10m.value().measurement();
+    expected<string, int> field_format = getFieldFormat("windgustmph_10m");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO,
+                 format("No suitable format for field {}", "windgustmph_10m"));
+    } else {
+      setVarData("windgustmph_10m", mph.toString(field_format.value()));
+    }
+  }
+
+  return;
+}
+
+void WeatherUnderground::addWindDirectionMeasurement(
+    MeasurementHistory<Direction>& m_wind_direction_history) {
+  //
+  // Report the last wind direction measurement taken
+  //
+  expected<UnitMeasurement<Direction>, int> x_newest = m_wind_direction_history.last();
+  if (x_newest.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get last Wind Direction Measurement"));
+  } else {
+    Degrees degrees = x_newest.value().measurement();
+    expected<string, int> field_format = getFieldFormat("winddir");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO, format("No suitable format for field {}", "winddir"));
+    } else {
+        setVarData("winddir", degrees.toString(field_format.value()));
+    }
+  }
+  //
+  // Get the wind direction average over the last 2 minutes
+  //
+  expected<Degrees, int> x_dir_2mave = m_wind_direction_history.average(kHistoryInterval2m);
+  if (x_dir_2mave.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get Wind Direction 2 min Average"));
+  } else {
+    Degrees dir = x_dir_2mave.value();
+    expected<string, int> field_format = getFieldFormat("winddir_avg2m");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO, format("No suitable format for field {}", "winddir_avg2m"));
+    } else {
+      setVarData("winddir_avg2m", dir.toString(field_format.value()));
+    }
+  }
+  //
+  // Get the wind gust for the last 2 minutes. We assume they want the gust for the
+  // last 2 minutes. They don't really specify
+  //
+  expected<UnitMeasurement<Direction>, int> x_wind_dir_gust =
+      m_wind_direction_history.gust(kHistoryInterval2m);
+  if (x_wind_dir_gust.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get Wind Direction gust"));
+  } else {
+    Degrees dir_gust = x_wind_dir_gust.value().measurement();
+    expected<string, int> field_format = getFieldFormat("windgustdir");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO, format("No suitable format for field {}", "windgustdir"));
+    } else {
+      setVarData("windgustdir", dir_gust.toString(field_format.value()));
+    }
+  }
+  //
+  // Get the wind direction average over the last 10 minutes
+  //
+  expected<UnitMeasurement<Direction>, int> x_dir_gust_avg10m =
+        m_wind_direction_history.gust(kHistoryInterval10m);
+  if (x_dir_gust_avg10m.has_value() != true) {
+    logger.log(LOG_INFO, format("Couldn't get Wind Direction Gust 10 min Average"));
+  } else {
+    Degrees dir = x_dir_gust_avg10m.value().measurement();
+    expected<string, int> field_format = getFieldFormat("windgustdir_10m");
+    if (field_format.has_value() != true) {
+      logger.log(LOG_INFO, format("No suitable format for field {}", "windgustdir_10m"));
+    } else {
+        setVarData("windgustdir_10m", dir.toString(field_format.value()));
+    }
+  }
+
+  return;
+}
+
+void WeatherUnderground::addUviMeasurement(UnitMeasurement<Uvi> m_uvi) {
+
+  Uvi uvi = m_uvi.measurement();
+  expected<string, int> field_format = getFieldFormat("UV");
+  if (field_format.has_value() != true) {
+    logger.log(LOG_INFO, format("No suitable for format for field {}", "UV"));
+  } else {
+    setVarData("UV", uvi.toString(field_format.value()));
+  }
+
+  return;
+}
+
+void WeatherUnderground::addLightMeasurement(UnitMeasurement<Light> m_light) {
+  Lux light = m_light.measurement();
+  expected<string, int> field_format = getFieldFormat("solarradiation");
+  if (field_format.has_value() != true) {
+    logger.log(LOG_INFO,
+               format("No suitable for format for field {}", "solarradiation"));
+  } else {
+    setVarData("solarradiation", light.toString(field_format.value()));
+  }
+
+  return;
 }
 
 expected<string, int> WeatherUnderground::getFieldFormat(string_view field) {
@@ -301,7 +550,22 @@ expected<string, int> WeatherUnderground::buildHttpRequest() {
     logger.log(LOG_INFO, "Couldn't add PASSWORD field");
     return unexpected(add.error());
   }
-
+  /*
+   * Add action and Time
+   * Calling setVarData goes through some sanity checks.
+   * BUt we will just go straight to addData
+   */
+  add = addData("action", "updateraw");
+  if (add.has_value() != true) {
+    logger.log(LOG_INFO, "Couldn't add action field");
+    return unexpected(add.error());
+  }
+  // time_point<utc_clock> utc_time = utc_clock::now();
+  add = addData("dateutc", "now");
+  if (add.has_value() != true) {
+    logger.log(LOG_INFO, "Couldn't add dateutc field");
+    return unexpected(add.error());
+  }
   /*
    * Now walk through the url data map and create the url escaped get string.
    */
