@@ -26,79 +26,44 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_H_
-#define SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_H_
+#ifndef SRC_LIB_QW_UNITS_LIGHT_INCLUDE_KLUX_H_
+#define SRC_LIB_QW_UNITS_LIGHT_INCLUDE_KLUX_H_
 
-#include <fmt/format.h>
-#include <math.h>
-#include <compare>
 #include <string>
+
+#include "qw/units/light/include/foot_candle.h"
+#include "qw/units/light/include/light.h"
 
 namespace qw::units {
 
-/*
- * Need to pre-declare these for casting
- */
-class Lux;
-class Klux;
-class FootCandle;
-
-constexpr std::string light_default_format = "{0:.2f}";
-constexpr float base_units_in_lux = 100;
-constexpr float base_units_in_klux = 1000 * base_units_in_lux;
-constexpr float lux_in_foot_candle = 10.764;
-
-class Light {
-  friend Lux;
-  friend Klux;
-  friend FootCandle;
+class Klux : public Light {
+  friend Light;
 
  public:
-  Light();
+  Klux();
 
-  explicit Light(const int64_t);
+  explicit Klux(float klux);
 
-  bool operator==(const Light& other) const;
+  Klux(float klux, std::string fmt_value);
 
-  bool operator!=(const Light& other) const;
+  float value();
 
-  bool operator<(const Light& other) const;
+  std::string toString();
 
-  bool operator>(const Light& other) const;
+  std::string toString(std::string format);
 
-  bool operator<=(const Light& other) const;
-
-  bool operator>=(const Light& other) const;
-
-  std::strong_ordering operator<=> (const Light& other) const;
-
-  Light& operator=(const Light& other);
-
-  Light& operator+=(const Light& other);
-
-  Light& operator-=(const Light& other);
-
-  const Light operator+(const Light& other) const;
-
-  const Light operator-(const Light& other) const;
-
-  const Light operator/(const int& other) const;
-
-  const Light operator*(const int& other) const;
-
-  /*
-   * Supports implicit casting
-   * hence the need for the predeclaration
-   */
-  operator Lux() const;
-
-  operator FootCandle() const;
+  void setFormat(std::string fmt_value);
 
  private:
-  int64_t base_value_;
-};
+  std::string fmt_value_ = light_default_format;
 
+  int kluxToBase(float klux);
+
+  float baseToKlux(int base);
+
+  void setBase(int64_t base_value);
+};
 
 }  // namespace qw::units
 
-#endif  // SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_H_
+#endif  // SRC_LIB_QW_UNITS_LIGHT_INCLUDE_KLUX_H_

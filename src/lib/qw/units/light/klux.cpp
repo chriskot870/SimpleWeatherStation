@@ -26,79 +26,82 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_H_
-#define SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_H_
+#include "qw/units/light/include/klux.h"
 
-#include <fmt/format.h>
-#include <math.h>
 #include <compare>
 #include <string>
+
+using std::string;
+using std::strong_ordering;
 
 namespace qw::units {
 
 /*
- * Need to pre-declare these for casting
+ * Constructor routines
  */
-class Lux;
-class Klux;
-class FootCandle;
+Klux::Klux() {}
 
-constexpr std::string light_default_format = "{0:.2f}";
-constexpr float base_units_in_lux = 100;
-constexpr float base_units_in_klux = 1000 * base_units_in_lux;
-constexpr float lux_in_foot_candle = 10.764;
+Klux::Klux(float klux)
+    : Light(kluxToBase(klux)) {}
 
-class Light {
-  friend Lux;
-  friend Klux;
-  friend FootCandle;
+Klux::Klux(float klux, string fmt_value)
+    : Light(kluxToBase(klux)), fmt_value_(fmt_value) {}
 
- public:
-  Light();
+/*
+ * Data manipulation routines
+ */
+float Klux::value() {
+  return baseToKlux(base_value_);
+}
 
-  explicit Light(const int64_t);
+/*
+ * I am using a base of .01 millimeters as a base unit
+ */
+int Klux::kluxToBase(float lx) {
+  int value = round(lx * base_units_in_klux);
 
-  bool operator==(const Light& other) const;
+  return value;
+}
 
-  bool operator!=(const Light& other) const;
+float Klux::baseToKlux(int base) {
+  float lx = (static_cast<float>(base))/base_units_in_klux;
 
-  bool operator<(const Light& other) const;
+  return lx;
+}
 
-  bool operator>(const Light& other) const;
+void Klux::setBase(int64_t base_value) {
+  base_value_ = base_value;
 
-  bool operator<=(const Light& other) const;
+  return;
+}
 
-  bool operator>=(const Light& other) const;
+/*
+ * Use the default format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Klux::toString() {
+  string data = format(fmt::runtime(fmt_value_), value());
 
-  std::strong_ordering operator<=> (const Light& other) const;
+  return data;
+}
 
-  Light& operator=(const Light& other);
+/*
+ * Use the provided format
+ * Use "fmt" so it doesn't get confused with fmt::format
+ */
+string Klux::toString(string fmt_value) {
+  string data = format(fmt::runtime(fmt_value), value());
 
-  Light& operator+=(const Light& other);
+  return data;
+}
 
-  Light& operator-=(const Light& other);
+/*
+ * Set the format for this instance
+ */
+void Klux::setFormat(string fmt_value) {
+  fmt_value_ = fmt_value;
 
-  const Light operator+(const Light& other) const;
-
-  const Light operator-(const Light& other) const;
-
-  const Light operator/(const int& other) const;
-
-  const Light operator*(const int& other) const;
-
-  /*
-   * Supports implicit casting
-   * hence the need for the predeclaration
-   */
-  operator Lux() const;
-
-  operator FootCandle() const;
-
- private:
-  int64_t base_value_;
-};
-
+  return;
+}
 
 }  // namespace qw::units
-
-#endif  // SRC_LIB_QW_UNITS_LIGHT_INCLUDE_LIGHT_H_
