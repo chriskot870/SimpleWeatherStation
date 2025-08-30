@@ -10,7 +10,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_library(weatherdevices STATIC
   anomometer_adafruit.cpp
-  weatherstation_ecowitt_ln90lp.cpp
+  ecowitt_ln90lp.cpp
 )
 
 # add_compile_options(-std=c++23) to use expected class

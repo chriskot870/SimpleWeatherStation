@@ -45,7 +45,7 @@
   * UV Metering
   */
 
-#include "qw/devices/include/weatherstation_ecowitt_ln90lp.h"
+#include "qw/devices/include/ecowitt_ln90lp.h"
 
 #include <expected>
 
@@ -95,17 +95,17 @@ using std::chrono::system_clock;
 
 namespace qw::devices {
 
-WeatherStationEcowittLn90lp::WeatherStationEcowittLn90lp(
+EcowittLn90lp::EcowittLn90lp(
     string_view device_name)
     : device_name_(device_name),
       baud_rate_(
-          kWsEwLn90lpRtuDeviceDefaultBaudRate),  // Set to default baud rate
-      parity_(kWsEwLn90lpRtuDeviceParity),  // This value is fixed on the device
+          kEwLn90lpRtuDeviceDefaultBaudRate),  // Set to default baud rate
+      parity_(kEwLn90lpRtuDeviceParity),  // This value is fixed on the device
       data_bits_(
-          kWsEwLn90lpRtuDeviceDataBits),  // This value is fixed on the device
+          kEwLn90lpRtuDeviceDataBits),  // This value is fixed on the device
       stop_bits_(
-          kWsEwLn90lpRtuDeviceStopBits),  // This value is fixed on the device
-      slave_addr_(kWsEwLn90lpRtuDefaultSlaveAddress) {
+          kEwLn90lpRtuDeviceStopBits),  // This value is fixed on the device
+      slave_addr_(kEwLn90lpRtuDefaultSlaveAddress) {
   /*
    * Initialize with essentially NULL data. MOst important thing is the epoch.
    * The time of the last measurement is checked to see if it is longer than
@@ -123,27 +123,27 @@ WeatherStationEcowittLn90lp::WeatherStationEcowittLn90lp(
   last_wind_direction_ = UnitMeasurement<Direction>(Direction(), Direction(), epoch);
 }
 
-WeatherStationEcowittLn90lp::~WeatherStationEcowittLn90lp() {}
+EcowittLn90lp::~EcowittLn90lp() {}
 
-bool WeatherStationEcowittLn90lp::initialize(uint32_t baud,
+bool EcowittLn90lp::initialize(uint32_t baud,
                                              uint8_t device_addr) {
   // Find baud rate and address of the device and set local values to match them
   if (findAndMatchDevice() != true) {
     return false;
   }
   // Sanity check the parameters before making any changes
-  auto it = kWsEwLn90lpBaudRates.begin();
-  for (it; it != kWsEwLn90lpBaudRates.end(); ++it) {
+  auto it = kEwLn90lpBaudRates.begin();
+  for (it; it != kEwLn90lpBaudRates.end(); ++it) {
     if (*it == baud) {
       break;
     }
   }
-  if (it == kWsEwLn90lpBaudRates.end()) {
+  if (it == kEwLn90lpBaudRates.end()) {
     return false;
   }
 
-  if ((device_addr != 0) && ((device_addr < kWsEwLn90lpAddressMin) ||
-                             device_addr > kWsEwLn90lpAddressMax)) {
+  if ((device_addr != 0) && ((device_addr < kEwLn90lpAddressMin) ||
+                             device_addr > kEwLn90lpAddressMax)) {
     return false;
   }
   /*
@@ -165,7 +165,7 @@ bool WeatherStationEcowittLn90lp::initialize(uint32_t baud,
 }
 
 expected<UnitMeasurement<Temperature>, int>
-WeatherStationEcowittLn90lp::getTemperature() {
+EcowittLn90lp::getTemperature() {
   /*
    * Check if we have gotten the temperature within the valid time frame
    */
@@ -187,18 +187,18 @@ WeatherStationEcowittLn90lp::getTemperature() {
   return last_temperature_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getTemperatureValidInterval() {
+milliseconds EcowittLn90lp::getTemperatureValidInterval() {
   return temperature_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setTemperatureValidInterval(std::chrono::milliseconds interval) {
+void EcowittLn90lp::setTemperatureValidInterval(std::chrono::milliseconds interval) {
   temperature_valid_interval_ = interval;
 
   return;
 }
 
 expected<UnitMeasurement<RelativeHumidity>, int>
-WeatherStationEcowittLn90lp::getRelativeHumidity() {
+EcowittLn90lp::getRelativeHumidity() {
   /*
    * Check if we have gotten the relative humidity within the valid time frame
    */
@@ -220,17 +220,17 @@ WeatherStationEcowittLn90lp::getRelativeHumidity() {
   return last_rh_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getRelativeHumidityValidInterval() {
+milliseconds EcowittLn90lp::getRelativeHumidityValidInterval() {
   return rh_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setRelativeHumidityValidInterval(milliseconds interval) {
+void EcowittLn90lp::setRelativeHumidityValidInterval(milliseconds interval) {
   rh_valid_interval_ = interval;
 
   return;
 }
 
-expected<UnitMeasurement<Pressure>, int> WeatherStationEcowittLn90lp::getPressure() {
+expected<UnitMeasurement<Pressure>, int> EcowittLn90lp::getPressure() {
   /*
    * Check if we have gotten the pressure within the valid time frame
    */
@@ -252,17 +252,17 @@ expected<UnitMeasurement<Pressure>, int> WeatherStationEcowittLn90lp::getPressur
   return last_pressure_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getPressureValidInterval() {
+milliseconds EcowittLn90lp::getPressureValidInterval() {
   return pressure_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setPressureValidInterval(std::chrono::milliseconds interval) {
+void EcowittLn90lp::setPressureValidInterval(std::chrono::milliseconds interval) {
   pressure_valid_interval_ = interval;
 
   return;
 }
 
-expected<UnitMeasurement<Speed>, int> WeatherStationEcowittLn90lp::getWindspeed() {
+expected<UnitMeasurement<Speed>, int> EcowittLn90lp::getWindspeed() {
   /*
    * Check if we have gotten the wind speed within the valid time frame
    */
@@ -284,17 +284,17 @@ expected<UnitMeasurement<Speed>, int> WeatherStationEcowittLn90lp::getWindspeed(
   return last_wind_speed_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getWindSpeedValidInterval() {
+milliseconds EcowittLn90lp::getWindSpeedValidInterval() {
   return wind_speed_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setWindSpeedValidInterval(milliseconds interval) {
+void EcowittLn90lp::setWindSpeedValidInterval(milliseconds interval) {
   wind_speed_valid_interval_ = interval;
 
   return;
 }
 
-expected<UnitMeasurement<Direction>, int> WeatherStationEcowittLn90lp::getWindDirection() {
+expected<UnitMeasurement<Direction>, int> EcowittLn90lp::getWindDirection() {
   /*
    * Check if we have gotten the wind direction within the valid time frame
    */
@@ -316,17 +316,17 @@ expected<UnitMeasurement<Direction>, int> WeatherStationEcowittLn90lp::getWindDi
   return last_wind_direction_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getWindDirectionValidInterval() {
+milliseconds EcowittLn90lp::getWindDirectionValidInterval() {
   return wind_speed_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setWindDirectionValidInterval(milliseconds interval) {
+void EcowittLn90lp::setWindDirectionValidInterval(milliseconds interval) {
   wind_direction_valid_interval_ = interval;
 
   return;
 }
 
-expected<UnitMeasurement<Uvi>, int> WeatherStationEcowittLn90lp::getUvi() {
+expected<UnitMeasurement<Uvi>, int> EcowittLn90lp::getUvi() {
   /*
    * Check if we have gotten the wind direction within the valid time frame
    */
@@ -348,17 +348,17 @@ expected<UnitMeasurement<Uvi>, int> WeatherStationEcowittLn90lp::getUvi() {
   return last_uvi_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getUviValidInterval() {
+milliseconds EcowittLn90lp::getUviValidInterval() {
   return uvi_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setUviValidInterval(milliseconds interval) {
+void EcowittLn90lp::setUviValidInterval(milliseconds interval) {
   uvi_valid_interval_ = interval;
 
   return;
 }
 
-expected<UnitMeasurement<Light>, int> WeatherStationEcowittLn90lp::getLight() {
+expected<UnitMeasurement<Light>, int> EcowittLn90lp::getLight() {
   /*
    * Check if we have gotten the wind direction within the valid time frame
    */
@@ -380,23 +380,23 @@ expected<UnitMeasurement<Light>, int> WeatherStationEcowittLn90lp::getLight() {
   return last_light_;
 }
 
-milliseconds WeatherStationEcowittLn90lp::getLightValidInterval() {
+milliseconds EcowittLn90lp::getLightValidInterval() {
   return light_valid_interval_;
 }
 
-void WeatherStationEcowittLn90lp::setLightValidInterval(milliseconds interval) {
+void EcowittLn90lp::setLightValidInterval(milliseconds interval) {
   light_valid_interval_ = interval;
 
   return;
 }
 
 expected<UnitMeasurement<Temperature>, int>
-WeatherStationEcowittLn90lp::readTemperatureData() {
+EcowittLn90lp::readTemperatureData() {
   /*
    * Get the temperature data
    */
   uint16_t raw_temperature;
-  int result = downloadModBusData(kWsEwLn90lpRtuRegisterTemperature, 1,
+  int result = downloadModBusData(kEwLn90lpRtuRegisterTemperature, 1,
                                   &raw_temperature);
   if (result != 0) {
     return unexpected(result);
@@ -408,12 +408,12 @@ WeatherStationEcowittLn90lp::readTemperatureData() {
     return unexpected(temperature.error());
   }
 
-  if ((temperature.value() < kWsEwLn90lpTemperatureRange[0]) ||
-      (temperature.value() > kWsEwLn90lpTemperatureRange[1])) {
+  if ((temperature.value() < kEwLn90lpTemperatureRange[0]) ||
+      (temperature.value() > kEwLn90lpTemperatureRange[1])) {
     return unexpected(ERANGE);
   }
 
-  UnitMeasurement<Temperature> tm(temperature.value(), kWsEwLn90lpTemperatureAccuracy,
+  UnitMeasurement<Temperature> tm(temperature.value(), kEwLn90lpTemperatureAccuracy,
                             system_clock::now());
   /*
    * Since we got a temperature data load it in the private variable
@@ -424,12 +424,12 @@ WeatherStationEcowittLn90lp::readTemperatureData() {
 }
 
 expected<UnitMeasurement<RelativeHumidity>, int>
-WeatherStationEcowittLn90lp::readRelativeHumidityData() {
+EcowittLn90lp::readRelativeHumidityData() {
   /*
    * Get the relative humidity data
    */
   uint16_t raw_rh;
-  int result = downloadModBusData(kWsEwLn90lpRtuRegisterHumidity, 1, &raw_rh);
+  int result = downloadModBusData(kEwLn90lpRtuRegisterHumidity, 1, &raw_rh);
   if (result != 0) {
     return unexpected(result);
   }
@@ -439,13 +439,13 @@ WeatherStationEcowittLn90lp::readRelativeHumidityData() {
     return unexpected(rh.error());
   }
 
-  if ((rh.value() < kWsEwLn90lpRelativeHumidityRange[0]) ||
-      (rh.value() > kWsEwLn90lpRelativeHumidityRange[1])) {
+  if ((rh.value() < kEwLn90lpRelativeHumidityRange[0]) ||
+      (rh.value() > kEwLn90lpRelativeHumidityRange[1])) {
     return unexpected(ERANGE);
   }
 
   UnitMeasurement<RelativeHumidity> rhm(
-      rh.value(), kWsEwLn90lpRelativeHumidityAccuracy, system_clock::now());
+      rh.value(), kEwLn90lpRelativeHumidityAccuracy, system_clock::now());
 
   /*
    * Since we got a relative humidity data load it in the private variable
@@ -456,13 +456,13 @@ WeatherStationEcowittLn90lp::readRelativeHumidityData() {
 }
 
 expected<UnitMeasurement<Pressure>, int>
-WeatherStationEcowittLn90lp::readPressureData() {
+EcowittLn90lp::readPressureData() {
   /*
    * Get the pressure data
    */
   uint16_t raw_pressure;
   int result =
-      downloadModBusData(kWsEwLn90lpRtuRegisterAbsPressure, 1, &raw_pressure);
+      downloadModBusData(kEwLn90lpRtuRegisterAbsPressure, 1, &raw_pressure);
   if (result != 0) {
     return unexpected(result);
   }
@@ -472,12 +472,12 @@ WeatherStationEcowittLn90lp::readPressureData() {
     return unexpected(pressure.error());
   }
 
-  if ((pressure.value() < kWsEwLn90lpPressureRange[0]) ||
-      (pressure.value() > kWsEwLn90lpPressureRange[1])) {
+  if ((pressure.value() < kEwLn90lpPressureRange[0]) ||
+      (pressure.value() > kEwLn90lpPressureRange[1])) {
     return unexpected(ERANGE);
   }
 
-  UnitMeasurement<Pressure> pm(pressure.value(), kWsEwLn90lpPressureAccuracy,
+  UnitMeasurement<Pressure> pm(pressure.value(), kEwLn90lpPressureAccuracy,
                          system_clock::now());
   /*
    * Since we got a pressure data load it in the private variable
@@ -488,13 +488,13 @@ WeatherStationEcowittLn90lp::readPressureData() {
 }
 
 expected<UnitMeasurement<Speed>, int>
-WeatherStationEcowittLn90lp::readWindSpeedData() {
+EcowittLn90lp::readWindSpeedData() {
   /*
    * Get the wind speed data
    */
   uint16_t raw_wind_speed;
   int result =
-      downloadModBusData(kWsEwLn90lpRtuRegisterWindSpeed, 1, &raw_wind_speed);
+      downloadModBusData(kEwLn90lpRtuRegisterWindSpeed, 1, &raw_wind_speed);
   if (result != 0) {
     return unexpected(result);
   }
@@ -506,8 +506,8 @@ WeatherStationEcowittLn90lp::readWindSpeedData() {
 
   MetersPerSecond mps = wspd.value();
 
-  if ((mps < kWsEwLn90lpWindSpeedRange[0]) ||
-      (mps > kWsEwLn90lpWindSpeedRange[1])) {
+  if ((mps < kEwLn90lpWindSpeedRange[0]) ||
+      (mps > kEwLn90lpWindSpeedRange[1])) {
     return unexpected(ERANGE);
   }
 
@@ -525,13 +525,13 @@ WeatherStationEcowittLn90lp::readWindSpeedData() {
   return wspdm;
 }
 
-expected<UnitMeasurement<Direction>, int> WeatherStationEcowittLn90lp::readWindDirectionData() {
+expected<UnitMeasurement<Direction>, int> EcowittLn90lp::readWindDirectionData() {
   /*
    * Get the wind direction data
    */
   uint16_t raw_wind_direction;
   int result =
-      downloadModBusData(kWsEwLn90lpRtuRegisterWindDirection, 1, &raw_wind_direction);
+      downloadModBusData(kEwLn90lpRtuRegisterWindDirection, 1, &raw_wind_direction);
   if (result != 0) {
     return unexpected(result);
   }
@@ -542,12 +542,12 @@ expected<UnitMeasurement<Direction>, int> WeatherStationEcowittLn90lp::readWindD
    */
   Degrees direct(raw_wind_direction);
 
-  if ((direct < kWsEwLn90lpWindDirectionRange[0]) ||
-      (direct > kWsEwLn90lpWindDirectionRange[1])) {
+  if ((direct < kEwLn90lpWindDirectionRange[0]) ||
+      (direct > kEwLn90lpWindDirectionRange[1])) {
     return unexpected(ERANGE);
   }
 
-  UnitMeasurement<Direction> wdm(direct, kWsEwLn90lpWindDirectionAccuracy, system_clock::now());
+  UnitMeasurement<Direction> wdm(direct, kEwLn90lpWindDirectionAccuracy, system_clock::now());
   /*
    * Since we got a wind direction data load it in the private variable
    */
@@ -557,12 +557,12 @@ expected<UnitMeasurement<Direction>, int> WeatherStationEcowittLn90lp::readWindD
 }
 
 expected<UnitMeasurement<Uvi>, int>
-WeatherStationEcowittLn90lp::readUviData() {
+EcowittLn90lp::readUviData() {
   /*
    * Get the temperature data
    */
   uint16_t raw_uvi;
-  int result = downloadModBusData(kWsEwLn90lpRtuRegisterUvi, 1,
+  int result = downloadModBusData(kEwLn90lpRtuRegisterUvi, 1,
                                   &raw_uvi);
   if (result != 0) {
     return unexpected(result);
@@ -576,12 +576,12 @@ WeatherStationEcowittLn90lp::readUviData() {
 
   Uvi uvi = x_uvi.value();
 
-  if ((uvi < kWsEwLn90lpUviRange[0]) ||
-      (uvi > kWsEwLn90lpUviRange[1])) {
+  if ((uvi < kEwLn90lpUviRange[0]) ||
+      (uvi > kEwLn90lpUviRange[1])) {
     return unexpected(ERANGE);
   }
 
-  UnitMeasurement<Uvi> uvim(uvi, kWsEwLn90lpUviAccuracy,
+  UnitMeasurement<Uvi> uvim(uvi, kEwLn90lpUviAccuracy,
                             system_clock::now());
   /*
    * Since we got a temperature data load it in the private variable
@@ -592,12 +592,12 @@ WeatherStationEcowittLn90lp::readUviData() {
 }
 
 expected<UnitMeasurement<Light>, int>
-WeatherStationEcowittLn90lp::readLightData() {
+EcowittLn90lp::readLightData() {
   /*
    * Get the temperature data
    */
   uint16_t raw_light;
-  int result = downloadModBusData(kWsEwLn90lpRtuRegisterLight, 1,
+  int result = downloadModBusData(kEwLn90lpRtuRegisterLight, 1,
                                   &raw_light);
   if (result != 0) {
     return unexpected(result);
@@ -611,12 +611,12 @@ WeatherStationEcowittLn90lp::readLightData() {
 
   Light light = x_light.value();
 
-  if ((light < kWsEwLn90lpLightRange[0]) ||
-      (light > kWsEwLn90lpLightRange[1])) {
+  if ((light < kEwLn90lpLightRange[0]) ||
+      (light > kEwLn90lpLightRange[1])) {
     return unexpected(ERANGE);
   }
 
-  UnitMeasurement<Light> lightm(light, kWsEwLn90lpLightAccuracy,
+  UnitMeasurement<Light> lightm(light, kEwLn90lpLightAccuracy,
                             system_clock::now());
   /*
    * Since we got a temperature data load it in the private variable
@@ -626,7 +626,7 @@ WeatherStationEcowittLn90lp::readLightData() {
   return last_light_;
 }
 
-int WeatherStationEcowittLn90lp::downloadModBusData(uint16_t addr, int count,
+int EcowittLn90lp::downloadModBusData(uint16_t addr, int count,
                                                     uint16_t* buffer) {
   /*
    * We get all the data here in one request
@@ -665,7 +665,7 @@ int WeatherStationEcowittLn90lp::downloadModBusData(uint16_t addr, int count,
   return 0;
 }
 
-int WeatherStationEcowittLn90lp::uploadModBusData(uint16_t addr, int count,
+int EcowittLn90lp::uploadModBusData(uint16_t addr, int count,
                                                   uint16_t* buffer) {
   /*
    * We get all the data here in one request
@@ -705,7 +705,7 @@ int WeatherStationEcowittLn90lp::uploadModBusData(uint16_t addr, int count,
 }
 
 expected<Temperature, int>
-WeatherStationEcowittLn90lp::convertRawTemperatureData(uint16_t raw_data) {
+EcowittLn90lp::convertRawTemperatureData(uint16_t raw_data) {
   if (raw_data == 0xFFFF) {
     return unexpected(EINVAL);
   }
@@ -717,7 +717,7 @@ WeatherStationEcowittLn90lp::convertRawTemperatureData(uint16_t raw_data) {
 }
 
 expected<RelativeHumidity, int>
-WeatherStationEcowittLn90lp::convertRawRelativeHumidityData(uint16_t raw_data) {
+EcowittLn90lp::convertRawRelativeHumidityData(uint16_t raw_data) {
   if (raw_data == 0xFFFF) {
     return unexpected(EINVAL);
   }
@@ -727,7 +727,7 @@ WeatherStationEcowittLn90lp::convertRawRelativeHumidityData(uint16_t raw_data) {
   return rhm;
 }
 
-expected<Pressure, int> WeatherStationEcowittLn90lp::convertRawPressureData(
+expected<Pressure, int> EcowittLn90lp::convertRawPressureData(
     uint16_t raw_data) {
   if (raw_data == 0xFFFF) {
     return unexpected(EINVAL);
@@ -738,7 +738,7 @@ expected<Pressure, int> WeatherStationEcowittLn90lp::convertRawPressureData(
   return pressure;
 }
 
-expected<Speed, int> WeatherStationEcowittLn90lp::convertRawWindSpeedData(
+expected<Speed, int> EcowittLn90lp::convertRawWindSpeedData(
     uint16_t raw_data) {
   if (raw_data == 0xFFFF) {
     return unexpected(EINVAL);
@@ -749,7 +749,7 @@ expected<Speed, int> WeatherStationEcowittLn90lp::convertRawWindSpeedData(
   return wspd;
 }
 
-expected<Uvi, int> WeatherStationEcowittLn90lp::convertRawUviData(
+expected<Uvi, int> EcowittLn90lp::convertRawUviData(
   uint16_t raw_data) {
   if (raw_data == 0xFFFF) {
     return unexpected(EINVAL);
@@ -758,10 +758,9 @@ expected<Uvi, int> WeatherStationEcowittLn90lp::convertRawUviData(
   Uvi uv_index(raw_data);
 
   return uv_index;
-
 }
 
-expected<Light, int> WeatherStationEcowittLn90lp::convertRawLightData(
+expected<Light, int> EcowittLn90lp::convertRawLightData(
   uint16_t raw_data) {
   if (raw_data == 0xFFFF) {
     return unexpected(EINVAL);
@@ -772,20 +771,20 @@ expected<Light, int> WeatherStationEcowittLn90lp::convertRawLightData(
   return lux;
 }
 
-uint32_t WeatherStationEcowittLn90lp::getLocalBaudRate() {
+uint32_t EcowittLn90lp::getLocalBaudRate() {
   return baud_rate_;
 }
 
-expected<uint32_t, int> WeatherStationEcowittLn90lp::getDeviceBaudRate() {
+expected<uint32_t, int> EcowittLn90lp::getDeviceBaudRate() {
   uint16_t speed_offset;
 
   int result =
-      downloadModBusData(kWsEwLn90lpRtuRegisterDataRate, 1, &speed_offset);
+      downloadModBusData(kEwLn90lpRtuRegisterDataRate, 1, &speed_offset);
   if (result != 0) {
     return unexpected(result);
   }
 
-  if (speed_offset > kWsEwLn90lpBaudRates.size()) {
+  if (speed_offset > kEwLn90lpBaudRates.size()) {
     /*
      * We got a bad value. Use Invalid Exchange EBADE. Seems like the best match
      */
@@ -796,15 +795,15 @@ expected<uint32_t, int> WeatherStationEcowittLn90lp::getDeviceBaudRate() {
    * Now that we have the offset return the corresponding value
    */
 
-  uint32_t speed = kWsEwLn90lpBaudRates[speed_offset - 1];
+  uint32_t speed = kEwLn90lpBaudRates[speed_offset - 1];
 
   return speed;
 }
 
-int WeatherStationEcowittLn90lp::setLocalBaudRate(uint32_t baud_rate) {
+int EcowittLn90lp::setLocalBaudRate(uint32_t baud_rate) {
   auto it =
-      find(kWsEwLn90lpBaudRates.begin(), kWsEwLn90lpBaudRates.end(), baud_rate);
-  if (it == kWsEwLn90lpBaudRates.end()) {
+      find(kEwLn90lpBaudRates.begin(), kEwLn90lpBaudRates.end(), baud_rate);
+  if (it == kEwLn90lpBaudRates.end()) {
     return EINVAL;
   }
   baud_rate_ = baud_rate;
@@ -812,17 +811,17 @@ int WeatherStationEcowittLn90lp::setLocalBaudRate(uint32_t baud_rate) {
   return 0;
 }
 
-int WeatherStationEcowittLn90lp::setDeviceBaudRate(uint32_t speed) {
+int EcowittLn90lp::setDeviceBaudRate(uint32_t speed) {
   uint16_t baud_offset;
 
-  for (baud_offset = 0; baud_offset < kWsEwLn90lpBaudRates.size();
+  for (baud_offset = 0; baud_offset < kEwLn90lpBaudRates.size();
        baud_offset++) {
-    if (kWsEwLn90lpBaudRates[baud_offset] == speed) {
+    if (kEwLn90lpBaudRates[baud_offset] == speed) {
       break;
     }
   }
 
-  if (baud_offset == kWsEwLn90lpBaudRates.size()) {
+  if (baud_offset == kEwLn90lpBaudRates.size()) {
     return EINVAL;
   }
 
@@ -845,28 +844,28 @@ int WeatherStationEcowittLn90lp::setDeviceBaudRate(uint32_t speed) {
   return 0;
 }
 
-uint8_t WeatherStationEcowittLn90lp::getSlaveAddress() {
+uint8_t EcowittLn90lp::getSlaveAddress() {
   return slave_addr_;
 }
 
-expected<uint8_t, int> WeatherStationEcowittLn90lp::getDeviceAddress() {
+expected<uint8_t, int> EcowittLn90lp::getDeviceAddress() {
   uint16_t address;
 
   int result =
-      downloadModBusData(kWsEwLn90lpRtuRegisterDeviceAddress, 1, &address);
+      downloadModBusData(kEwLn90lpRtuRegisterDeviceAddress, 1, &address);
   if (result != 0) {
     return unexpected(result);
   }
 
-  if ((address < kWsEwLn90lpAddressMin) || (address > kWsEwLn90lpAddressMax)) {
+  if ((address < kEwLn90lpAddressMin) || (address > kEwLn90lpAddressMax)) {
     return unexpected(EBADE);
   }
 
   return address;
 }
 
-int WeatherStationEcowittLn90lp::setSlaveAddress(uint8_t address) {
-  if ((address < kWsEwLn90lpAddressMin) || (address > kWsEwLn90lpAddressMax)) {
+int EcowittLn90lp::setSlaveAddress(uint8_t address) {
+  if ((address < kEwLn90lpAddressMin) || (address > kEwLn90lpAddressMax)) {
     return EINVAL;
   }
 
@@ -875,9 +874,9 @@ int WeatherStationEcowittLn90lp::setSlaveAddress(uint8_t address) {
   return 0;
 }
 
-int WeatherStationEcowittLn90lp::setDeviceAddress(uint16_t device_address) {
-  if ((device_address < kWsEwLn90lpAddressMin) ||
-      (device_address > kWsEwLn90lpAddressMax)) {
+int EcowittLn90lp::setDeviceAddress(uint16_t device_address) {
+  if ((device_address < kEwLn90lpAddressMin) ||
+      (device_address > kEwLn90lpAddressMax)) {
     return EINVAL;
   }
 
@@ -901,10 +900,10 @@ int WeatherStationEcowittLn90lp::setDeviceAddress(uint16_t device_address) {
   return 0;
 }
 
-std::expected<uint16_t, int> WeatherStationEcowittLn90lp::getDeviceId() {
+std::expected<uint16_t, int> EcowittLn90lp::getDeviceId() {
   uint16_t data;
 
-  int result = downloadModBusData(kWsEwLn90lpRtuRegisterDeviceAddress, 1, &data);
+  int result = downloadModBusData(kEwLn90lpRtuRegisterDeviceAddress, 1, &data);
   if (result != 0) {
     return unexpected(result);
   }
@@ -913,19 +912,19 @@ std::expected<uint16_t, int> WeatherStationEcowittLn90lp::getDeviceId() {
 }
 
 expected<struct WsEwLn90lpSpecialDataResponse, int>
-WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate,
+EcowittLn90lp::specialCommand(uint32_t baud_rate,
                                             uint8_t address) {
   struct WsEwLn90lpSpecialFrame inquiry;
   uint8_t bps;
 
   if (baud_rate != 0) {
     uint8_t i;
-    for (i = 0; i < kWsEwLn90lpBaudRates.size(); ++i) {
-      if (kWsEwLn90lpBaudRates[i] == baud_rate) {
+    for (i = 0; i < kEwLn90lpBaudRates.size(); ++i) {
+      if (kEwLn90lpBaudRates[i] == baud_rate) {
         break;
       }
     }
-    if (i == kWsEwLn90lpBaudRates.size()) {
+    if (i == kEwLn90lpBaudRates.size()) {
       return unexpected(EINVAL);
     }
     bps = i + 1;
@@ -935,8 +934,8 @@ WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate,
   /*
    * Address == 0 means we are inquiring about the address. So it is valid
    */
-  if ((address != 0) && ((address < kWsEwLn90lpAddressMin) ||
-                         (address > kWsEwLn90lpAddressMax))) {
+  if ((address != 0) && ((address < kEwLn90lpAddressMin) ||
+                         (address > kEwLn90lpAddressMax))) {
     return unexpected(EINVAL);
   }
 
@@ -990,10 +989,10 @@ WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate,
   delete response;
 
   struct WsEwLn90lpSpecialDataResponse data;
-  if (frame.data.bps < 1 || frame.data.bps > kWsEwLn90lpBaudRates.size()) {
+  if (frame.data.bps < 1 || frame.data.bps > kEwLn90lpBaudRates.size()) {
     return unexpected(EBADE);
   }
-  data.baud_rate = kWsEwLn90lpBaudRates[frame.data.bps - 1];
+  data.baud_rate = kEwLn90lpBaudRates[frame.data.bps - 1];
   data.device_address = frame.data.device_address;
 
   /*
@@ -1005,7 +1004,7 @@ WeatherStationEcowittLn90lp::specialCommand(uint32_t baud_rate,
   return data;
 }
 
-bool WeatherStationEcowittLn90lp::findAndMatchDevice() {
+bool EcowittLn90lp::findAndMatchDevice() {
   /*
    * We use the special command to try and find the device's address and baud rate.
    * Of course we can't talk to the device if the baud rate isn't correct. So,
@@ -1015,16 +1014,16 @@ bool WeatherStationEcowittLn90lp::findAndMatchDevice() {
    */
   int32_t try_baud = getLocalBaudRate();
   uint8_t start_offset;
-  for (int n = 0; n < kWsEwLn90lpBaudRates.size(); n++) {
-    if (try_baud == kWsEwLn90lpBaudRates[n]) {
+  for (int n = 0; n < kEwLn90lpBaudRates.size(); n++) {
+    if (try_baud == kEwLn90lpBaudRates[n]) {
       start_offset = n;
       break;
     }
   }
 
-  for (int cnt = 0, i = start_offset; cnt < kWsEwLn90lpBaudRates.size();
-       i = ++i % kWsEwLn90lpBaudRates.size(), ++cnt) {
-    setLocalBaudRate(kWsEwLn90lpBaudRates[i]);
+  for (int cnt = 0, i = start_offset; cnt < kEwLn90lpBaudRates.size();
+       i = ++i % kEwLn90lpBaudRates.size(), ++cnt) {
+    setLocalBaudRate(kEwLn90lpBaudRates[i]);
     expected<struct WsEwLn90lpSpecialDataResponse, int> attempt =
         specialCommand(0, 0);
     if (attempt.has_value() == true) {
@@ -1047,7 +1046,7 @@ bool WeatherStationEcowittLn90lp::findAndMatchDevice() {
    * If we get here it means we couldn't find the device
    * Set the baud rate to the original value
    */
-  setLocalBaudRate(kWsEwLn90lpBaudRates[start_offset]);
+  setLocalBaudRate(kEwLn90lpBaudRates[start_offset]);
 
   return false;
 }

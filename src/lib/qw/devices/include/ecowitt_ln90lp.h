@@ -25,8 +25,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_LIB_QW_DEVICES_INCLUDE_WEATHERSTATION_ECOWITT_LN90LP_H_
-#define SRC_LIB_QW_DEVICES_INCLUDE_WEATHERSTATION_ECOWITT_LN90LP_H_
+#ifndef SRC_LIB_QW_DEVICES_INCLUDE_ECOWITT_LN90LP_H_
+#define SRC_LIB_QW_DEVICES_INCLUDE_ECOWITT_LN90LP_H_
 
 #include <expected>
 
@@ -49,19 +49,19 @@
 
 namespace qw::devices {
 
-constexpr std::string_view kWsEwLn90lpRtuDevice = "/dev/ttyS0";
-constexpr uint kWsEwLn90lpRtuDeviceDefaultBaudRate = 9600;
-constexpr char kWsEwLn90lpRtuDeviceParity = 'N';
-constexpr uint8_t kWsEwLn90lpRtuDeviceDataBits = 8;
-constexpr uint8_t kWsEwLn90lpRtuDeviceStopBits = 1;
-constexpr uint8_t kWsEwLn90lpRtuDefaultSlaveAddress = 0x90;
+constexpr std::string_view kEwLn90lpRtuDevice = "/dev/ttyS0";
+constexpr uint kEwLn90lpRtuDeviceDefaultBaudRate = 9600;
+constexpr char kEwLn90lpRtuDeviceParity = 'N';
+constexpr uint8_t kEwLn90lpRtuDeviceDataBits = 8;
+constexpr uint8_t kEwLn90lpRtuDeviceStopBits = 1;
+constexpr uint8_t kEwLn90lpRtuDefaultSlaveAddress = 0x90;
 // I assume this is a fixed value
 // I came up with it by reading the register.
 // I hope that it identifies the model, but I am not sure
-constexpr uint16_t kWsEwLn90lpRtuDeviceId = 0x90;
+constexpr uint16_t kEwLn90lpRtuDeviceId = 0x90;
 
 // Special command code
-constexpr uint8_t kWsEwLn90lpSpecialCommandCode[3] = {0xFD, 0xFD, 0xFD};
+constexpr uint8_t kEwLn90lpSpecialCommandCode[3] = {0xFD, 0xFD, 0xFD};
 
 struct WsEwLn90lpSpecialDataInquiry {
   uint8_t bps;
@@ -78,121 +78,121 @@ struct WsEwLn90lpSpecialFrame {
   struct WsEwLn90lpSpecialDataInquiry data;
 };
 
-constexpr uint8_t kWsEwLn90lpErrIllegalFunction = 1;
-constexpr uint8_t kWsEwLn90lpErrIllegalAddress = 2;
-constexpr uint8_t kWsEwLn90lpErrIllegalData = 3;
-constexpr uint8_t kWsEwLn90lpErrCrcFail = 8;
+constexpr uint8_t kEwLn90lpErrIllegalFunction = 1;
+constexpr uint8_t kEwLn90lpErrIllegalAddress = 2;
+constexpr uint8_t kEwLn90lpErrIllegalData = 3;
+constexpr uint8_t kEwLn90lpErrCrcFail = 8;
 
 // One more than the offsets are the values to exchange with the device
 // to get the corresponding baud rate.
 // If when asked for the baud rate it returns a value of 2 then that
 // means the value is at 2-1 offset. That would be 9600. To set the
 // baud rate to 115200 you would send 3 + 1.
-constexpr uint8_t kWsEwLn90lpBaudRateCount = 4;
-constexpr std::array<uint32_t, 4> kWsEwLn90lpBaudRates({4800, 9600, 19200,
+constexpr uint8_t kEwLn90lpBaudRateCount = 4;
+constexpr std::array<uint32_t, 4> kEwLn90lpBaudRates({4800, 9600, 19200,
                                                         115200});
 
-constexpr uint16_t kWsEwLn90lpAddressMin = 1;
-constexpr uint16_t kWsEwLn90lpAddressMax = 252;
+constexpr uint16_t kEwLn90lpAddressMin = 1;
+constexpr uint16_t kEwLn90lpAddressMax = 252;
 
-constexpr uint8_t kWsEwLn90lpRtuRead = 0x03;
-constexpr uint8_t kWsEwLn90lpRtuWrite = 0x06;
+constexpr uint8_t kEwLn90lpRtuRead = 0x03;
+constexpr uint8_t kEwLn90lpRtuWrite = 0x06;
 
 // Temperature measuring range
-const qw::units::Celsius kWsEwLn90lpTemperatureRange[2] = {
+const qw::units::Celsius kEwLn90lpTemperatureRange[2] = {
     qw::units::Celsius(-40), qw::units::Celsius(60)};
 // +/-1 degree Celsius accuracy
-const qw::units::Celsius kWsEwLn90lpTemperatureAccuracy(1);
+const qw::units::Celsius kEwLn90lpTemperatureAccuracy(1);
 // .1 degree Celsius resolution
-const qw::units::Celsius kWsEwLn90lpTemperatureResolution(.1);
+const qw::units::Celsius kEwLn90lpTemperatureResolution(.1);
 
 // Relative Humidity measuring range
-const qw::units::RelativeHumidity kWsEwLn90lpRelativeHumidityRange[2] = {
+const qw::units::RelativeHumidity kEwLn90lpRelativeHumidityRange[2] = {
     qw::units::RelativeHumidity(1), qw::units::RelativeHumidity(99)};
 // +/-5 % Relative Humidity accuracy
-const qw::units::RelativeHumidity kWsEwLn90lpRelativeHumidityAccuracy(5);
+const qw::units::RelativeHumidity kEwLn90lpRelativeHumidityAccuracy(5);
 // 1% Relative Humidity resolution
-const qw::units::RelativeHumidity kWsEwLn90lpRelativeHumidityResolution(1);
+const qw::units::RelativeHumidity kEwLn90lpRelativeHumidityResolution(1);
 
 // Pressure measuring range
-const qw::units::Millibar kWsEwLn90lpPressureRange[2] = {
+const qw::units::Millibar kEwLn90lpPressureRange[2] = {
     qw::units::Millibar(300), qw::units::Millibar(1100)};
 // +/-5 mbar accuracy
-const qw::units::Millibar kWsEwLn90lpPressureAccuracy(5);
+const qw::units::Millibar kEwLn90lpPressureAccuracy(5);
 // .1 mbar resolution
-const qw::units::Millibar kWsEwLn90lpPressureResolution(.1);
+const qw::units::Millibar kEwLn90lpPressureResolution(.1);
 
 // Wind speed measuring range
-const qw::units::MetersPerSecond kWsEwLn90lpWindSpeedRange[2] = {
+const qw::units::MetersPerSecond kEwLn90lpWindSpeedRange[2] = {
     qw::units::MetersPerSecond(0), qw::units::MetersPerSecond(40)};
 // wind speed accuracy is not a constant. It is implemented in readWindSpeed().
 // wind speed reolution
-const qw::units::MetersPerSecond kWsEwLn90lpWindSpeedResolution(.1);
+const qw::units::MetersPerSecond kEwLn90lpWindSpeedResolution(.1);
 
 // Wind direction measuring range
-const qw::units::Degrees kWsEwLn90lpWindDirectionRange[2] = {
+const qw::units::Degrees kEwLn90lpWindDirectionRange[2] = {
     qw::units::Degrees(0), qw::units::Degrees(359)};
 // +/- 15 degrees accuracy
-const qw::units::Degrees kWsEwLn90lpWindDirectionAccuracy(15);
+const qw::units::Degrees kEwLn90lpWindDirectionAccuracy(15);
 // 1 degree resolution
-const qw::units::Degrees kWsEwLn90lpWindDirectionResolution(1);
+const qw::units::Degrees kEwLn90lpWindDirectionResolution(1);
 
 // UVI measuring range
-const qw::units::Uvi kWsEwLn90lpUviRange[2] = {
+const qw::units::Uvi kEwLn90lpUviRange[2] = {
     qw::units::Uvi(1), qw::units::Uvi(15)};
 // +/- 2 UVI accuracy
-const qw::units::Uvi kWsEwLn90lpUviAccuracy(15);
+const qw::units::Uvi kEwLn90lpUviAccuracy(15);
 // 1 UVI resolution
-const qw::units::Uvi kWsEwLn90lpUviResolution(1);
+const qw::units::Uvi kEwLn90lpUviResolution(1);
 
 // Light measuring range
-const qw::units::Lux kWsEwLn90lpLightRange[2] = {
+const qw::units::Lux kEwLn90lpLightRange[2] = {
     qw::units::Lux(0), qw::units::Lux(200)};
 // Accuracy is +/- 25% for now used a fixed value
-const qw::units::Lux kWsEwLn90lpLightAccuracy(15);
+const qw::units::Lux kEwLn90lpLightAccuracy(15);
 // 1 UVI resolution
-const qw::units::Lux kWsEwLn90lpLightResolution(.1);
+const qw::units::Lux kEwLn90lpLightResolution(.1);
 
-constexpr uint16_t kWsEwLn90lpRtuRegisterDeviceName = 0x0160;
-constexpr uint16_t kWsEwLn90lpRtuRegisterDataRate = 0x0161;
-constexpr uint16_t kWsEwLn90lpRtuRegisterDeviceAddress = 0x0162;
-constexpr uint16_t kWsEwLn90lpRtuRegisterDeviceIdMsb = 0x0163;
-constexpr uint16_t kWsEwLn90lpRtuRegisterDeviceIdLsb = 0x0164;
-constexpr uint16_t kWsEwLn90lpRtuRegisterLight = 0x0165;
-constexpr uint16_t kWsEwLn90lpRtuRegisterUvi = 0x0166;
-constexpr uint16_t kWsEwLn90lpRtuRegisterTemperature = 0x0167;
-constexpr uint16_t kWsEwLn90lpRtuRegisterHumidity = 0x0168;
-constexpr uint16_t kWsEwLn90lpRtuRegisterWindSpeed = 0x0169;
-constexpr uint16_t kWsEwLn90lpRtuRegisterGustSpeed = 0x016A;
-constexpr uint16_t kWsEwLn90lpRtuRegisterWindDirection = 0x016B;
-constexpr uint16_t kWsEwLn90lpRtuRegisterRainfall = 0x016C;
-constexpr uint16_t kWsEwLn90lpRtuRegisterAbsPressure = 0x016D;
-constexpr uint16_t kWsEwLn90lpRtuRegisterRainCounter = 0x016E;
+constexpr uint16_t kEwLn90lpRtuRegisterDeviceName = 0x0160;
+constexpr uint16_t kEwLn90lpRtuRegisterDataRate = 0x0161;
+constexpr uint16_t kEwLn90lpRtuRegisterDeviceAddress = 0x0162;
+constexpr uint16_t kEwLn90lpRtuRegisterDeviceIdMsb = 0x0163;
+constexpr uint16_t kEwLn90lpRtuRegisterDeviceIdLsb = 0x0164;
+constexpr uint16_t kEwLn90lpRtuRegisterLight = 0x0165;
+constexpr uint16_t kEwLn90lpRtuRegisterUvi = 0x0166;
+constexpr uint16_t kEwLn90lpRtuRegisterTemperature = 0x0167;
+constexpr uint16_t kEwLn90lpRtuRegisterHumidity = 0x0168;
+constexpr uint16_t kEwLn90lpRtuRegisterWindSpeed = 0x0169;
+constexpr uint16_t kEwLn90lpRtuRegisterGustSpeed = 0x016A;
+constexpr uint16_t kEwLn90lpRtuRegisterWindDirection = 0x016B;
+constexpr uint16_t kEwLn90lpRtuRegisterRainfall = 0x016C;
+constexpr uint16_t kEwLn90lpRtuRegisterAbsPressure = 0x016D;
+constexpr uint16_t kEwLn90lpRtuRegisterRainCounter = 0x016E;
 
-constexpr int kWsEwLn90lpRtuAllDataCount =
-    kWsEwLn90lpRtuRegisterAbsPressure - kWsEwLn90lpRtuRegisterLight + 1;
+constexpr int kEwLn90lpRtuAllDataCount =
+    kEwLn90lpRtuRegisterAbsPressure - kEwLn90lpRtuRegisterLight + 1;
 
 /*
  * These command initiate a measurement
  */
-constexpr uint16_t kWsEwLn90lpRtuMeasuringLight = 0x9C92;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringLightDelay(113);
-constexpr uint16_t kWsEwLn90lpRtuMeasuringUvi = 0x9C93;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringUviDelay(113);
-constexpr uint16_t kWsEwLn90lpRtuMeasuringTemperature = 0x9C94;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringTemperatureDelay(31);
-constexpr uint16_t kWsEwLn90lpRtuMeasuringHumidity = 0x9C95;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringHumidityDelay(31);
-constexpr uint16_t kWsEwLn90lpRtuMeasuringWindSpeed = 0x9C96;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringWindSpeedDelay(31);
-constexpr uint16_t kWsEwLn90lpRtuMeasuringGustSpeed = 0x9C97;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringGustSpeedDelay(31);
-constexpr uint16_t kWsEwLn90lpRtuMeasuringWindDirection = 0x9C98;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringWindDirectionDelay(
+constexpr uint16_t kEwLn90lpRtuMeasuringLight = 0x9C92;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringLightDelay(113);
+constexpr uint16_t kEwLn90lpRtuMeasuringUvi = 0x9C93;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringUviDelay(113);
+constexpr uint16_t kEwLn90lpRtuMeasuringTemperature = 0x9C94;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringTemperatureDelay(31);
+constexpr uint16_t kEwLn90lpRtuMeasuringHumidity = 0x9C95;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringHumidityDelay(31);
+constexpr uint16_t kEwLn90lpRtuMeasuringWindSpeed = 0x9C96;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringWindSpeedDelay(31);
+constexpr uint16_t kEwLn90lpRtuMeasuringGustSpeed = 0x9C97;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringGustSpeedDelay(31);
+constexpr uint16_t kEwLn90lpRtuMeasuringWindDirection = 0x9C98;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringWindDirectionDelay(
     31);
-// constexpr uint16_t kWsEwLn90lpRtuReserved = 0x9C99;
-constexpr uint16_t kWsEwLn90lpRtuMeasuringAbsPressure = 0x9C9A;
-constexpr std::chrono::milliseconds kWsEwLn90lpRtuMeasuringWindPressureDelay(
+// constexpr uint16_t kEwLn90lpRtuReserved = 0x9C99;
+constexpr uint16_t kEwLn90lpRtuMeasuringAbsPressure = 0x9C9A;
+constexpr std::chrono::milliseconds kEwLn90lpRtuMeasuringWindPressureDelay(
     136);
 
 struct WsEwLn90lpRtuInputData {
@@ -207,14 +207,14 @@ struct WsEwLn90lpRtuInputData {
 };
 
 // The device updates it's values every 8.8 seconds.
-constexpr std::chrono::milliseconds kWsEwLn90lpDataRefreshInterval(8800);
+constexpr std::chrono::milliseconds kEwLn90lpDataRefreshInterval(8800);
 // Wind speed is faster every 2.2 seconds
-constexpr std::chrono::milliseconds kWsEwLn90lpWindSpeedDataRefreshInterval(
+constexpr std::chrono::milliseconds kEwLn90lpWindSpeedDataRefreshInterval(
     2200);
 
-class WeatherStationEcowittLn90lp {
+class EcowittLn90lp {
  public:
-  explicit WeatherStationEcowittLn90lp(std::string_view device_name);
+  explicit EcowittLn90lp(std::string_view device_name);
 
   bool initialize(uint32_t baud = 0, uint8_t device_addr = 0);
 
@@ -327,7 +327,7 @@ class WeatherStationEcowittLn90lp {
 
   bool findAndMatchDevice();
 
-  ~WeatherStationEcowittLn90lp();
+  ~EcowittLn90lp();
 
  private:
   std::string_view device_name_;
@@ -340,30 +340,30 @@ class WeatherStationEcowittLn90lp {
 
   qw::units::UnitMeasurement<qw::units::Temperature> last_temperature_;
   std::chrono::milliseconds temperature_valid_interval_ =
-      kWsEwLn90lpDataRefreshInterval;
+      kEwLn90lpDataRefreshInterval;
 
   qw::units::UnitMeasurement<qw::units::RelativeHumidity> last_rh_;
-  std::chrono::milliseconds rh_valid_interval_ = kWsEwLn90lpDataRefreshInterval;
+  std::chrono::milliseconds rh_valid_interval_ = kEwLn90lpDataRefreshInterval;
 
   qw::units::UnitMeasurement<qw::units::Pressure> last_pressure_;
   std::chrono::milliseconds pressure_valid_interval_ =
-      kWsEwLn90lpDataRefreshInterval;
+      kEwLn90lpDataRefreshInterval;
 
   qw::units::UnitMeasurement<qw::units::Speed> last_wind_speed_;
   std::chrono::milliseconds wind_speed_valid_interval_ =
-      kWsEwLn90lpDataRefreshInterval;
+      kEwLn90lpDataRefreshInterval;
 
   qw::units::UnitMeasurement<qw::units::Direction> last_wind_direction_;
   std::chrono::milliseconds wind_direction_valid_interval_ =
-      kWsEwLn90lpDataRefreshInterval;
+      kEwLn90lpDataRefreshInterval;
 
   qw::units::UnitMeasurement<qw::units::Uvi> last_uvi_;
   std::chrono::milliseconds uvi_valid_interval_ =
-      kWsEwLn90lpDataRefreshInterval;
+      kEwLn90lpDataRefreshInterval;
 
   qw::units::UnitMeasurement<qw::units::Light> last_light_;
   std::chrono::milliseconds light_valid_interval_ =
-      kWsEwLn90lpDataRefreshInterval;
+      kEwLn90lpDataRefreshInterval;
 
   int downloadModBusData(uint16_t addr, int count, uint16_t* buffer);
 
@@ -388,4 +388,4 @@ class WeatherStationEcowittLn90lp {
 
 }  // namespace qw::devices
 
-#endif  // SRC_LIB_QW_DEVICES_INCLUDE_WEATHERSTATION_ECOWITT_LN90LP_H_
+#endif  // SRC_LIB_QW_DEVICES_INCLUDE_ECOWITT_LN90LP_H_

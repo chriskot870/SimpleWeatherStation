@@ -48,7 +48,7 @@
 #include "qw/devices/i2c/include/lps22.h"
 #include "qw/devices/i2c/include/sht4x.h"
 #include "qw/devices/include/anomometer_adafruit.h"
-#include "qw/devices/include/weatherstation_ecowitt_ln90lp.h"
+#include "qw/devices/include/ecowitt_ln90lp.h"
 #include "qw/locking/include/locking_file.h"
 #include "qw/logger/include/logger.h"
 #include "qw/systemd/include/sd_service_unit.h"
@@ -74,10 +74,10 @@ using qw::devices::I2cSht4x;
 using qw::devices::kAds1015I2cPrimaryAddress;
 using qw::devices::kLps22hbI2cPrimaryAddress;
 using qw::devices::kSht4xI2cPrimaryAddress;
-using qw::devices::kWsEwLn90lpBaudRates;
-using qw::devices::kWsEwLn90lpRtuDeviceId;
+using qw::devices::kEwLn90lpBaudRates;
+using qw::devices::kEwLn90lpRtuDeviceId;
 using qw::devices::Lps22;
-using qw::devices::WeatherStationEcowittLn90lp;
+using qw::devices::EcowittLn90lp;
 using qw::logging::Logger;
 using qw::logging::logger;
 using qw::logging::LOGGER_DEBUG;
@@ -325,14 +325,14 @@ int main(int argc, char* argv[]) {
     terminate(in_systemd);
   }
 
-  WeatherStationEcowittLn90lp ecowitt("/dev/ttyS0");
+  EcowittLn90lp ecowitt("/dev/ttyS0");
 
   /*
    * Initialize to the fastest speed
    * May want to get this from configuration file
    */
   if (ecowitt.initialize(
-          kWsEwLn90lpBaudRates[kWsEwLn90lpBaudRates.size() - 1]) != true) {
+          kEwLn90lpBaudRates[kEwLn90lpBaudRates.size() - 1]) != true) {
     logger.log(LOG_CRIT, "Couldn't find Ecowitt LN90lp device");
     logger.log(LOG_CRIT, "Can not continue");
     terminate(in_systemd);
@@ -345,7 +345,7 @@ int main(int argc, char* argv[]) {
   }
   uint16_t ecowitt_device_id = ecowitt_expect_id.value();
 
-  if (ecowitt_device_id != kWsEwLn90lpRtuDeviceId) {
+  if (ecowitt_device_id != kEwLn90lpRtuDeviceId) {
     logger.log(LOG_CRIT, "Incorrect Device ID for Ecowitt LN90lp");
     terminate(in_systemd);
   }
