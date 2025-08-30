@@ -238,7 +238,98 @@ void terminate(bool in_systemd) {
   exit(1);
 }
 
-int main(int argc, char* argv[]) {
+qw::weather::WeatherDevice<Temperature> getEcowittThermometer(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Temperature> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Temperature>, int> {
+      return ecowitt.getTemperature();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getTemperatureValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setTemperatureValidInterval(interval);
+    });
+}
+
+qw::weather::WeatherDevice<RelativeHumidity> getEcowittHygrometer(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<RelativeHumidity> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::RelativeHumidity>, int> {
+      return ecowitt.getRelativeHumidity();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getRelativeHumidityValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setRelativeHumidityValidInterval(interval);
+    });
+}
+
+qw::weather::WeatherDevice<Pressure> getEcowittBarometer(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Pressure> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Pressure>, int> {
+      return ecowitt.getPressure();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getPressureValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setPressureValidInterval(interval);
+    });
+}
+
+qw::weather::WeatherDevice<Speed> getEcowittAnemometer(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Speed> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Speed>, int> {
+      return ecowitt.getWindspeed();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getWindSpeedValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setWindSpeedValidInterval(interval);
+    });
+}
+
+qw::weather::WeatherDevice<Direction> getEcowittWindVane(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Direction> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Direction>, int> {
+      return ecowitt.getWindDirection();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getWindDirectionValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setWindDirectionValidInterval(interval);
+    });
+}
+
+qw::weather::WeatherDevice<Uvi> getEcowittUvMeter(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Uvi> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Uvi>, int> {
+      return ecowitt.getUvi();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getUviValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setUviValidInterval(interval);
+    });
+}
+
+qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Light> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Light>, int> {
+      return ecowitt.getLight();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getLightValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setLightValidInterval(interval);
+    });
+  }
+
+  int main(int argc, char* argv[]) {
   string temperature;
   string humidity;
   float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
@@ -350,82 +441,16 @@ int main(int argc, char* argv[]) {
     terminate(in_systemd);
   }
 
-  qw::weather::WeatherDevice<Temperature> thermometer_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Temperature>, int> {
-      return ecowitt.getTemperature();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getTemperatureValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setTemperatureValidInterval(interval);
-    });
-
-  qw::weather::WeatherDevice<RelativeHumidity> hygrometer_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::RelativeHumidity>, int> {
-      return ecowitt.getRelativeHumidity();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getRelativeHumidityValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setRelativeHumidityValidInterval(interval);
-    });
-
-  qw::weather::WeatherDevice<Pressure> barometer_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Pressure>, int> {
-      return ecowitt.getPressure();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getPressureValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setPressureValidInterval(interval);
-    });
-
-  qw::weather::WeatherDevice<Speed> anemometer_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Speed>, int> {
-      return ecowitt.getWindspeed();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getWindSpeedValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setWindSpeedValidInterval(interval);
-    });
-
-  qw::weather::WeatherDevice<Direction> wind_vane_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Direction>, int> {
-      return ecowitt.getWindDirection();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getWindDirectionValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setWindDirectionValidInterval(interval);
-    });
-
-  qw::weather::WeatherDevice<Uvi> uv_meter_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Uvi>, int> {
-      return ecowitt.getUvi();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getUviValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setUviValidInterval(interval);
-    });
-
-  qw::weather::WeatherDevice<Light> photometer_1(
-    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Light>, int> {
-      return ecowitt.getLight();
-    },
-    [&ecowitt]() -> milliseconds {
-      return ecowitt.getLightValidInterval();
-    },
-    [&ecowitt](milliseconds interval) -> void {
-      return ecowitt.setLightValidInterval(interval);
-    });
+  /*
+   * Define all the weather devices using the Ecowitt LN90lp device
+   */
+  qw::weather::WeatherDevice<Temperature> thermometer_1 = getEcowittThermometer(ecowitt);
+  qw::weather::WeatherDevice<RelativeHumidity> hygrometer_1 = getEcowittHygrometer(ecowitt);
+  qw::weather::WeatherDevice<Pressure> barometer_1 = getEcowittBarometer(ecowitt);
+  qw::weather::WeatherDevice<Speed> anemometer_1 = getEcowittAnemometer(ecowitt);
+  qw::weather::WeatherDevice<Direction> wind_vane_1 = getEcowittWindVane(ecowitt);
+  qw::weather::WeatherDevice<Uvi> uv_meter_1 = getEcowittUvMeter(ecowitt);
+  qw::weather::WeatherDevice<Light> photometer_1 = getEcowittPhotometer(ecowitt);
 
   /*
    * Starting to gather data
