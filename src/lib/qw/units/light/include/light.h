@@ -92,6 +92,8 @@ class Light {
    */
   operator Lux() const;
 
+  operator Klux() const;
+
   operator FootCandle() const;
 
  private:

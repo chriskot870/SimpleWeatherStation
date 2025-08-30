@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <chrono>
 
 #include "qw/logger/include/logger.h"
 
@@ -44,7 +45,7 @@
 #include "qw/units/humidity/include/relative_humidity.h"
 #include "qw/units/include/unit_measurement.h"
 #include "qw/units/light/include/light.h"
-#include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/klux.h"
 #include "qw/units/pressure/include/inches_mercury.h"
 #include "qw/units/pressure/include/pressure.h"
 #include "qw/units/speed/include/miles_per_hour.h"
@@ -58,7 +59,7 @@ using qw::units::Direction;
 using qw::units::Fahrenheit;
 using qw::units::InchesMercury;
 using qw::units::Light;
-using qw::units::Lux;
+using qw::units::Klux;
 using qw::units::MilesPerHour;
 using qw::units::Pressure;
 using qw::units::RelativeHumidity;
@@ -503,13 +504,13 @@ void WeatherUnderground::addUviMeasurement(UnitMeasurement<Uvi> m_uvi) {
 }
 
 void WeatherUnderground::addLightMeasurement(UnitMeasurement<Light> m_light) {
-  Lux light = m_light.measurement();
+  Klux klux = m_light.measurement();
   expected<string, int> field_format = getFieldFormat("solarradiation");
   if (field_format.has_value() != true) {
     logger.log(LOG_INFO,
                format("No suitable for format for field {}", "solarradiation"));
   } else {
-    setVarData("solarradiation", light.toString(field_format.value()));
+    setVarData("solarradiation", klux.toString(field_format.value()));
   }
 
   return;
@@ -560,7 +561,8 @@ expected<string, int> WeatherUnderground::buildHttpRequest() {
     logger.log(LOG_INFO, "Couldn't add action field");
     return unexpected(add.error());
   }
-  // time_point<utc_clock> utc_time = utc_clock::now();
+  // We want utc time here. For now use "now"
+
   add = addData("dateutc", "now");
   if (add.has_value() != true) {
     logger.log(LOG_INFO, "Couldn't add dateutc field");

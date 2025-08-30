@@ -32,6 +32,7 @@
 #include "qw/units/light/include/light.h"
 #include "qw/units/light/include/foot_candle.h"
 #include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/klux.h"
 
 using std::string;
 using std::strong_ordering;
@@ -172,6 +173,14 @@ Light::operator Lux() const {
 
   return lux;
 }
+
+Light::operator Klux() const {
+  Klux klux;
+  klux.setBase(base_value_);
+
+  return klux;
+}
+
 
 Light::operator FootCandle() const {
   FootCandle fc;

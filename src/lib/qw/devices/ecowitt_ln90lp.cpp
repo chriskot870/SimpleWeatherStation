@@ -68,7 +68,7 @@
 #include "qw/units/direction/include/degrees.h"
 #include "qw/units/direction/include/direction.h"
 #include "qw/units/uvi/include/uvi.h"
-#include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/klux.h"
 #include "qw/units/light/include/light.h"
 #include "qw/units/include/unit_measurement.h"
 
@@ -82,7 +82,7 @@ using qw::units::Direction;
 using qw::units::Celsius;
 using qw::units::Temperature;
 using qw::units::Uvi;
-using qw::units::Lux;
+using qw::units::Klux;
 using qw::units::Light;
 using qw::units::UnitMeasurement;
 using std::expected;
@@ -766,9 +766,9 @@ expected<Light, int> EcowittLn90lp::convertRawLightData(
     return unexpected(EINVAL);
   }
 
-  Lux lux(raw_data);
+  Klux klux(raw_data);
 
-  return lux;
+  return klux;
 }
 
 uint32_t EcowittLn90lp::getLocalBaudRate() {

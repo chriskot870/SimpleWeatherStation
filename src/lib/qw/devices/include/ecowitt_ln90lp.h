@@ -43,7 +43,7 @@
 #include "qw/units/speed/include/meters_per_second.h"
 #include "qw/units/temperature/include/celsius.h"
 #include "qw/units/uvi/include/uvi.h"
-#include "qw/units/light/include/lux.h"
+#include "qw/units/light/include/klux.h"
 #include "qw/units/light/include/light.h"
 #include "qw/units/include/unit_measurement.h"
 
@@ -146,8 +146,8 @@ const qw::units::Uvi kEwLn90lpUviAccuracy(15);
 const qw::units::Uvi kEwLn90lpUviResolution(1);
 
 // Light measuring range
-const qw::units::Lux kEwLn90lpLightRange[2] = {
-    qw::units::Lux(0), qw::units::Lux(200)};
+const qw::units::Klux kEwLn90lpLightRange[2] = {
+    qw::units::Klux(0), qw::units::Klux(200)};
 // Accuracy is +/- 25% for now used a fixed value
 const qw::units::Lux kEwLn90lpLightAccuracy(15);
 // 1 UVI resolution
