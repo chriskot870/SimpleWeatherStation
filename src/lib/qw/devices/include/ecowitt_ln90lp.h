@@ -139,7 +139,7 @@ const qw::units::Degrees kEwLn90lpWindDirectionResolution(1);
 
 // UVI measuring range
 const qw::units::Uvi kEwLn90lpUviRange[2] = {
-    qw::units::Uvi(1), qw::units::Uvi(15)};
+    qw::units::Uvi(0), qw::units::Uvi(15)};
 // +/- 2 UVI accuracy
 const qw::units::Uvi kEwLn90lpUviAccuracy(15);
 // 1 UVI resolution

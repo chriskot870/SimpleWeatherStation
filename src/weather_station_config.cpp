@@ -207,6 +207,27 @@ expected<uint8_t, int> WeatherStationConfig::i2cDeviceAddress(string device) {
   return addr;
 }
 
+expected<string, int> WeatherStationConfig::getModbusSerialPort() {
+  string port =
+      config_json_["Hardware"]["Modbus"]["SerialPort"].asString();
+
+  return port;
+}
+
+expected<uint32_t, int> WeatherStationConfig::getEcowittLn90lpBaudRate() {
+  uint32_t rate =
+      config_json_["Hardware"]["Modbus"]["Devices"]["EcowittLN90lp"]["baudrate"].asInt();
+
+  return rate;
+}
+
+expected<uint8_t, int> WeatherStationConfig::getEcowittLn90lpAddress() {
+  uint8_t address =
+      config_json_["Hardware"]["Modbus"]["Devices"]["EcowittLN90lp"]["address"].asInt();
+
+  return address;
+}
+
 expected<milliseconds, int> WeatherStationConfig::getDataAcquisitionInterval() {
   int data =
       variables_json_["DataAcquisition"]["data_gathering_interval"].asInt();

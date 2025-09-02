@@ -75,6 +75,7 @@ using qw::devices::kAds1015I2cPrimaryAddress;
 using qw::devices::kLps22hbI2cPrimaryAddress;
 using qw::devices::kSht4xI2cPrimaryAddress;
 using qw::devices::kEwLn90lpBaudRates;
+using qw::devices::kEwLn90lpRtuDevice;
 using qw::devices::kEwLn90lpRtuDeviceId;
 using qw::devices::Lps22;
 using qw::devices::EcowittLn90lp;
@@ -238,6 +239,9 @@ void terminate(bool in_systemd) {
   exit(1);
 }
 
+/*
+ * Define the various weather devices
+ */
 qw::weather::WeatherDevice<Temperature> getEcowittThermometer(EcowittLn90lp &ecowitt) {  // NOLINT
   return qw::weather::WeatherDevice<Temperature> (
     [&ecowitt]() -> expected<UnitMeasurement<qw::units::Temperature>, int> {
@@ -416,14 +420,28 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
     terminate(in_systemd);
   }
 
-  EcowittLn90lp ecowitt("/dev/ttyS0");
+  string serial_port = kEwLn90lpRtuDevice.data();
+  expected<string, int> x_serial_port = ws_config.getModbusSerialPort();
+  if (x_serial_port.has_value() == true) {
+    serial_port = x_serial_port.value();  // /dev/ttyS0
+  }
+  EcowittLn90lp ecowitt(serial_port);
 
   /*
    * Initialize to the fastest speed
    * May want to get this from configuration file
    */
-  if (ecowitt.initialize(
-          kEwLn90lpBaudRates[kEwLn90lpBaudRates.size() - 1]) != true) {
+  uint32_t baud_rate = kEwLn90lpBaudRates[kEwLn90lpBaudRates.size() - 1];
+  uint8_t ecowitt_address = kEwLn90lpRtuDeviceId;
+  expected<uint32_t, int> x_baud_rate = ws_config.getEcowittLn90lpBaudRate();
+  if (x_baud_rate.has_value() == true) {
+    baud_rate = x_baud_rate.value();
+  }
+  expected<uint8_t, int> x_ecowitt_address = ws_config.getEcowittLn90lpAddress();
+  if (x_ecowitt_address.has_value() == true) {
+    ecowitt_address = x_ecowitt_address.value();
+  }
+  if (ecowitt.initialize(baud_rate, ecowitt_address) != true) {
     logger.log(LOG_CRIT, "Couldn't find Ecowitt LN90lp device");
     logger.log(LOG_CRIT, "Can not continue");
     terminate(in_systemd);

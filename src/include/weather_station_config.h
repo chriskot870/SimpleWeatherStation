@@ -83,6 +83,13 @@ class WeatherStationConfig {
 
   std::expected<bool, int> getWuReportEnabled();
 
+  std::expected<string, int> getModbusSerialPort();
+
+  std::expected<uint32_t, int> getEcowittLn90lpBaudRate();
+
+  std::expected<uint8_t, int> getEcowittLn90lpAddress();
+
+
  private:
   string getLockFileName(string file);
 

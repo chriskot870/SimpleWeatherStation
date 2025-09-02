@@ -9,6 +9,15 @@
    },
    "Hardware": {
       "Model": "1000",
+      "Modbus": {
+         "SerialPort": "/dev/ttyS0",
+         "Devices": {
+            "EcowittLN90lp": {
+               "address": 144,
+               "baudrate": 115200
+            }
+         }
+      },
       "I2c": {
          "Bus": {
             "name": "/dev/i2c-1",
