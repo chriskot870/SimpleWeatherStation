@@ -95,7 +95,6 @@ class Distance {
   int64_t base_value_;
 };
 
-
 }  // namespace qw::units
 
 #endif  // SRC_LIB_QW_UNITS_DISTANCE_INCLUDE_DISTANCE_H_

@@ -61,6 +61,8 @@
 #include "qw/weather/include/dewpoint.h"
 #include "qw/units/light/include/lux.h"
 #include "qw/units/light/include/light.h"
+#include "qw/units/distance/include/millimeter.h"
+#include "qw/units/distance/include/distance.h"
 #include "qw/units/include/unit_measurement.h"
 #include "qw/weather/include/weather_device.h"
 
@@ -110,6 +112,8 @@ using qw::units::RelativeHumidity;
 using qw::units::Uvi;
 using qw::units::Lux;
 using qw::units::Light;
+using qw::units::Millimeter;
+using qw::units::Distance;
 using qw::units::UnitMeasurement;
 using qw::units::MeasurementHistory;
 using qw::units::kHistoryInterval10m;
@@ -333,6 +337,19 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
     });
   }
 
+  qw::weather::WeatherDevice<Distance> getEcowittRainGauge(EcowittLn90lp &ecowitt) {  // NOLINT
+  return qw::weather::WeatherDevice<Distance> (
+    [&ecowitt]() -> expected<UnitMeasurement<qw::units::Distance>, int> {
+      return ecowitt.getRainFall();
+    },
+    [&ecowitt]() -> milliseconds {
+      return ecowitt.getRainFallValidInterval();
+    },
+    [&ecowitt](milliseconds interval) -> void {
+      return ecowitt.setRainFallValidInterval(interval);
+    });
+}
+
   int main(int argc, char* argv[]) {
   string temperature;
   string humidity;
@@ -352,8 +369,9 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
   WindspeedHistory ws_history;
   WindDirectionHistory wd_history;
    */
-  MeasurementHistory<Speed> ws_history;
-  MeasurementHistory<Direction> wd_history;
+  MeasurementHistory<Speed> ws_history(seconds(600));  // Keep 10 minutes of history
+  MeasurementHistory<Direction> wd_history(seconds(600));  // Keep 10 minutes of history
+  MeasurementHistory<Distance> rf_history(seconds(3600));  // Store 1 hour worth of rain?
 
   /*
     * If we have started from systemd then we always use
@@ -469,6 +487,7 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
   qw::weather::WeatherDevice<Direction> wind_vane_1 = getEcowittWindVane(ecowitt);
   qw::weather::WeatherDevice<Uvi> uv_meter_1 = getEcowittUvMeter(ecowitt);
   qw::weather::WeatherDevice<Light> photometer_1 = getEcowittPhotometer(ecowitt);
+  qw::weather::WeatherDevice<Distance> rain_gauge_1 = getEcowittRainGauge(ecowitt);
 
   /*
    * Starting to gather data
@@ -558,7 +577,7 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
       auto x_wind_speed_measurement = anemometer_1.getData();
 
       /*
-       * If we successfully got a anemometer measurement add it to the history
+       * If we successfully got an anemometer measurement add it to the history
        */
       if (x_wind_speed_measurement.has_value()) {
         ws_history.add(x_wind_speed_measurement.value());
@@ -572,6 +591,22 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
       if (x_wind_dir_measurement.has_value()) {
         wd_history.add(x_wind_dir_measurement.value());
       }
+
+      auto x_rain_fall_measurement = rain_gauge_1.getData();
+
+      /*
+       * If we successfully got a reading from rainfall add it to the history
+       */
+      if (x_rain_fall_measurement.has_value()) {
+        /*
+         * We only add if we got a value
+         */
+        Millimeter rf = x_rain_fall_measurement.value().measurement();
+        if (rf >= Millimeter(1)) {
+          rf_history.add(x_rain_fall_measurement.value());
+        }
+      }
+
 
       if ((now_time - last_report_time) >= reporting_loop_interval) {
         /*

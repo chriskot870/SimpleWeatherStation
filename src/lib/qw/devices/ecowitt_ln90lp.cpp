@@ -70,6 +70,8 @@
 #include "qw/units/uvi/include/uvi.h"
 #include "qw/units/light/include/klux.h"
 #include "qw/units/light/include/light.h"
+#include "qw/units/distance/include/millimeter.h"
+#include "qw/units/distance/include/distance.h"
 #include "qw/units/include/unit_measurement.h"
 
 using qw::units::Millibar;
@@ -84,6 +86,8 @@ using qw::units::Temperature;
 using qw::units::Uvi;
 using qw::units::Klux;
 using qw::units::Light;
+using qw::units::Millimeter;
+using qw::units::Distance;
 using qw::units::UnitMeasurement;
 using std::expected;
 using std::find;
@@ -390,6 +394,39 @@ void EcowittLn90lp::setLightValidInterval(milliseconds interval) {
   return;
 }
 
+/*
+ * These three make a Rain Gauge
+ */
+expected<UnitMeasurement<Distance>, int> EcowittLn90lp::getRainFall() {
+  /*
+   * Check if we have gotten the rain fall within the valid time frame
+   */
+  if ((system_clock::now() - last_rain_fall_.timeStamp()) <=
+      rain_fall_valid_interval_) {
+    return last_rain_fall_;
+  }
+  /*
+   * It has been too long since we last got the data so go get the data from the sensor
+   * The readRainFallData() will update last_rain_fall_
+   */
+  expected<UnitMeasurement<Distance>, int> x_new_rain_fall = readRainFallData();
+  if (x_new_rain_fall.has_value() != true) {
+    return unexpected(x_new_rain_fall.error());
+  }
+
+  last_rain_fall_ = x_new_rain_fall.value();
+
+  return last_rain_fall_;
+}
+
+milliseconds EcowittLn90lp::getRainFallValidInterval() {
+  return rain_fall_valid_interval_;
+}
+
+void EcowittLn90lp::setRainFallValidInterval(milliseconds interval) {
+  rain_fall_valid_interval_ = interval;
+}
+
 expected<UnitMeasurement<Temperature>, int>
 EcowittLn90lp::readTemperatureData() {
   /*
@@ -626,6 +663,51 @@ EcowittLn90lp::readLightData() {
   return last_light_;
 }
 
+expected<UnitMeasurement<Distance>, int> EcowittLn90lp::readRainFallData() {
+  /*
+   * Get the temperature data
+   */
+  uint16_t raw_rain_fall;
+  int result = downloadModBusData(kEwLn90lpRtuRegisterRainfall, 1,
+                                  &raw_rain_fall);
+  if (result != 0) {
+    return unexpected(result);
+  }
+
+  expected<Distance, int> x_rain_fall =
+      convertRawRainFallData(raw_rain_fall);
+  if (x_rain_fall.has_value() != true) {
+    return unexpected(x_rain_fall.error());
+  }
+
+  Distance rain_fall = x_rain_fall.value();
+
+  if ((rain_fall < kEwLn90lpRainFallRange[0]) ||
+      (rain_fall > kEwLn90lpRainFallRange[1])) {
+    return unexpected(ERANGE);
+  }
+
+  /*
+   * Rain fall Metering Accuracy
+   * 20% if < 5mm/h
+   * 10% if 5 mm/h to 50 mm/h
+   * 20% if > 50 mm/h
+   * 
+   * For now we just use 20%
+   */
+  Distance accuracy = rain_fall / 5;
+
+  UnitMeasurement<Distance> rain_fallm(rain_fall, accuracy,
+                            system_clock::now());
+  /*
+   * Since we got a temperature data load it in the private variable
+   */
+  last_rain_fall_ = rain_fallm;
+
+  return last_rain_fall_;
+}
+
+
 int EcowittLn90lp::downloadModBusData(uint16_t addr, int count,
                                                     uint16_t* buffer) {
   /*
@@ -769,6 +851,16 @@ expected<Light, int> EcowittLn90lp::convertRawLightData(
   Klux klux(raw_data);
 
   return klux;
+}
+
+expected<Distance, int> EcowittLn90lp::convertRawRainFallData(uint16_t raw_data) {
+  if (raw_data == 0xFFFF) {
+    return unexpected(EINVAL);
+  }
+
+  Millimeter mm(raw_data / 10);
+
+  return mm;
 }
 
 uint32_t EcowittLn90lp::getLocalBaudRate() {

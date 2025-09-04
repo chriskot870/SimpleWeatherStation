@@ -45,6 +45,8 @@
 #include "qw/units/uvi/include/uvi.h"
 #include "qw/units/light/include/klux.h"
 #include "qw/units/light/include/light.h"
+#include "qw/units/distance/include/millimeter.h"
+#include "qw/units/distance/include/distance.h"
 #include "qw/units/include/unit_measurement.h"
 
 namespace qw::devices {
@@ -152,6 +154,13 @@ const qw::units::Klux kEwLn90lpLightRange[2] = {
 const qw::units::Lux kEwLn90lpLightAccuracy(15);
 // 1 UVI resolution
 const qw::units::Lux kEwLn90lpLightResolution(.1);
+
+// Rainfall measuring range
+const qw::units::Millimeter kEwLn90lpRainFallRange[2] = {
+    qw::units::Millimeter(0), qw::units::Millimeter(6553.5)};
+// Rainfall accuracy is more complicated
+// Rainfall measuring resolution
+const qw::units::Millimeter kEwLn90lpRainFallResolution(.1);
 
 constexpr uint16_t kEwLn90lpRtuRegisterDeviceName = 0x0160;
 constexpr uint16_t kEwLn90lpRtuRegisterDataRate = 0x0161;
@@ -283,6 +292,15 @@ class EcowittLn90lp {
   void setLightValidInterval(std::chrono::milliseconds interval);
 
   /*
+   * These three make a Rain Gauge
+   */
+  std::expected<qw::units::UnitMeasurement<qw::units::Distance>, int> getRainFall();
+
+  std::chrono::milliseconds getRainFallValidInterval();
+
+  void setRainFallValidInterval(std::chrono::milliseconds interval);
+
+  /*
    * These are the unbuffered read routines called by the get routines above.
    * These actually go fetch the data from the device.
    */
@@ -300,6 +318,8 @@ class EcowittLn90lp {
   std::expected<qw::units::UnitMeasurement<qw::units::Uvi>, int> readUviData();
 
   std::expected<qw::units::UnitMeasurement<qw::units::Light>, int> readLightData();
+
+  std::expected<qw::units::UnitMeasurement<qw::units::Distance>, int> readRainFallData();
 
   /*
    * MIicellaneous control functions
@@ -365,6 +385,10 @@ class EcowittLn90lp {
   std::chrono::milliseconds light_valid_interval_ =
       kEwLn90lpDataRefreshInterval;
 
+  qw::units::UnitMeasurement<qw::units::Distance> last_rain_fall_;
+  std::chrono::milliseconds rain_fall_valid_interval_ =
+      kEwLn90lpDataRefreshInterval;
+
   int downloadModBusData(uint16_t addr, int count, uint16_t* buffer);
 
   int uploadModBusData(uint16_t addr, int count, uint16_t* buffer);
@@ -384,6 +408,8 @@ class EcowittLn90lp {
   std::expected<qw::units::Uvi, int> convertRawUviData(uint16_t raw_data);
 
   std::expected<qw::units::Light, int> convertRawLightData(uint16_t raw_data);
+
+  std::expected<qw::units::Distance, int> convertRawRainFallData(uint16_t raw_data);
 };
 
 }  // namespace qw::devices
