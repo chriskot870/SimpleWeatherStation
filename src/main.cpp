@@ -653,12 +653,8 @@ qw::weather::WeatherDevice<Light> getEcowittPhotometer(EcowittLn90lp &ecowitt) {
           wu->addLightMeasurement(x_light.value());
         }
 
-        if (ws_history.empty() != true) {
-          wu->addWindSpeedMeasurement(ws_history);
-        }
-        if (wd_history.empty() != true != 0) {
-          wu->addWindDirectionMeasurement(wd_history);
-        }
+        wu->addWindMeasurement(ws_history, wd_history);
+
         /*
          * debug to check out the string
          */

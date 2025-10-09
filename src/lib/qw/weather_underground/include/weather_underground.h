@@ -119,6 +119,15 @@ enum WuFieldType {
                          // was not matched
 };
 
+// Don't report wind direction below this speed
+const Speed wind_speed_to_report_direction = MilesPerHour(0.2);
+enum WuWindDirectionValues {
+  WU_WIND_DIR_LAST,
+  WU_WIND_DIR_AVG_2M,
+  WU_WIND_DIR_GUST_AVG_2M,
+  WU_WIND_DIR_GUST_AVG_10M
+};
+
 class WuFieldProperties {
  public:
   WuFieldType type_;
@@ -163,9 +172,13 @@ class WeatherUnderground {
 
   void addPressureMeasurement(UnitMeasurement<Pressure> m_pressure);
 
-  void addWindSpeedMeasurement(MeasurementHistory<Speed>& m_wind_speed_history);
+  void addWindMeasurement(
+      MeasurementHistory<Speed>& m_wind_speed_history,
+      MeasurementHistory<Direction>& m_wind_direction_history);
 
-  void addWindDirectionMeasurement(MeasurementHistory<Direction>& m_wind_direction_history);
+  void addWindDirectionMeasurement(
+      MeasurementHistory<Direction>& m_wind_direction_history,
+      WuWindDirectionValues mode);
 
   void addUviMeasurement(UnitMeasurement<Uvi> m_uvi);
 
