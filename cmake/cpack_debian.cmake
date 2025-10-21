@@ -17,7 +17,7 @@
 # 
 set(CPACK_DEBIAN_PACKAGE_NAME "qw-weatherstation")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "chriskot@quietwind.net")
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "arm64")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
 #
 # We use libstdc++ in order to use the expect construct.
 # We need libsystemd-dev in order to talk to systemd daemon via C++

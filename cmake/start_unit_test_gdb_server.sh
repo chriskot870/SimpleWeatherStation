@@ -1,15 +1,25 @@
 #!/bin/bash
 
+
+echo start_unit_test_gdb_server.sh $@
+
 target_ip="192.168.50.6"
 target_gdbserver_port=":4711"
-target_command="/usr/local/qw/tests/units_temperature.test"
+target_command_dir="/usr/local/qw/tests"
 target_stdin="/dev/null"
 target_stdout="/var/tmp/units_temperature_test.out"
 target_stderr="/var/tmp/units_temperature_test.err"
 target_user="chrisk"
-build_command="build/src/lib/qw/units/temperature/tests/units_temperature.test"
+build_command=$1
 
-echo Copying new Test command to target
+target_executable=`basename $build_command`
+
+target_stdin="/dev/null"
+target_stdout="/var/tmp/$target_executable.out"
+target_stderr="/var/tmp/$target_executable.err"
+
+target_command="$target_command_dir/$target_executable"
+echo Copying new Test command to target $target_command
 scp $build_command $target_user@$target_ip:$target_command 1>/dev/null 2>&1
 
 #
