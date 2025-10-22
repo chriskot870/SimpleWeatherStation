@@ -232,7 +232,7 @@ expected<milliseconds, int> WeatherStationConfig::getDataAcquisitionInterval() {
   int data =
       variables_json_["DataAcquisition"]["data_gathering_interval"].asInt();
 
-  milliseconds msecs = milliseconds(msecs);
+  milliseconds msecs = milliseconds(data);
 
   return msecs;
 }
@@ -261,7 +261,7 @@ WeatherStationConfig::getWuReportInterval() {
 }
 
 expected<bool, int> WeatherStationConfig::getWuReportEnabled() {
-  bool enabled = variables_json_["WeatherUnerground"]["reporting_enabled"].asBool();
+  bool enabled = variables_json_["WeatherUnderground"]["reporting_enabled"].asBool();
 
   return enabled;
 }
