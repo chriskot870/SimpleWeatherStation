@@ -57,7 +57,7 @@ enum LoggerPriority {
   LOGGER_WARNING, /* 4 warning conditions */
   LOGGER_NOTICE,  /* 5 normal but significant condition */
   LOGGER_INFO,    /* 6 informational */
-  LOGGER_DEBUG    /*7 debug-level messages */
+  LOGGER_DEBUG    /* 7 debug-level messages */
 };
 
 class Logger {
