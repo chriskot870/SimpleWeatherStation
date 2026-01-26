@@ -77,7 +77,7 @@ using std::regex_match;
 using std::string;
 
 /*
- * Any filed that matches the pattern of the key has the associated properties
+ * Any field that matches the pattern of the key has the associated properties
  */
 const map<string, WuFieldProperties> wu_field_regex_list = {
     {"^ID$", WuFieldProperties(WU_FIELD_TYPE_STRING, "{}")},
@@ -166,7 +166,8 @@ size_t WeatherUnderground::writeCallback(void* contents, size_t size,
 
 expected<bool, int> WeatherUnderground::sendData() {
   /*
-   * We need to check that ID and PASSWORD are NOT in the map
+   * buildHttpRequest will add the following so they should not
+   * exist yet.
    */
   if (wu_data_.contains("ID") || wu_data_.contains("PASSWORD")) {
     return unexpected(EINVAL);
@@ -375,7 +376,7 @@ void WeatherUnderground::addWindMeasurement(
     }
   }
 
-   /*
+  /*
    * Get the windspeed average over the last 2 minutes
    */
   expected<MilesPerHour, int> x_mph_2mave =
@@ -394,7 +395,8 @@ void WeatherUnderground::addWindMeasurement(
        * If the wind speed is greater than 0 then get the last diection
        */
       if (mph > wind_speed_to_report_direction) {
-        addWindDirectionMeasurement(m_wind_direction_history, WU_WIND_DIR_AVG_2M);
+        addWindDirectionMeasurement(m_wind_direction_history,
+                                    WU_WIND_DIR_AVG_2M);
       }
     }
   }
@@ -418,7 +420,8 @@ void WeatherUnderground::addWindMeasurement(
        * If the wind speed is greater than 0 then get the last diection
        */
       if (mph > wind_speed_to_report_direction) {
-        addWindDirectionMeasurement(m_wind_direction_history, WU_WIND_DIR_GUST_AVG_2M);
+        addWindDirectionMeasurement(m_wind_direction_history,
+                                    WU_WIND_DIR_GUST_AVG_2M);
       }
     }
   }
@@ -442,7 +445,8 @@ void WeatherUnderground::addWindMeasurement(
        * If the wind speed is greater than 0 then get the last diection
        */
       if (mph > wind_speed_to_report_direction) {
-        addWindDirectionMeasurement(m_wind_direction_history, WU_WIND_DIR_GUST_AVG_10M);
+        addWindDirectionMeasurement(m_wind_direction_history,
+                                    WU_WIND_DIR_GUST_AVG_10M);
       }
     }
   }
@@ -451,27 +455,27 @@ void WeatherUnderground::addWindMeasurement(
 }
 
 void WeatherUnderground::addWindDirectionMeasurement(
-    MeasurementHistory<Direction>& m_wind_direction_history, WuWindDirectionValues mode) {
+    MeasurementHistory<Direction>& m_wind_direction_history,
+    WuWindDirectionValues mode) {
 
   switch (mode) {
-    case WU_WIND_DIR_LAST:
-      {
-        expected<UnitMeasurement<Direction>, int> x_newest =
+    case WU_WIND_DIR_LAST: {
+      expected<UnitMeasurement<Direction>, int> x_newest =
           m_wind_direction_history.last();
-        if (x_newest.has_value() != true) {
-          logger.log(LOG_INFO,
+      if (x_newest.has_value() != true) {
+        logger.log(LOG_INFO,
                    format("Couldn't get last Wind Direction Measurement"));
-        } else {
-          Degrees degrees = x_newest.value().measurement();
-          expected<string, int> field_format = getFieldFormat("winddir");
-          if (field_format.has_value() != true) {
-            logger.log(LOG_INFO,
+      } else {
+        Degrees degrees = x_newest.value().measurement();
+        expected<string, int> field_format = getFieldFormat("winddir");
+        if (field_format.has_value() != true) {
+          logger.log(LOG_INFO,
                      format("No suitable format for field {}", "winddir"));
-          } else {
-            setVarData("winddir", degrees.toString(field_format.value()));
-          }
+        } else {
+          setVarData("winddir", degrees.toString(field_format.value()));
         }
       }
+    }
       return;
 
     case WU_WIND_DIR_AVG_2M:
@@ -480,16 +484,16 @@ void WeatherUnderground::addWindDirectionMeasurement(
       //
       {
         expected<Degrees, int> x_dir_2mave =
-          m_wind_direction_history.average(kHistoryInterval2m);
+            m_wind_direction_history.average(kHistoryInterval2m);
         if (x_dir_2mave.has_value() != true) {
           logger.log(LOG_INFO,
-                   format("Couldn't get Wind Direction 2 min Average"));
+                     format("Couldn't get Wind Direction 2 min Average"));
         } else {
           Degrees dir = x_dir_2mave.value();
           expected<string, int> field_format = getFieldFormat("winddir_avg2m");
           if (field_format.has_value() != true) {
             logger.log(LOG_INFO, format("No suitable format for field {}",
-                                      "winddir_avg2m"));
+                                        "winddir_avg2m"));
           } else {
             setVarData("winddir_avg2m", dir.toString(field_format.value()));
           }
@@ -504,15 +508,15 @@ void WeatherUnderground::addWindDirectionMeasurement(
       //
       {
         expected<UnitMeasurement<Direction>, int> x_wind_dir_gust =
-          m_wind_direction_history.gust(kHistoryInterval2m);
+            m_wind_direction_history.gust(kHistoryInterval2m);
         if (x_wind_dir_gust.has_value() != true) {
           logger.log(LOG_INFO, format("Couldn't get Wind Direction gust"));
         } else {
           Degrees dir_gust = x_wind_dir_gust.value().measurement();
           expected<string, int> field_format = getFieldFormat("windgustdir");
           if (field_format.has_value() != true) {
-            logger.log(LOG_INFO,
-                     format("No suitable format for field {}", "windgustdir"));
+            logger.log(LOG_INFO, format("No suitable format for field {}",
+                                        "windgustdir"));
           } else {
             setVarData("windgustdir", dir_gust.toString(field_format.value()));
           }
@@ -526,18 +530,20 @@ void WeatherUnderground::addWindDirectionMeasurement(
       //
       {
         expected<UnitMeasurement<Direction>, int> x_dir_gust_avg10m =
-          m_wind_direction_history.gust(kHistoryInterval10m);
+            m_wind_direction_history.gust(kHistoryInterval10m);
         if (x_dir_gust_avg10m.has_value() != true) {
           logger.log(LOG_INFO,
-                   format("Couldn't get Wind Direction Gust 10 min Average"));
+                     format("Couldn't get Wind Direction Gust 10 min Average"));
         } else {
           Degrees dir_gust = x_dir_gust_avg10m.value().measurement();
-          expected<string, int> field_format = getFieldFormat("windgustdir_10m");
+          expected<string, int> field_format =
+              getFieldFormat("windgustdir_10m");
           if (field_format.has_value() != true) {
             logger.log(LOG_INFO, format("No suitable format for field {}",
-                                      "windgustdir_10m"));
+                                        "windgustdir_10m"));
           } else {
-            setVarData("windgustdir_10m", dir_gust.toString(field_format.value()));
+            setVarData("windgustdir_10m",
+                       dir_gust.toString(field_format.value()));
           }
         }
       }
@@ -591,38 +597,9 @@ void WeatherUnderground::reset() {
 }
 
 expected<string, int> WeatherUnderground::buildHttpRequest() {
-  string url_get_string;
+  /* Prepend the username and password */
 
-  /*
-   * Add the ID and PASSWORD
-   */
-  expected<void, int> add = addData("ID", id_);
-  if (add.has_value() != true) {
-    logger.log(LOG_INFO, "Couldn't add ID field");
-    return unexpected(add.error());
-  }
-  add = addData("PASSWORD", password_);
-  if (add.has_value() != true) {
-    logger.log(LOG_INFO, "Couldn't add PASSWORD field");
-    return unexpected(add.error());
-  }
-  /*
-   * Add action and Time
-   * Calling setVarData goes through some sanity checks.
-   * BUt we will just go straight to addData
-   */
-  add = addData("action", "updateraw");
-  if (add.has_value() != true) {
-    logger.log(LOG_INFO, "Couldn't add action field");
-    return unexpected(add.error());
-  }
-  // We want utc time here. For now use "now"
-
-  add = addData("dateutc", "now");
-  if (add.has_value() != true) {
-    logger.log(LOG_INFO, "Couldn't add dateutc field");
-    return unexpected(add.error());
-  }
+  string url_get_string = format("{}?&ID={}&PASSWORD={}", wu_url, id_, password_);
   /*
    * Now walk through the url data map and create the url escaped get string.
    */
@@ -630,13 +607,7 @@ expected<string, int> WeatherUnderground::buildHttpRequest() {
     url_get_string += format("&{}={}", field, value.url_data);
   }
 
-  /*
-   * Put the URL pieces together
-   */
-  string url_http_string(wu_url);
-  url_http_string += "?" + url_get_string;
-
-  return url_http_string;
+  return url_get_string;
 }
 
 string WeatherUnderground::getHttpRequest() {
