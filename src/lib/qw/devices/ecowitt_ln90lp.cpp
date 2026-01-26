@@ -47,6 +47,7 @@
 
 #include "qw/devices/include/ecowitt_ln90lp.h"
 
+#include <sys/ioctl.h>
 #include <expected>
 
 #include <algorithm>
@@ -723,6 +724,9 @@ int EcowittLn90lp::downloadModBusData(uint16_t addr, int count,
     modbus_free(ctx);
     return errno;
   }
+
+  int fd = modbus_get_socket(ctx);
+  ioctl(fd, TIOCEXCL);
 
   /*
    * We want to use modbus_read_registers so it uses function code 0x03
