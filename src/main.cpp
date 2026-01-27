@@ -119,6 +119,7 @@ using qw::units::Temperature;
 using qw::units::UnitMeasurement;
 using qw::units::Uvi;
 using qw::weather::dewPoint;
+using qw::weather::WeatherDevice;
 using std::cout;
 using std::endl;
 using std::get;
@@ -356,19 +357,16 @@ qw::weather::WeatherDevice<Distance> getEcowittRainGauge(
 }
 
 int main(int argc, char* argv[]) {
-  string temperature;
-  string humidity;
+  string temperature, humidity, time_string;
   float ctemp, pressure, hum, ftemp, sht44temp, lps22temp;
-  string time_string;
   std::expected<uint8_t, int> x_whoami;
   std::expected<uint32_t, int> x_serial_number;
   std::expected<string, SdBusError> service_state;
   std::expected<uint32_t, SdBusError> service_pid;
-  int error;
-  int c;
+  int error, c;
   bool in_systemd = false;
-  bool reporting_enabled =
-      false;  // We are debugging so don't send the data to weather underground
+  // We are debugging so don't send the data to weather underground
+  bool reporting_enabled = true;
   Ads1015Config value;
   /*
   WindspeedHistory ws_history;
@@ -489,6 +487,19 @@ int main(int argc, char* argv[]) {
   /*
    * Define all the weather devices using the Ecowitt LN90lp device
    */
+  /*
+  WeatherDevice<Temperature> thermometer_1(
+      [&ecowitt]() -> expected<UnitMeasurement<Temperature>, int> {
+        return ecowitt.getTemperature();
+      },
+      [&ecowitt]() -> milliseconds {
+        return ecowitt.getTemperatureValidInterval();
+      },
+      [&ecowitt](milliseconds interval) -> void {
+        return ecowitt.setTemperatureValidInterval(interval);
+      });
+   */
+
   qw::weather::WeatherDevice<Temperature> thermometer_1 =
       getEcowittThermometer(ecowitt);
   qw::weather::WeatherDevice<RelativeHumidity> hygrometer_1 =
@@ -524,9 +535,8 @@ int main(int argc, char* argv[]) {
                              get_data_interval.value().count()),
                          ws_data_gathering_interval_max.count()));
   }
-  logger.log(LOG_INFO,
-             format("Set data gathering interval to {} milliseconds",
-                    data_gathering_interval.count()));
+  logger.log(LOG_INFO, format("Set data gathering interval to {} milliseconds",
+                              data_gathering_interval.count()));
 
   expected<string, int> get_wu_pwu_name = ws_config.getWuPwuName();
   string pwu_name = get_wu_pwu_name.value();
@@ -686,6 +696,12 @@ int main(int argc, char* argv[]) {
         wu->addWindMeasurement(ws_history, wd_history);
 
         /*
+         * Add action and Time
+         */
+        wu->setVarData("action", "updateraw");
+        // We want utc time here. For now use "now"
+        wu->setVarData("dateutc", "now");
+        /*
          * debug to check out the string
          */
         expected<string, int> http_request = wu->buildHttpRequest();
@@ -694,6 +710,7 @@ int main(int argc, char* argv[]) {
         } else {
           logger.log(LOGGER_INFO, http_request.value());
         }
+
         /*
          * When we are deugging we may not want to actually send the
          * data. So, only send is reporting enabled is on
@@ -703,11 +720,10 @@ int main(int argc, char* argv[]) {
           if (errval.has_value() == false) {
             logger.log(LOGGER_ERR,
                        format("Send Data Failed: {}", errval.error()));
+          } else {
+            string response = wu->getHttpResponse();
+            logger.log(LOGGER_INFO, response);
           }
-
-          string response = wu->getHttpResponse();
-
-          logger.log(LOGGER_INFO, response);
         }
         wu->reset();
       }
