@@ -25,6 +25,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_LIB_QW_WEATHER_INCLUDE_WEATHER_DEVICE_H_
+#define SRC_LIB_QW_WEATHER_INCLUDE_WEATHER_DEVICE_H_
 
 #include <expected>
 #include <chrono>
@@ -69,3 +71,5 @@ void setInterval(milliseconds interval) {
 };
 
 }  // namespace qw::weather
+
+#endif // SRC_LIB_QW_WEATHER_INCLUDE_WEATHER_DEVICE_H_
