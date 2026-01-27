@@ -5,7 +5,7 @@
     "pwu_password": "ToeBGPo3",
     "report_interval_comment": "Interval to report data in milliseconds",
     "report_interval": 300000,
-    "reporting_enabled": true
+    "reporting_enabled": false
   },
   "DataAcquisition": {
     "data_gather_interval_comment": "Interval to gather data in milliseconds",
