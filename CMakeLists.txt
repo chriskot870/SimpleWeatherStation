@@ -18,6 +18,15 @@ set(CMAKE_INSTALL_PREFIX  "/usr/local/qw")
 #
 project(WeatherStation CXX)
 
+enable_testing()
+#
+# I needed to include Dart or else I got a could not find DartConfig.tcl error.
+# I have read some docs that Dart was removed from Cmake and is deprecated.
+# It says to use the include Dart to add it to Cmake. I am a bit confused
+# about this. I have not found any documentation that explains this.
+#
+#include(Dart)  # This prevents a Dartconfiguration.tcl file not found error
+
 #
 # Add the sub-directories to build
 #
@@ -42,6 +51,5 @@ add_subdirectory(tools)
 #set(CPACK_GENERATOR "DEB")
 include(${CMAKE_SOURCE_DIR}/cmake/cpack_debian.cmake)
 include(CPack)
-
 
 

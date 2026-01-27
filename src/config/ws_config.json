@@ -1,20 +1,30 @@
 {
-   "WeatherUndegroundFile": "/usr/local/qw/etc/ws_wu_config.json",
+   "WeatherUndergroundFile": "/usr/local/qw/etc/ws_config_variables.json",
    "Software": {
       "Version": {
-         "Major": 0,
-         "Minor": 1,
+         "Major": 2,
+         "Minor": 0,
          "Patchlevel": 0
       }
    },
    "Hardware": {
       "Model": "1000",
+      "Modbus": {
+         "SerialPort": "/dev/ttyS0",
+         "Devices": {
+            "EcowittLN90lp": {
+               "address": 144,
+               "baudrate": 115200
+            }
+         }
+      },
       "I2c": {
          "Bus": {
             "name": "/dev/i2c-1",
             "device_addresses": {
                "sht4x": 68,
                "lps22": 93,
+               "ads1015": 72,
                "ds3231": 104
             }
          },
@@ -26,6 +36,12 @@
             "lps22": [
                93,
                94
+            ],
+            "ads1015": [
+               72,
+               73,
+               74,
+               75
             ],
             "ds3231": [
                104

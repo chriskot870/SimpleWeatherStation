@@ -1,0 +1,22 @@
+#
+# CMakeLists.txt file for the devices
+#
+# Add the standard library to the build
+
+add_library(i2cdevices STATIC
+  i2cbus.cpp
+  sht4x.cpp
+  lps22.cpp
+  ads1015.cpp
+)
+
+# add_compile_options(-std=c++23) to use expected class
+target_compile_options(i2cdevices PUBLIC -std=c++23)
+
+target_include_directories(i2cdevices PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
+
+target_link_libraries(i2cdevices PUBLIC
+  temperature_units
+  pressure_units
+  humidity_units
+)

@@ -1,0 +1,78 @@
+/*
+ * Copyright 2024,2025, Chris Kottaridis. All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 4. Neither the name of the copyright holders nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS”
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * NTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#ifndef SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
+#define SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
+
+#include <chrono>
+#include <string>
+#include <string_view>
+
+#include "jsoncpp/json/json.h"
+
+#include "include/weather_station.h"
+
+/*
+ * The ReportInterval is in milliseconds. 300000 = 5 minutes
+ */
+constexpr std::chrono::milliseconds wu_default_report_interval =
+    std::chrono::milliseconds(300000);
+constexpr std::chrono::milliseconds wu_report_interval_min =
+    std::chrono::milliseconds(2500);  // 2.5 seconds in milliseconds
+constexpr std::chrono::milliseconds wu_report_interval_max =
+    std::chrono::milliseconds(((60 * 60) * 1000));  // 1 hour in milliseconds
+
+const std::string_view wu_default_config = R"({
+    "WeatherUnderground": {
+        "pwu_name": "KTXROANO168",
+        "pwu_password": "HW0SG8q3"
+    },
+   "report_interval": 300000
+})";
+
+class WeatherUndergroundConfig {
+ public:
+  explicit WeatherUndergroundConfig(const string& config_file);
+
+  bool exists();
+
+  bool initialize();
+
+  void setConfigFile(const string& config_file);
+
+  bool getRoot(Json::Value* root);
+
+  bool putRoot(const Json::Value& data);
+
+ private:
+  std::string getLockFileName(string file);
+
+  std::string config_file_;
+};
+
+#endif  // SRC_INCLUDE_WEATHER_UNDERGROUND_CONFIG_H_
