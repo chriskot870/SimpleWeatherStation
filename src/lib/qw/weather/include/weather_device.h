@@ -72,4 +72,4 @@ void setInterval(milliseconds interval) {
 
 }  // namespace qw::weather
 
-#endif // SRC_LIB_QW_WEATHER_INCLUDE_WEATHER_DEVICE_H_
+#endif  // SRC_LIB_QW_WEATHER_INCLUDE_WEATHER_DEVICE_H_
